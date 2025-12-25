@@ -28,10 +28,21 @@ export type UserProgressState = {
   journey: Record<JourneyKey, boolean>
 }
 
+export type CourseSuggestion = {
+  title: string
+  level: 'Beginner' | 'Intermediate' | 'Advanced'
+  duration: string
+  why: string
+  outcomes: string[]
+}
+
 export type CourseRecommendation = {
   subDomain: string
   matchPercent: number
   explanation: string
+  suggestedCourses: CourseSuggestion[]
+  starterProjects: string[]
+  tools: string[]
 }
 
 export const dashboardHeader = {
