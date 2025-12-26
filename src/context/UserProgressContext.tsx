@@ -8,6 +8,7 @@ import {
 import {
   initialUserProgressState,
   journeyMeta,
+  type CareerPathReport,
   type CourseRecommendation,
   type RiasecType,
   type UserProgressState,
@@ -24,7 +25,9 @@ type UserProgressContextValue = {
     topType: RiasecType
     percentages: Record<RiasecType, number>
     recommendations: CourseRecommendation[]
+    careerPathReport: CareerPathReport
   }) => void
+  resetPsychometricTest: () => void
   simulateProgress: () => void
   resetDemo: () => void
 }
@@ -53,6 +56,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       topType: RiasecType
       percentages: Record<RiasecType, number>
       recommendations: CourseRecommendation[]
+      careerPathReport: CareerPathReport
     }) {
       setProgress((prev) => {
         // Beginner-friendly rule: once submitted, keep it completed (reset via Reset Demo).
@@ -63,6 +67,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           psychometricCompleted: true,
           psychometricResult: payload.code,
           riasecPercentages: { ...payload.percentages },
+          careerPathReport: payload.careerPathReport,
           courseRecommendations:
             payload.recommendations.length > 0
               ? payload.recommendations
@@ -70,6 +75,18 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           journey: { ...prev.journey, psychometric: true },
         }
       })
+    }
+
+    function resetPsychometricTest() {
+      setProgress((prev) => ({
+        ...prev,
+        psychometricCompleted: false,
+        psychometricResult: '',
+        riasecPercentages: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
+        careerPathReport: null,
+        courseRecommendations: [],
+        journey: { ...prev.journey, psychometric: false, course: false },
+      }))
     }
 
     function simulateProgress() {
@@ -90,7 +107,14 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       setProgress(cloneInitial())
     }
 
-    return { progress, setUserName, submitPsychometricTest, simulateProgress, resetDemo }
+    return {
+      progress,
+      setUserName,
+      submitPsychometricTest,
+      resetPsychometricTest,
+      simulateProgress,
+      resetDemo,
+    }
   }, [progress])
 
   return (

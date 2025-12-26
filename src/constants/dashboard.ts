@@ -15,6 +15,25 @@ export type JourneyKey =
 
 export type RiasecType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
 
+export type CareerPath = {
+  riasec: RiasecType
+  title: string
+  description: string
+  learningFocus: string[]
+  possibleRoles: string[]
+}
+
+export type CareerPathReport = {
+  topTypes: RiasecType[]
+  primaryPath: CareerPath
+  supportingPaths: CareerPath[]
+  rationale: {
+    summary: string
+    primaryWhy: string
+    supportingWhy: string[]
+  }
+}
+
 export type UserProgressState = {
   // Minimal shared state for user progress (dummy-only, frontend state).
   userName: string
@@ -23,6 +42,8 @@ export type UserProgressState = {
   psychometricResult: string
   // RIASEC percentages shown in Psychometric Test trait breakdown.
   riasecPercentages: Record<RiasecType, number>
+  // Conceptual career/learning path guidance generated from the top RIASEC types.
+  careerPathReport: CareerPathReport | null
   roadmapProgress: number
   courseRecommendations: CourseRecommendation[]
   journey: Record<JourneyKey, boolean>
@@ -85,6 +106,7 @@ export const initialUserProgressState: UserProgressState = {
   psychometricCompleted: false,
   psychometricResult: '',
   riasecPercentages: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
+  careerPathReport: null,
   roadmapProgress: 70,
   courseRecommendations: [],
   journey: {
