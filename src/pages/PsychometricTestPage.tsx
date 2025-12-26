@@ -6,11 +6,39 @@ import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import type { RiasecType } from '../constants/dashboard'
 import { cn } from '../lib/cn'
+import { IconBook, IconPin, IconTarget } from '../components/icons'
 import { riasecQuestions } from '../data/riasecQuestions.js'
 import { calculateRiasecScore } from '../utils/calculateRiasecScore.js'
 import { getRiasecDescription } from '../utils/getRiasecDescription.js'
 import { generateTechRecommendations } from '../utils/generateTechRecommendations.js'
 import { generateCareerPath } from '../utils/generateCareerPath.js'
+
+function AnimatedRadar() {
+  return (
+    <div className="relative size-10">
+      <div className="absolute inset-0 rounded-full bg-blue-500/10 ring-1 ring-blue-500/25" />
+      <div className="absolute inset-2 rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20" />
+      <div className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-100" />
+      <div className="absolute inset-0 animate-[spin_3.5s_linear_infinite]">
+        <div className="absolute left-1/2 top-0 size-2 -translate-x-1/2 rounded-full bg-blue-300/90 shadow-[0_0_18px_rgba(147,197,253,0.6)]" />
+      </div>
+      <div className="absolute inset-0 rounded-full bg-blue-500/5 animate-pulse" />
+    </div>
+  )
+}
+
+function TabIcon(props: { tab: 'who' | 'learn' | 'become'; active: boolean }) {
+  const { tab, active } = props
+  const cls = cn(active ? 'text-blue-200' : 'text-slate-300')
+  switch (tab) {
+    case 'who':
+      return <IconTarget size={18} className={cls} />
+    case 'learn':
+      return <IconBook size={18} className={cls} />
+    case 'become':
+      return <IconPin size={18} className={cls} />
+  }
+}
 
 export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest } = useUserProgress()
@@ -465,6 +493,19 @@ export function PsychometricTestPage() {
                           {progress.careerPathReport.primaryPath.description}
                         </div>
                       </div>
+                      <div className="shrink-0">
+                        <div className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-3 py-3">
+                          <AnimatedRadar />
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-slate-300">
+                              Motivation tip
+                            </div>
+                            <div className="mt-1 text-xs text-slate-400">
+                              Pick one role below and explore courses for it.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {progress.careerPathReport.supportingPaths.length > 0 && (
@@ -534,8 +575,20 @@ export function PsychometricTestPage() {
                         )}
                       >
                         <div className="text-xs font-semibold text-slate-400">{t.hint}</div>
-                        <div className={cn('mt-1 text-sm font-semibold', active ? 'text-blue-100' : 'text-slate-100')}>
-                          {t.label}
+                        <div className="mt-2 flex items-center gap-2">
+                          <span
+                            className={cn(
+                              'grid size-8 place-items-center rounded-xl ring-1 transition',
+                              active
+                                ? 'bg-blue-600/20 text-blue-100 ring-blue-500/25'
+                                : 'bg-slate-950/40 text-slate-200 ring-slate-800/70',
+                            )}
+                          >
+                            <TabIcon tab={t.key} active={active} />
+                          </span>
+                          <div className={cn('text-sm font-semibold', active ? 'text-blue-100' : 'text-slate-100')}>
+                            {t.label}
+                          </div>
                         </div>
                       </button>
                     )
@@ -579,9 +632,15 @@ export function PsychometricTestPage() {
                         {progress.careerPathReport.primaryPath.learningFocus.map((x) => (
                           <div
                             key={x}
-                            className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200"
+                            className="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200"
                           >
-                            {x}
+                            <div className="pointer-events-none absolute -inset-10 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(250px_circle_at_30%_30%,rgba(59,130,246,0.15),transparent_60%)]" />
+                            <div className="relative flex items-start gap-3">
+                              <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-xl bg-blue-600/15 ring-1 ring-blue-500/20">
+                                <IconBook size={16} className="text-blue-200/90" />
+                              </span>
+                              <span className="leading-snug">{x}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -611,8 +670,12 @@ export function PsychometricTestPage() {
                         {progress.careerPathReport.primaryPath.possibleRoles.map((r) => (
                           <span
                             key={r}
-                            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-1 text-xs font-semibold text-slate-200"
+                            className="group inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-slate-900/60"
                           >
+                            <span className="relative grid size-5 place-items-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/15">
+                              <span className="absolute inset-0 rounded-lg bg-emerald-500/10 opacity-0 group-hover:opacity-100 animate-pulse" />
+                              <IconPin size={14} className="relative text-emerald-200/90" />
+                            </span>
                             {r}
                           </span>
                         ))}
@@ -643,7 +706,17 @@ export function PsychometricTestPage() {
           )}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card title="Personality Description">
+          <Card
+            title="Personality Description"
+            right={
+              <span className="inline-flex items-center gap-2 rounded-xl bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 ring-1 ring-slate-800/70">
+                <span className="relative block size-2 rounded-full bg-emerald-300/90">
+                  <span className="absolute inset-0 rounded-full bg-emerald-300/60 animate-ping" />
+                </span>
+                Insight
+              </span>
+            }
+          >
             <div className="space-y-2">
               <div className="text-sm font-semibold text-slate-100">
                 {resultDescription.title}
@@ -652,7 +725,17 @@ export function PsychometricTestPage() {
             </div>
           </Card>
 
-          <Card title="Technology Recommendations (Preview)">
+          <Card
+            title="Technology Recommendations (Preview)"
+            right={
+              <span className="inline-flex items-center gap-2 rounded-xl bg-blue-600/15 px-3 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/20">
+                <span className="relative block size-2 rounded-full bg-blue-200/90">
+                  <span className="absolute inset-0 rounded-full bg-blue-200/50 animate-ping" />
+                </span>
+                Matches
+              </span>
+            }
+          >
             <div className="space-y-3">
               {progress.courseRecommendations.slice(0, 3).map((rec) => (
                 <div
