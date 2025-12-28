@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import {
   careerSnapshotMeta,
   dashboardHeader,
@@ -86,7 +87,19 @@ export function DashboardPage() {
   // Dashboard-only dummy values (not shared in context yet).
   const coursesMatched = 12
   const xp = 850
-  const careerTraits = initialCareerTraits
+  const careerTraits = useMemo(() => {
+    if (!progress.psychometricCompleted) return initialCareerTraits
+
+    // Use REAL psychometric RIASEC percentages for the snapshot once the test is completed.
+    return {
+      realistic: progress.riasecPercentages.R,
+      investigative: progress.riasecPercentages.I,
+      artistic: progress.riasecPercentages.A,
+      social: progress.riasecPercentages.S,
+      enterprising: progress.riasecPercentages.E,
+      conventional: progress.riasecPercentages.C,
+    } as const
+  }, [progress.psychometricCompleted, progress.riasecPercentages])
 
   const stats = useMemo(() => {
     const psychoPrimary = progress.psychometricCompleted
@@ -221,12 +234,12 @@ export function DashboardPage() {
         <Card
           title="Career Snapshot"
           right={
-            <button
-              type="button"
+            <Link
+              to={progress.psychometricCompleted ? '/psychometric-test#results' : '/psychometric-test'}
               className="text-xs font-semibold text-slate-300 hover:text-slate-100"
             >
               View Full Report
-            </button>
+            </Link>
           }
         >
           <div className="space-y-4">

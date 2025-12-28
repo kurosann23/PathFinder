@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { PageHeader } from '../components/PageHeader'
@@ -43,6 +43,7 @@ function TabIcon(props: { tab: 'who' | 'learn' | 'become'; active: boolean }) {
 export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest } = useUserProgress()
   const resultsRef = useRef<HTMLDivElement | null>(null)
+  const location = useLocation()
 
   // Local answers for the questionnaire (questionId -> Likert value 1..5).
   const [answers, setAnswers] = useState<Record<string, number>>({})
@@ -77,6 +78,15 @@ export function PsychometricTestPage() {
       | 'C'
     return getRiasecDescription(topType)
   }, [progress.psychometricCompleted, progress.psychometricResult])
+
+  // If navigated from Dashboard "View Full Report", auto-scroll to results section.
+  useEffect(() => {
+    if (location.hash !== '#results') return
+    if (!progress.psychometricCompleted) return
+    requestAnimationFrame(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [location.hash, progress.psychometricCompleted])
 
   function setAnswer(questionId: string, value: number) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
@@ -449,7 +459,7 @@ export function PsychometricTestPage() {
       </Card>
 
       {progress.psychometricCompleted && resultDescription && (
-        <div ref={resultsRef} className="space-y-4">
+        <div id="results" ref={resultsRef} className="space-y-4">
           {progress.careerPathReport && (
             <Card
               title="Career Path Guidance"
