@@ -2,6 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { navigation, type NavKey } from '../constants/navigation'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
+import { useProfile } from '../context/ProfileContext'
+import { Button } from './ui/Button'
 import {
   IconBook,
   IconClipboard,
@@ -48,6 +50,7 @@ export function Sidebar(props: SidebarProps) {
   const isMobile = variant === 'mobile'
   const isCollapsed = !isMobile && collapsed
   const { user, signOut } = useAuth()
+  const { profile } = useProfile()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -58,29 +61,39 @@ export function Sidebar(props: SidebarProps) {
   return (
     <aside
       className={cn(
-        'h-screen flex-col border-r border-slate-800/70 bg-slate-950/70 px-4 py-6 backdrop-blur',
+        // Neon-glass HUD sidebar
+        'relative h-screen flex-col border-r border-slate-800/60 bg-slate-950/40 px-4 py-6 backdrop-blur-xl',
+        'shadow-[0_0_35px_rgba(0,0,0,0.25)]',
         isCollapsed ? 'w-20' : 'w-72',
         isMobile ? 'flex md:hidden' : 'hidden md:flex',
       )}
     >
+      <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(900px_circle_at_20%_10%,black,transparent_70%)]">
+        <div className="absolute inset-0 bg-[radial-gradient(700px_circle_at_15%_15%,rgba(59,130,246,0.18),transparent_62%),radial-gradient(800px_circle_at_90%_80%,rgba(59,130,246,0.10),transparent_68%)]" />
+      </div>
+
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-xl bg-blue-600/20 ring-1 ring-blue-500/30">
-            <span className="text-base font-bold text-blue-200">🎓</span>
+          <div className="grid size-11 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/35 shadow-[0_0_30px_rgba(59,130,246,0.18)]">
+            <span className="text-base font-bold tracking-wide text-slate-100">
+              P
+            </span>
           </div>
           {!isCollapsed && (
             <div className="leading-tight">
-              <div className="text-base font-semibold text-slate-100">
+              <div className="text-base font-semibold tracking-tight text-slate-100">
                 PathFinder
               </div>
-              <div className="text-sm text-slate-400">Student Dashboard</div>
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400/90">
+                Student Dashboard
+              </div>
             </div>
           )}
         </div>
         <button
           type="button"
           onClick={isMobile ? onMenuClick : onToggleCollapse}
-          className="rounded-lg p-2 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
+          className="rounded-xl border border-transparent p-2 text-slate-300/80 hover:border-slate-800/60 hover:bg-slate-950/30 hover:text-slate-100"
           aria-label={
             isMobile
               ? 'Close menu'
@@ -105,19 +118,21 @@ export function Sidebar(props: SidebarProps) {
       </div>
 
       {/* Nav: top-aligned like the reference sidebar (space fills between nav and footer). */}
-      <nav className="mt-6 flex flex-1 flex-col gap-2 px-1">
+      <div className="mt-6 px-2">
+        <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
+      </div>
+
+      <nav className="relative mt-5 flex flex-1 flex-col gap-2 px-1">
         {navigation.map((item) => (
           <NavLink
             key={item.key}
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'group relative flex items-center gap-3 rounded-xl px-3 py-3.5 text-base font-medium transition',
+                'group relative flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-semibold transition',
                 isActive
-                  ? 'bg-blue-600/25 text-slate-50'
-                  : 'text-slate-200/90 hover:bg-slate-900/60 hover:text-slate-100',
-                isActive &&
-                  'before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r before:bg-slate-50',
+                  ? 'border border-blue-500/25 bg-blue-600/15 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
+                  : 'border border-transparent text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
                 isCollapsed && 'justify-center px-2',
               )
             }
@@ -127,7 +142,9 @@ export function Sidebar(props: SidebarProps) {
                 <NavIcon
                   navKey={item.key}
                   className={cn(
-                    isActive ? 'text-blue-200' : 'group-hover:text-slate-200',
+                    isActive
+                      ? 'text-blue-200 drop-shadow-[0_0_12px_rgba(59,130,246,0.22)]'
+                      : 'group-hover:text-slate-200',
                   )}
                 />
                 {!isCollapsed && (
@@ -149,46 +166,60 @@ export function Sidebar(props: SidebarProps) {
       </nav>
 
       <div className="mt-auto px-1">
-        <div className={cn('rounded-2xl border border-slate-800/70 bg-slate-950/40', isCollapsed ? 'p-3' : 'p-4')}>
+        <div className="px-2">
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
+        </div>
+
+        <div
+          className={cn(
+            'mt-5 rounded-2xl border border-slate-800/60 bg-slate-950/25 backdrop-blur-xl shadow-[0_0_25px_rgba(59,130,246,0.10)]',
+            isCollapsed ? 'p-3' : 'p-4',
+          )}
+        >
           <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
-            <div className="grid size-11 place-items-center rounded-full bg-blue-600/25 text-base font-semibold text-blue-200 ring-1 ring-blue-500/25">
-              {(user?.email?.slice(0, 1) ?? 'U').toUpperCase()}
+            <div className="grid size-11 place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/35 text-base font-semibold text-slate-100 shadow-[0_0_18px_rgba(59,130,246,0.15)]">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                (profile?.full_name?.slice(0, 1) ?? user?.email?.slice(0, 1) ?? 'U').toUpperCase()
+              )}
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
                 <div className="truncate text-base font-semibold text-slate-100">
-                  {user?.email?.split('@')[0] ?? 'Student'}
+                  {profile?.full_name ?? user?.email?.split('@')[0] ?? 'Student'}
                 </div>
-                <div className="truncate text-sm text-slate-400">{user?.email ?? '—'}</div>
+                <div className="truncate text-sm text-slate-400">
+                  {profile?.class ? `${profile.class} • ` : ''}
+                  {user?.email ?? '—'}
+                </div>
               </div>
             )}
           </div>
         </div>
 
         <div className="mt-6 space-y-2 px-2">
-          <button
+          <Button
             type="button"
-            className={cn(
-              'flex w-full items-center justify-between gap-3 rounded-xl px-2 py-2.5 text-base text-slate-300 hover:bg-slate-900/50 hover:text-slate-100',
-              isCollapsed && 'justify-center',
-            )}
+            variant="ghost"
+            size="md"
+            className={cn('flex w-full justify-between px-2', isCollapsed && 'justify-center')}
             aria-label="Theme (UI only)"
           >
             {!isCollapsed && <span>Theme</span>}
             <IconMoon size={20} className="text-slate-300" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleLogout}
-            className={cn(
-              'flex w-full items-center justify-between gap-3 rounded-xl px-2 py-2.5 text-base text-slate-300 hover:bg-slate-900/50 hover:text-slate-100',
-              isCollapsed && 'justify-center',
-            )}
+            variant="ghost"
+            size="md"
+            className={cn('flex w-full justify-between px-2', isCollapsed && 'justify-center')}
             aria-label="Sign out"
           >
             {!isCollapsed && <span>Sign Out</span>}
             <IconLogout size={20} className="text-slate-300" />
-          </button>
+          </Button>
         </div>
       </div>
     </aside>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
+import { Button } from '../components/ui/Button'
 
 export function SignUpPage() {
   const nav = useNavigate()
@@ -139,17 +140,17 @@ export function SignUpPage() {
           </div>
         )}
 
-        <button
+        <Button
           type="button"
           onClick={handleSignUp}
           disabled={loading}
-          className={cn(
-            'w-full rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25',
-            loading && 'opacity-60',
-          )}
+          fullWidth
+          size="lg"
+          variant="primary"
+          className={cn(loading && 'opacity-60')}
         >
           {loading ? 'Creating account…' : 'Create Account'}
-        </button>
+        </Button>
 
         <div className="text-center text-sm text-slate-400">
           Already have an account?{' '}

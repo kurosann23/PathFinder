@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { fetchProfile, uploadAvatar, upsertProfile, type ProfileRow } from '../lib/profileRepo'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
+import { useProfile } from '../context/ProfileContext'
 
 type FormState = {
   full_name: string
@@ -37,6 +38,7 @@ function getErrorMessage(e: unknown) {
 
 export function ProfilePage() {
   const { user } = useAuth()
+  const { refresh } = useProfile()
   const profileId = useMemo(() => user?.id ?? '', [user?.id])
 
   const [loading, setLoading] = useState(false)
@@ -113,6 +115,7 @@ export function ProfilePage() {
       setForm((prev) => ({ ...prev, avatar_url: avatarUrl }))
       setAvatarFile(null)
       setSuccess('Profile saved.')
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e) || 'Failed to save profile.')
     } finally {

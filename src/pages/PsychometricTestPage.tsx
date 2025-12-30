@@ -41,7 +41,7 @@ function TabIcon(props: { tab: 'who' | 'learn' | 'become'; active: boolean }) {
 }
 
 export function PsychometricTestPage() {
-  const { progress, submitPsychometricTest, resetPsychometricTest } = useUserProgress()
+  const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
@@ -110,11 +110,17 @@ export function PsychometricTestPage() {
     setStepError('')
   }
 
-  function handleRetest() {
+  async function handleRetest() {
     // Clear saved results + guidance so the user can submit again.
-    resetPsychometricTest()
+    try {
+      await resetPsychometricTest()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to reset psychometric result.'
+      setSubmitError(msg)
+      return
+    }
 
-    // Reset local questionnaire state and immediately start Test Mode.
+    // Reset local questionnaire state and immediately start the questionnaire.
     setAnswers({})
     setSubmitError('')
     setStepError('')
@@ -153,7 +159,7 @@ export function PsychometricTestPage() {
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit) return
 
     if (answeredCount !== riasecQuestions.length) {
@@ -169,13 +175,19 @@ export function PsychometricTestPage() {
     const topTypes = code.split('').filter(Boolean) as RiasecType[]
     const careerPathReport = generateCareerPath(topTypes)
 
-    submitPsychometricTest({
-      code,
-      topType: top,
-      percentages,
-      recommendations,
-      careerPathReport,
-    })
+    try {
+      await submitPsychometricTest({
+        code,
+        topType: top,
+        percentages,
+        recommendations,
+        careerPathReport,
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to save result.'
+      setSubmitError(msg)
+      return
+    }
 
     setHasStarted(false)
     setStepError('')
@@ -204,7 +216,7 @@ export function PsychometricTestPage() {
     setCurrentIndex((i) => Math.max(0, i - 1))
   }
 
-  // Focused Test Mode: one question at a time (prevents visual mixing with other content).
+  // Focused questionnaire: one question at a time.
   if (isTakingTest) {
     const q = riasecQuestions[currentIndex]
     const current = answers[String(q.id)]
@@ -214,8 +226,8 @@ export function PsychometricTestPage() {
     return (
       <div className="mx-auto max-w-3xl space-y-4">
         <PageHeader
-          title="Psychometric Test (Test Mode)"
-          subtitle="Answer one statement at a time. Your responses are used to generate guidance (frontend-only)."
+          title="Psychometric Test"
+          subtitle="Answer one statement at a time. Your responses are used to generate your guidance."
         />
 
         <Card
@@ -307,10 +319,11 @@ export function PsychometricTestPage() {
               {isLast ? (
                 <button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={() => void handleSubmit()}
+                  disabled={isSavingPsychometric}
                   className="rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
                 >
-                  Submit Test
+                  {isSavingPsychometric ? 'Saving…' : 'Submit Test'}
                 </button>
               ) : (
                 <button
@@ -336,12 +349,22 @@ export function PsychometricTestPage() {
     <div className="space-y-6">
       <PageHeader
         title="Psychometric Test"
-        subtitle="RIASEC (Holland Code) questionnaire — prototype (frontend-only)"
+        subtitle="RIASEC (Holland Code) questionnaire"
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Test Status">
           <div className="space-y-3">
+            {isHydrating && (
+              <div className="rounded-xl border border-slate-800/70 bg-slate-950/30 px-4 py-3 text-sm text-slate-300">
+                Loading your saved results…
+              </div>
+            )}
+            {hydrationError && (
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+                {hydrationError}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div className="text-sm text-slate-400">Result</div>
               <div className={`text-sm font-semibold ${statusClass}`}>
@@ -361,13 +384,13 @@ export function PsychometricTestPage() {
                 disabled={!canSubmit}
                 className="w-full rounded-2xl bg-blue-600/20 px-4 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
               >
-                {answeredCount > 0 ? 'Continue Test (Test Mode)' : 'Start Test (Test Mode)'}
+                {answeredCount > 0 ? 'Continue Test' : 'Start Test'}
               </button>
             )}
             {progress.psychometricCompleted && (
               <button
                 type="button"
-                onClick={handleRetest}
+                onClick={() => void handleRetest()}
                 className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
               >
                 Retake Test (Change My Career Path)
@@ -432,8 +455,7 @@ export function PsychometricTestPage() {
                 Start the test when you are ready.
               </div>
               <div className="mt-2 text-sm text-slate-300/90">
-                The test runs in a focused “Test Mode” (one question at a time)
-                so it won’t mix with other page content.
+                The test runs one question at a time so you can focus.
               </div>
               <div className="mt-4">
                 <button
@@ -442,11 +464,8 @@ export function PsychometricTestPage() {
                   disabled={!canSubmit}
                   className="rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
                 >
-                  {answeredCount > 0 ? 'Continue Test (Test Mode)' : 'Start Test (Test Mode)'}
+                  {answeredCount > 0 ? 'Continue Test' : 'Start Test'}
                 </button>
-              </div>
-              <div className="mt-3 text-xs text-slate-500">
-                Note: This is frontend-only (no database). Your result is kept in app state.
               </div>
             </div>
           ) : (

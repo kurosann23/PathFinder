@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
 import { IconTarget } from '../components/icons'
+import { Button } from '../components/ui/Button'
 
 export function LoginPage() {
   const nav = useNavigate()
@@ -136,14 +137,14 @@ export function LoginPage() {
           </div>
         )}
 
-        <button
+        <Button
           type="button"
           onClick={handleLogin}
           disabled={loading}
-          className={cn(
-            'w-full rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25',
-            loading && 'opacity-60',
-          )}
+          fullWidth
+          size="lg"
+          variant="primary"
+          className={cn(loading && 'opacity-60')}
         >
           <span className="inline-flex items-center justify-center gap-2">
             {loading && (
@@ -151,7 +152,7 @@ export function LoginPage() {
             )}
             {loading ? 'Logging in…' : 'Login'}
           </span>
-        </button>
+        </Button>
 
         <div className="text-center text-sm text-slate-400">
           No account?{' '}

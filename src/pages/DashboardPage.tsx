@@ -9,19 +9,22 @@ import {
 } from '../constants/dashboard'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useAuth } from '../context/AuthContext'
-import { Card } from '../components/ui/Card'
-import { ProgressBar } from '../components/ui/ProgressBar'
+import { useProfile } from '../context/ProfileContext'
 import { PageHeader } from '../components/PageHeader'
+import { Button } from '../components/ui/Button'
 import { cn } from '../lib/cn'
 import {
   IconBell,
   IconBook,
-  IconCheck,
   IconGamepad,
   IconPin,
   IconSettings,
   IconTarget,
 } from '../components/icons'
+import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
+import { TodaysFocusCard, type FocusTask } from '../components/dashboard/TodaysFocusCard'
+import { JourneyTimeline, type JourneyStep } from '../components/dashboard/JourneyTimeline'
+import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
 
 function StatIcon(props: { icon: string; className?: string }) {
   const { icon, className } = props
@@ -41,55 +44,12 @@ function StatIcon(props: { icon: string; className?: string }) {
   }
 }
 
-function StatCard(props: {
-  title: string
-  primary: string
-  secondary: string
-  accent: 'emerald' | 'blue' | 'violet' | 'orange'
-  icon: string
-}) {
-  const { title, primary, secondary, accent, icon } = props
-
-  const accentClasses: Record<typeof accent, string> = {
-    emerald: 'ring-emerald-500/25 bg-emerald-500/10 text-emerald-200',
-    blue: 'ring-blue-500/25 bg-blue-500/10 text-blue-200',
-    violet: 'ring-violet-500/25 bg-violet-500/10 text-violet-200',
-    orange: 'ring-orange-500/25 bg-orange-500/10 text-orange-200',
-  }
-
-  return (
-    <Card className="px-0 py-0">
-      <div className="flex items-center justify-between gap-4 px-5 py-4">
-        <div className="min-w-0">
-          <div className="text-xs text-slate-400">{title}</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-100">
-            {primary}
-          </div>
-          <div className="mt-1 text-xs font-medium text-slate-400">
-            {secondary}
-          </div>
-        </div>
-        <div
-          className={cn(
-            'grid size-10 place-items-center rounded-xl ring-1',
-            accentClasses[accent],
-          )}
-        >
-          <StatIcon icon={icon} className="opacity-95" />
-        </div>
-      </div>
-    </Card>
-  )
-}
-
 export function DashboardPage() {
-  const { progress, simulateProgress, resetDemo } = useUserProgress()
+  const { progress } = useUserProgress()
   const { signOut } = useAuth()
+  const { profile } = useProfile()
   const navigate = useNavigate()
 
-  // Dashboard-only dummy values (not shared in context yet).
-  const coursesMatched = 12
-  const xp = 850
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) return initialCareerTraits
 
@@ -104,45 +64,11 @@ export function DashboardPage() {
     } as const
   }, [progress.psychometricCompleted, progress.riasecPercentages])
 
-  const stats = useMemo(() => {
-    const psychoPrimary = progress.psychometricCompleted
-      ? progress.psychometricResult
-      : '—'
-    const psychoSecondary = progress.psychometricCompleted
-      ? 'Completed'
-      : 'Not Taken'
-
-    return [
-      {
-        title: 'Psychometric Test',
-        primary: psychoPrimary,
-        secondary: psychoSecondary,
-        accent: 'emerald' as const,
-        icon: 'target',
-      },
-      {
-        title: 'Course Recommendation',
-        primary: String(coursesMatched),
-        secondary: `${coursesMatched} Matched`,
-        accent: 'blue' as const,
-        icon: 'book',
-      },
-      {
-        title: 'Roadmap Progress',
-        primary: `${progress.roadmapProgress}%`,
-        secondary: `${progress.roadmapProgress}% Complete`,
-        accent: 'violet' as const,
-        icon: 'pin',
-      },
-      {
-        title: 'Mini Games',
-        primary: String(xp),
-        secondary: `${xp} XP`,
-        accent: 'orange' as const,
-        icon: 'gamepad',
-      },
-    ]
-  }, [coursesMatched, progress.psychometricCompleted, progress.psychometricResult, progress.roadmapProgress])
+  const roadmapPercent = useMemo(() => {
+    const keys = journeyMeta.map((j) => j.key)
+    const done = keys.filter((k) => Boolean(progress.journey[k])).length
+    return Math.round((done / keys.length) * 100)
+  }, [progress.journey])
 
   const topCareerTypeLabel = useMemo(() => {
     let topKey = careerSnapshotMeta[0]?.key
@@ -159,6 +85,79 @@ export function DashboardPage() {
     return careerSnapshotMeta.find((t) => t.key === topKey)?.label ?? '—'
   }, [careerTraits])
 
+  const focusTasks: FocusTask[] = useMemo(() => {
+    // Keep the focus card stable and informative: show the first 2 journey steps,
+    // reflecting their real completion status (completed vs locked).
+    const items = journeyMeta
+      .slice(0, 2)
+      .map((j) => {
+        const to =
+          j.key === 'profile'
+            ? '/profile'
+            : j.key === 'psychometric'
+              ? '/psychometric-test'
+              : j.key === 'course'
+                ? '/course-recommendation'
+                : j.key === 'roadmap'
+                  ? '/learning-roadmap'
+                  : '/mini-games'
+
+        const subtitle =
+          progress.journey[j.key as JourneyKey]
+            ? 'Completed'
+            : j.key === 'psychometric'
+              ? 'Start'
+              : j.key === 'course'
+                ? 'Go'
+                : 'Start'
+
+        return {
+          id: j.key,
+          title: j.label,
+          subtitle,
+          to,
+          done: Boolean(progress.journey[j.key as JourneyKey]),
+          xp: 50,
+        }
+      })
+
+    return items
+  }, [progress.journey])
+
+  const journeySteps: JourneyStep[] = useMemo(() => {
+    return journeyMeta.map((j) => {
+      const to =
+        j.key === 'profile'
+          ? '/profile'
+          : j.key === 'psychometric'
+            ? '/psychometric-test'
+            : j.key === 'course'
+              ? '/course-recommendation'
+              : j.key === 'roadmap'
+                ? '/learning-roadmap'
+                : '/mini-games'
+
+      const icon =
+        j.key === 'profile'
+          ? 'profile'
+          : j.key === 'psychometric'
+            ? 'psychometric'
+            : j.key === 'course'
+              ? 'course'
+              : j.key === 'roadmap'
+                ? 'roadmap'
+                : 'games'
+
+      return {
+        key: j.key,
+        label: j.label,
+        to,
+        done: Boolean(progress.journey[j.key as JourneyKey]),
+        icon,
+      }
+    })
+  }, [progress.journey])
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -166,152 +165,122 @@ export function DashboardPage() {
         subtitle={dashboardHeader.subtitle}
       />
 
-      <Card className="overflow-hidden">
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(700px_circle_at_20%_20%,rgba(59,130,246,0.25),transparent_55%),radial-gradient(700px_circle_at_80%_70%,rgba(34,211,238,0.12),transparent_55%)]" />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="grid size-11 place-items-center rounded-2xl bg-slate-950/40 ring-1 ring-slate-800/60">
-                <span className="text-lg">🧑‍💻</span>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr_360px]">
+        <div className="flex justify-center rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
+          <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={300} />
+        </div>
+
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/70">
+                Welcome back
               </div>
-              <div className="min-w-0">
-                <div className="text-lg font-semibold text-slate-100">
-                  {`Welcome back, ${progress.userName}! 👋`}
-                </div>
-                <div className="mt-1 text-sm text-slate-300/80">
-                  {`You're ${progress.roadmapProgress}% done with your career journey. Keep up the amazing work!`}
-                </div>
+              <div className="mt-2 truncate text-4xl font-semibold tracking-tight text-slate-50">
+                {profile?.full_name ?? 'Student'}
+              </div>
+              <div className="mt-3 text-sm text-slate-300/80">
+                Top career type:{' '}
+                <span className="font-semibold text-slate-100">{topCareerTypeLabel}</span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 p-2 text-slate-300 hover:bg-slate-900/60 hover:text-slate-100"
-                aria-label="Notifications (UI only)"
-              >
-                <IconBell size={18} />
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 p-2 text-slate-300 hover:bg-slate-900/60 hover:text-slate-100"
-                aria-label="Settings (UI only)"
-              >
-                <IconSettings size={18} />
-              </button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="icon" aria-label="Notifications (UI only)">
+                  <IconBell size={18} />
+                </Button>
+                <Button type="button" variant="icon" aria-label="Settings (UI only)">
+                  <IconSettings size={18} />
+                </Button>
+              </div>
 
-              {/* Dev-only demo button: simulates progress for presentations/testing (no backend). */}
-              <button
+              <Button
                 type="button"
-                onClick={simulateProgress}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
-              >
-                Simulate Progress
-              </button>
-              <button
-                type="button"
-                onClick={resetDemo}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
-              >
-                Reset Demo
-              </button>
-              <button
-                type="button"
+                size="sm"
+                variant="secondary"
                 onClick={async () => {
                   await signOut()
                   navigate('/login', { replace: true })
                 }}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
               >
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-      </Card>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard
-            key={s.title}
-            title={s.title}
-            primary={s.primary}
-            secondary={s.secondary}
-            accent={s.accent}
-            icon={s.icon}
-          />
-        ))}
+        <TodaysFocusCard
+          tasks={focusTasks}
+          rewards={[
+            { id: 'r1', type: 'count', value: '22' },
+            { id: 'r2', type: 'bolt' },
+            { id: 'r3', type: 'medal' },
+            { id: 'r4', type: 'trophy' },
+          ]}
+        />
       </div>
 
+      <JourneyTimeline steps={journeySteps} />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card
-          title="Career Snapshot"
-          right={
-            <Link
-              to={progress.psychometricCompleted ? '/psychometric-test#results' : '/psychometric-test'}
-              className="text-xs font-semibold text-slate-300 hover:text-slate-100"
-            >
-              View Full Report
-            </Link>
-          }
-        >
-          <div className="space-y-4">
-            {careerSnapshotMeta.map((item) => (
-              <ProgressBar
-                key={item.label}
-                label={item.label}
-                value={careerTraits[item.key]}
-                barClass={item.barClass}
-              />
-            ))}
+        <CareerSnapshot
+          viewReportTo={progress.psychometricCompleted ? '/psychometric-test#results' : '/psychometric-test'}
+          traits={careerSnapshotMeta.map((t) => ({
+            key: t.key,
+            label: t.label,
+            value: careerTraits[t.key],
+          }))}
+          topCareerTypeLabel={topCareerTypeLabel}
+        />
 
-            <div className="rounded-xl bg-slate-950/40 px-4 py-3 text-sm font-semibold text-slate-200 ring-1 ring-slate-800/70">
-              {`Top Career Type: ${topCareerTypeLabel}`}
-            </div>
-          </div>
-        </Card>
-
-        <Card title="Your Journey">
-          <div className="space-y-3">
-            {journeyMeta.map((item) => {
-              const done = progress.journey[item.key as JourneyKey]
-              return (
-                <div
-                  key={item.label}
-                  className={cn(
-                    'flex items-center justify-between gap-4 rounded-2xl border px-4 py-3',
-                    done
-                      ? 'border-emerald-500/25 bg-emerald-500/10'
-                      : 'border-slate-800/70 bg-slate-950/30',
-                  )}
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div
-                      className={cn(
-                        'grid size-7 place-items-center rounded-full ring-1',
-                        done
-                          ? 'bg-emerald-500/20 text-emerald-200 ring-emerald-500/25'
-                          : 'bg-slate-900/40 text-slate-400 ring-slate-800/70',
-                      )}
-                    >
-                      {done ? (
-                        <IconCheck size={16} />
-                      ) : (
-                        <span className="block size-2 rounded-full bg-current opacity-70" />
-                      )}
-                    </div>
-                    <div className="truncate text-sm font-semibold text-slate-100">
-                      {item.label}
-                    </div>
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
+          <div className="text-sm font-semibold text-slate-100">Quick Actions</div>
+          <div className="mt-4 grid grid-cols-1 gap-2">
+            <Link to="/psychometric-test" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                    <IconTarget size={18} />
                   </div>
-                  <div className="shrink-0 text-xs font-semibold text-slate-400">
-                    {done ? 'Done' : 'Pending'}
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Psychometric Test</div>
+                    <div className="mt-0.5 text-xs text-slate-400">Open / view results</div>
                   </div>
                 </div>
-              )
-            })}
+                <span className="text-xs font-semibold text-slate-300/70">→</span>
+              </div>
+            </Link>
+            <Link to="/learning-roadmap" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                    <IconPin size={18} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Learning Roadmap</div>
+                    <div className="mt-0.5 text-xs text-slate-400">Continue your journey</div>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-slate-300/70">→</span>
+              </div>
+            </Link>
+            <Link to="/course-recommendation" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                    <StatIcon icon="book" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">Course Recommendation</div>
+                    <div className="mt-0.5 text-xs text-slate-400">Explore suggested paths</div>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-slate-300/70">→</span>
+              </div>
+            </Link>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   )

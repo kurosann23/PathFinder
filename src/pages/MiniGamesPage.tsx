@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { cn } from '../lib/cn'
+import { Button } from '../components/ui/Button'
 import {
   IconBook,
   IconCheck,
@@ -85,13 +86,14 @@ function GameShell(props: {
       <Card
         title="Game Mode"
         right={
-          <button
+          <Button
             type="button"
             onClick={onExit}
-            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
+            size="sm"
+            variant="secondary"
           >
             Exit
-          </button>
+          </Button>
         }
       >
         {children}
