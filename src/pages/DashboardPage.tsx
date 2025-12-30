@@ -221,7 +221,12 @@ export function DashboardPage() {
         />
       </div>
 
-      <JourneyTimeline steps={journeySteps} />
+      <JourneyTimeline
+        steps={journeySteps}
+        progressPercent={roadmapPercent}
+        avatarUrl={profile?.avatar_url ?? null}
+        avatarFallback={profile?.full_name ?? 'U'}
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CareerSnapshot

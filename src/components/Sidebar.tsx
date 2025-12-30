@@ -62,14 +62,14 @@ export function Sidebar(props: SidebarProps) {
     <aside
       className={cn(
         // Neon-glass HUD sidebar
-        'relative h-screen flex-col border-r border-slate-800/60 bg-slate-950/40 px-4 py-6 backdrop-blur-xl',
-        'shadow-[0_0_35px_rgba(0,0,0,0.25)]',
+        'relative h-screen flex-col border-r border-slate-800/50 bg-slate-950/45 px-4 py-6 backdrop-blur-xl',
+        'shadow-[0_18px_60px_rgba(0,0,0,0.40)]',
         isCollapsed ? 'w-20' : 'w-72',
         isMobile ? 'flex md:hidden' : 'hidden md:flex',
       )}
     >
       <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(900px_circle_at_20%_10%,black,transparent_70%)]">
-        <div className="absolute inset-0 bg-[radial-gradient(700px_circle_at_15%_15%,rgba(59,130,246,0.18),transparent_62%),radial-gradient(800px_circle_at_90%_80%,rgba(59,130,246,0.10),transparent_68%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_35%),radial-gradient(700px_circle_at_15%_15%,rgba(59,130,246,0.16),transparent_62%),radial-gradient(800px_circle_at_90%_80%,rgba(168,85,247,0.12),transparent_68%)]" />
       </div>
 
       <div className="flex items-center justify-between px-2">

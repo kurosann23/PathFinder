@@ -15,10 +15,11 @@ export function Card(props: CardProps) {
     <section
       className={cn(
         // Neon-glass HUD base
-        'relative overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/18 backdrop-blur-xl',
-        'shadow-[0_8px_28px_rgba(0,0,0,0.22)]',
-        'before:pointer-events-none before:absolute before:inset-0 before:opacity-60',
-        'before:bg-[radial-gradient(900px_circle_at_18%_12%,rgba(59,130,246,0.20),transparent_60%),radial-gradient(900px_circle_at_85%_75%,rgba(59,130,246,0.10),transparent_65%)]',
+        'relative overflow-hidden rounded-2xl border border-slate-800/50 bg-slate-950/25 backdrop-blur-xl',
+        'shadow-[0_18px_60px_rgba(0,0,0,0.35)]',
+        // subtle glass highlight + glow like the reference
+        'before:pointer-events-none before:absolute before:inset-0 before:opacity-70',
+        'before:bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent_35%),radial-gradient(900px_circle_at_18%_12%,rgba(59,130,246,0.18),transparent_60%),radial-gradient(900px_circle_at_85%_75%,rgba(168,85,247,0.12),transparent_65%)]',
         'after:pointer-events-none after:absolute after:inset-0 after:ring-1 after:ring-white/5',
         className,
       )}

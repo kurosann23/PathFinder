@@ -59,14 +59,25 @@ export function AppLayout() {
   }, [isMobileSidebarOpen])
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div
-        className={cn(
-          // Subtle, minimal gradient only (no textures / no multi-color accents)
-          'pointer-events-none fixed inset-0 opacity-70',
-          'bg-[radial-gradient(900px_circle_at_20%_12%,rgba(59,130,246,0.22),transparent_60%),radial-gradient(900px_circle_at_80%_35%,rgba(59,130,246,0.14),transparent_65%)]',
-        )}
-      />
+    <div className="min-h-screen bg-[#060817]">
+      {/* Base gradient */}
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-[#060817] via-[#070A18] to-[#090B1C]" />
+
+      {/* Nebula glow layers (blue/purple like the reference) */}
+      <div className="pointer-events-none fixed inset-0 opacity-80 bg-[radial-gradient(900px_circle_at_18%_20%,rgba(59,130,246,0.22),transparent_62%),radial-gradient(950px_circle_at_55%_115%,rgba(168,85,247,0.18),transparent_60%),radial-gradient(800px_circle_at_85%_30%,rgba(56,189,248,0.12),transparent_62%)]" />
+
+      {/* Starfield (very subtle dots) */}
+      <div className="pointer-events-none fixed inset-0 opacity-[0.10] bg-[radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:120px_120px]" />
+      <div className="pointer-events-none fixed inset-0 opacity-[0.07] bg-[radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:220px_220px] [background-position:40px_80px]" />
+      {/* Slightly denser cluster near top-left (masked) */}
+      <div className="pointer-events-none fixed inset-0 opacity-[0.08] [mask-image:radial-gradient(520px_circle_at_18%_18%,black,transparent_70%)] bg-[radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:90px_90px]" />
+
+      {/* Soft vignette to keep edges darker */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(1200px_circle_at_50%_40%,transparent_55%,rgba(0,0,0,0.55))]" />
+
+      {/* Bottom arc / swirl highlight behind timeline (very subtle) */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 h-[55vh] opacity-70 [mask-image:radial-gradient(900px_circle_at_50%_95%,black,transparent_65%)] bg-[radial-gradient(900px_circle_at_50%_100%,rgba(168,85,247,0.22),transparent_60%),radial-gradient(900px_circle_at_50%_100%,rgba(59,130,246,0.16),transparent_65%)]" />
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 h-[55vh] opacity-[0.55] bg-[conic-gradient(from_200deg_at_50%_96%,transparent,rgba(59,130,246,0.22),transparent_35%,transparent)] [mask-image:radial-gradient(820px_circle_at_50%_95%,black,transparent_70%)]" />
 
       <div className="relative w-full">
         <MobileTopbar onMenuClick={() => setIsMobileSidebarOpen(true)} />
