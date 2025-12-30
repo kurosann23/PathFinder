@@ -1,7 +1,7 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { navigation, type NavKey } from '../constants/navigation'
-import { user } from '../constants/user'
 import { cn } from '../lib/cn'
+import { useAuth } from '../context/AuthContext'
 import {
   IconBook,
   IconClipboard,
@@ -47,6 +47,13 @@ export function Sidebar(props: SidebarProps) {
 
   const isMobile = variant === 'mobile'
   const isCollapsed = !isMobile && collapsed
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleLogout() {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside
@@ -145,14 +152,14 @@ export function Sidebar(props: SidebarProps) {
         <div className={cn('rounded-2xl border border-slate-800/70 bg-slate-950/40', isCollapsed ? 'p-3' : 'p-4')}>
           <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
             <div className="grid size-11 place-items-center rounded-full bg-blue-600/25 text-base font-semibold text-blue-200 ring-1 ring-blue-500/25">
-              {user.name.slice(0, 1).toUpperCase()}
+              {(user?.email?.slice(0, 1) ?? 'U').toUpperCase()}
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
                 <div className="truncate text-base font-semibold text-slate-100">
-                  {user.name}
+                  {user?.email?.split('@')[0] ?? 'Student'}
                 </div>
-                <div className="truncate text-sm text-slate-400">{user.email}</div>
+                <div className="truncate text-sm text-slate-400">{user?.email ?? '—'}</div>
               </div>
             )}
           </div>
@@ -172,11 +179,12 @@ export function Sidebar(props: SidebarProps) {
           </button>
           <button
             type="button"
+            onClick={handleLogout}
             className={cn(
               'flex w-full items-center justify-between gap-3 rounded-xl px-2 py-2.5 text-base text-slate-300 hover:bg-slate-900/50 hover:text-slate-100',
               isCollapsed && 'justify-center',
             )}
-            aria-label="Sign out (UI only)"
+            aria-label="Sign out"
           >
             {!isCollapsed && <span>Sign Out</span>}
             <IconLogout size={20} className="text-slate-300" />

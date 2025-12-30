@@ -1,73 +1,122 @@
-# React + TypeScript + Vite
+# PathFinder (FYP Prototype) — Psychometric Career Guidance (Technology)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend-only prototype: students take a **RIASEC psychometric test**, get an explainable **career path guidance** + **technology course direction**, and follow an interactive roadmap.
 
-Currently, two official plugins are available:
+- **Not an LMS**: no syllabus, modules, grading, or teaching materials
+- **Prototype scope**: Technology field only
+- **Database (optional, gradual)**: Supabase can be added page-by-page
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Run locally
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Supabase (Phase 1: Profile only — no authentication)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This project supports **Profile CRUD + Avatar upload** using Supabase.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1) Add env vars
+
+Create a file named `.env.local` in the project root:
+
+ ```bash
+ # copy values from env.example
+ VITE_SUPABASE_URL=your_supabase_project_url
+ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+ # set this to your Storage bucket name (your screenshot shows "media")
+ VITE_SUPABASE_AVATAR_BUCKET=media
+ ```
+
+Restart the dev server after adding env vars.
+
+### 2) Create database table
+
+In Supabase SQL editor:
+
+```sql
+create table if not exists public.profiles (
+  id text primary key,
+  full_name text,
+  email text,
+  program text,
+  aspiring_role text,
+  interests text,
+  availability text,
+  avatar_url text,
+  updated_at timestamptz
+);
+
+alter table public.profiles enable row level security;
 ```
+
+### 3) Add RLS policies (prototype-only)
+
+Because we are **not using authentication yet**, we allow public read/write (prototype mode).
+
+```sql
+create policy "profiles_public_read"
+on public.profiles for select
+using (true);
+
+create policy "profiles_public_write"
+on public.profiles for insert
+with check (true);
+
+create policy "profiles_public_update"
+on public.profiles for update
+using (true)
+with check (true);
+```
+
+> Important: This is only acceptable for an FYP prototype. For a real system, use auth and restrict access per user.
+
+## Supabase Auth (Phase 2: Sign Up / Login / Logout)
+
+This app now supports **student authentication** with Supabase Auth (email + password).
+
+### Auth settings (recommended for FYP demo)
+
+- In Supabase Dashboard → **Authentication → Providers → Email**
+- Turn **OFF** email confirmations (so Sign Up returns a session immediately)
+
+### Profiles table (linked to auth.users)
+
+Create (or migrate) the `profiles` table to match the auth-linked schema:
+
+```sql
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  class text,
+  email text,
+  avatar_url text,
+  created_at timestamptz default now()
+);
+
+alter table public.profiles enable row level security;
+```
+
+### RLS policies (authenticated user can access own profile)
+
+```sql
+create policy "profiles_select_own"
+on public.profiles for select
+using (auth.uid() = id);
+
+create policy "profiles_insert_own"
+on public.profiles for insert
+with check (auth.uid() = id);
+
+create policy "profiles_update_own"
+on public.profiles for update
+using (auth.uid() = id)
+with check (auth.uid() = id);
+```
+
+> If you previously created public RLS policies, remove/disable them for better safety in the auth version.
+
+  
+
+

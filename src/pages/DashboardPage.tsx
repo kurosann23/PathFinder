@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   careerSnapshotMeta,
   dashboardHeader,
@@ -8,6 +8,7 @@ import {
   type JourneyKey,
 } from '../constants/dashboard'
 import { useUserProgress } from '../context/UserProgressContext'
+import { useAuth } from '../context/AuthContext'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { PageHeader } from '../components/PageHeader'
@@ -83,6 +84,8 @@ function StatCard(props: {
 
 export function DashboardPage() {
   const { progress, simulateProgress, resetDemo } = useUserProgress()
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
 
   // Dashboard-only dummy values (not shared in context yet).
   const coursesMatched = 12
@@ -211,6 +214,16 @@ export function DashboardPage() {
                 className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
               >
                 Reset Demo
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut()
+                  navigate('/login', { replace: true })
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
+              >
+                Logout
               </button>
             </div>
           </div>
