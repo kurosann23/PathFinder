@@ -8,6 +8,10 @@ export type ProfileRow = {
   email: string | null
   created_at: string | null
   avatar_url: string | null
+  about_me?: string | null
+  skills?: unknown[] | null
+  interests?: string[] | null
+  hobbies?: string[] | null
 }
 
 function getAvatarBucketName() {
@@ -46,6 +50,8 @@ export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'>) {
     const hint =
       lower.includes('row-level security') || lower.includes('permission denied')
         ? ' (RLS blocked write. Add INSERT/UPDATE policies for public.profiles as in README.)'
+        : lower.includes('column') && lower.includes('does not exist')
+          ? ' (Missing columns. Add about_me (text), skills (jsonb), interests (jsonb), and hobbies (jsonb) to public.profiles as in README.)'
         : lower.includes('relation') && lower.includes('does not exist')
           ? ' (Table missing. Create public.profiles table in Supabase SQL editor.)'
           : ''

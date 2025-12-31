@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
-import { fetchProfile, uploadAvatar, upsertProfile, type ProfileRow } from '../lib/profileRepo'
+import { uploadAvatar, upsertProfile, type ProfileRow } from '../lib/profileRepo'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { Button } from '../components/ui/Button'
 import { IconBell } from '../components/icons'
+import { Avatar } from '../components/ui/Avatar'
 
 type FormState = {
   full_name: string
@@ -20,7 +21,65 @@ type Skill = {
   id: string
   label: string
   value: number
-  icon: 'ts' | 'react' | 'sql' | 'git'
+  icon:
+    | 'ts'
+    | 'react'
+    | 'sql'
+    | 'git'
+    | 'html'
+    | 'css'
+    | 'js'
+    | 'video'
+    | 'figma'
+    | 'python'
+}
+
+function safeParseStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return []
+  return v
+    .filter((x) => typeof x === 'string')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+function clamp100(n: number) {
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.min(100, n))
+}
+
+function safeParseSkills(v: unknown): Skill[] {
+  if (!Array.isArray(v)) return []
+  const out: Skill[] = []
+  const allowed = new Set<Skill['icon']>([
+    'ts',
+    'react',
+    'sql',
+    'git',
+    'html',
+    'css',
+    'js',
+    'video',
+    'figma',
+    'python',
+  ])
+  for (const it of v) {
+    if (!it || typeof it !== 'object') continue
+    const obj = it as any
+    const id = typeof obj.id === 'string' ? obj.id : cryptoId()
+    const label = typeof obj.label === 'string' ? obj.label : 'Skill'
+    const value = clamp100(typeof obj.value === 'number' ? obj.value : Number(obj.value))
+    const icon = (obj.icon as Skill['icon']) ?? 'ts'
+    if (!allowed.has(icon)) continue
+    out.push({ id, label, value, icon })
+  }
+  return out
+}
+
+function cryptoId() {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? (crypto as any).randomUUID()
+    : `id_${Math.random().toString(16).slice(2)}`
 }
 
 function toForm(p: ProfileRow | null): FormState {
@@ -47,23 +106,27 @@ function getErrorMessage(e: unknown) {
 
 export function ProfilePage() {
   const { user } = useAuth()
-  const { refresh } = useProfile()
+  const { profile, loading: profileLoading, refresh } = useProfile()
   const profileId = useMemo(() => user?.id ?? '', [user?.id])
+  const showSkeleton = profileLoading && !profile
 
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
-  const [aboutMe, setAboutMe] = useState(
-    "I'm a computer science student interested in web development and database management. I enjoy working on personal projects and learning new things.",
-  )
+  const [isDirty, setIsDirty] = useState(false)
+  const [aboutMe, setAboutMe] = useState<string>(() => profile?.about_me ?? '')
+  const [interestTags, setInterestTags] = useState<string[]>(() => safeParseStringArray(profile?.interests))
+  const [newTag, setNewTag] = useState('')
+  const [hobbyTags, setHobbyTags] = useState<string[]>(() => safeParseStringArray(profile?.hobbies))
+  const [isHobbyPickerOpen, setIsHobbyPickerOpen] = useState(false)
+  const [isSkillPickerOpen, setIsSkillPickerOpen] = useState(false)
+  const [avatarRevision, setAvatarRevision] = useState<number>(() => Date.now())
 
-  const [form, setForm] = useState<FormState>(() => ({
-    full_name: '',
-    class: '',
-    email: '',
-    avatar_url: '',
-  }))
+  const [form, setForm] = useState<FormState>(() => toForm(profile ?? null))
+  const [skillsState, setSkillsState] = useState<Skill[]>(() => {
+    const parsed = safeParseSkills(profile?.skills)
+    return parsed.length > 0 ? parsed : defaultSkills()
+  })
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const avatarPreviewUrl = useMemo(() => {
@@ -77,29 +140,128 @@ export function ProfilePage() {
     }
   }, [avatarPreviewUrl])
 
+  // Initialize local editable state from ProfileContext once (prevents "pop-in"),
+  // but never overwrite while the user is typing (fixes "can't delete text" issues).
+  const initializedForUserRef = useRef<string>('')
   useEffect(() => {
-    async function load() {
-      setError('')
-      setSuccess('')
-      if (!isSupabaseConfigured) return
-      if (!profileId) return
-      setLoading(true)
-      try {
-        const p = await fetchProfile(profileId)
-        if (p) {
-          setForm(toForm(p))
-        } else {
-          // First time: prefill email from auth user
-          setForm((prev) => ({ ...prev, email: user?.email ?? prev.email }))
-        }
-      } catch (e) {
-        setError(getErrorMessage(e) || 'Failed to load profile.')
-      } finally {
-        setLoading(false)
-      }
+    if (!isSupabaseConfigured || !profileId) return
+
+    // Reset initialization when user changes.
+    if (initializedForUserRef.current && initializedForUserRef.current !== profileId) {
+      initializedForUserRef.current = ''
     }
-    void load()
-  }, [profileId, user?.email])
+
+    // Prefill email early (helps reduce empty-feel even before profile loads).
+    if (user?.email) {
+      setForm((prev) => ({ ...prev, email: prev.email || user.email || '' }))
+    }
+
+    if (!profile) return
+    if (saving) return
+    if (initializedForUserRef.current === profileId) return
+
+    initializedForUserRef.current = profileId
+    setForm(toForm(profile))
+    setAboutMe(profile.about_me ?? '')
+    setInterestTags(safeParseStringArray(profile.interests))
+    setHobbyTags(safeParseStringArray(profile.hobbies))
+    setIsHobbyPickerOpen(false)
+    setIsSkillPickerOpen(false)
+    const parsed = safeParseSkills(profile.skills)
+    setSkillsState(parsed.length > 0 ? parsed : defaultSkills())
+    setAvatarRevision(Date.now())
+    // Do not touch isDirty here.
+  }, [profile, profileId, saving, user?.email])
+
+  const stateRef = useRef({
+    form,
+    aboutMe,
+    interestTags,
+    hobbyTags,
+    skillsState,
+    profileId,
+    userEmail: user?.email ?? '',
+  })
+  useEffect(() => {
+    stateRef.current = {
+      form,
+      aboutMe,
+      interestTags,
+      hobbyTags,
+      skillsState,
+      profileId,
+      userEmail: user?.email ?? '',
+    }
+  }, [aboutMe, form, hobbyTags, interestTags, profileId, skillsState, user?.email])
+
+  const isDirtyRef = useRef(isDirty)
+  useEffect(() => {
+    isDirtyRef.current = isDirty
+  }, [isDirty])
+
+  async function saveDraft(opts?: { silent?: boolean }) {
+    const { silent = true } = opts ?? {}
+    if (!isSupabaseConfigured) return
+    const snap = stateRef.current
+    if (!snap.profileId) return
+
+    // Draft save: no avatar upload. This is mainly to persist skills/tags/bio while editing.
+    await upsertProfile({
+      id: snap.profileId,
+      full_name: snap.form.full_name || null,
+      class: snap.form.class || null,
+      email: (snap.userEmail ?? snap.form.email) || null,
+      avatar_url: snap.form.avatar_url || null,
+      about_me: snap.aboutMe || null,
+      interests: snap.interestTags,
+      hobbies: snap.hobbyTags,
+      skills: snap.skillsState.map((s) => ({
+        id: s.id,
+        label: s.label,
+        value: clamp100(s.value),
+        icon: s.icon,
+      })),
+    })
+
+    if (!silent) setSuccess('Saved.')
+    setIsDirty(false)
+  }
+
+  // Auto-save skills (and related profile edits) so refresh/logout won't lose changes.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+    if (!profileId) return
+    if (!isDirty) return
+    if (saving) return
+    if (showSkeleton) return
+
+    const t = window.setTimeout(() => {
+      void saveDraft({ silent: true }).catch(() => {
+        // keep UI calm; user can still hit Save Changes
+      })
+    }, 1200)
+
+    return () => window.clearTimeout(t)
+    // Intentionally watch skillsState + isDirty; other fields are included in the draft snapshot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skillsState, isDirty, profileId, saving, showSkeleton])
+
+  // Try to flush drafts when leaving the page (logout, refresh, navigate away).
+  useEffect(() => {
+    function onPageHide() {
+      if (!isDirtyRef.current) return
+      void saveDraft({ silent: true }).catch(() => {})
+    }
+
+    window.addEventListener('pagehide', onPageHide)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') onPageHide()
+    })
+    return () => {
+      window.removeEventListener('pagehide', onPageHide)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSave() {
     setError('')
@@ -113,7 +275,9 @@ export function ProfilePage() {
     try {
       let avatarUrl = form.avatar_url
       if (avatarFile) {
-        avatarUrl = await uploadAvatar(avatarFile, profileId)
+        const uploaded = await uploadAvatar(avatarFile, profileId)
+        // Store a versioned URL so the whole app refreshes the image (browser cache-safe).
+        avatarUrl = withCacheBust(uploaded, Date.now())
       }
 
       await upsertProfile({
@@ -122,10 +286,22 @@ export function ProfilePage() {
         class: form.class || null,
         email: (user?.email ?? form.email) || null,
         avatar_url: avatarUrl || null,
+        about_me: aboutMe || null,
+        interests: interestTags,
+        hobbies: hobbyTags,
+        skills: skillsState.map((s) => ({
+          id: s.id,
+          label: s.label,
+          value: clamp100(s.value),
+          icon: s.icon,
+        })),
       })
 
       setForm((prev) => ({ ...prev, avatar_url: avatarUrl }))
+      // Force image refresh even if the public URL path stays the same (browser cache).
+      setAvatarRevision(Date.now())
       setAvatarFile(null)
+      setIsDirty(false)
       setSuccess('Profile saved.')
       await refresh()
     } catch (e) {
@@ -135,23 +311,51 @@ export function ProfilePage() {
     }
   }
 
-  const skills: Skill[] = useMemo(
+  const suggestedHobbies = useMemo(
     () => [
-      { id: 'ts', label: 'TypeScript', value: 75, icon: 'ts' },
-      { id: 'react', label: 'React', value: 65, icon: 'react' },
-      { id: 'sql', label: 'SQL', value: 60, icon: 'sql' },
-      { id: 'git', label: 'Git', value: 55, icon: 'git' },
+      'Coding',
+      'Gaming',
+      'Reading',
+      'Sports',
+      'Music',
+      'Drawing',
+      'Photography',
+      'Video Editing',
+      'UI Design',
+      'Robotics',
+      'Volunteering',
+      'Public Speaking',
+      'Chess',
+      'Running',
+      'Cycling',
+      'Badminton',
+      'Cooking',
+      'Travel',
+      'Blogging',
+      'Content Creation',
     ],
     [],
   )
 
-  const interests = useMemo(() => ['web development', 'TypeScript', 'Supabase'], [])
-  const hobbies = useMemo(() => ['Coding', 'Gaming', 'Reading'], [])
-
-  const displayName = (form.full_name || user?.email || 'Student').split('@')[0]
+  const suggestedSkills = useMemo(
+    () =>
+      [
+        { label: 'HTML', icon: 'html', value: 60 },
+        { label: 'CSS', icon: 'css', value: 55 },
+        { label: 'JavaScript', icon: 'js', value: 55 },
+        { label: 'TypeScript', icon: 'ts', value: 50 },
+        { label: 'React', icon: 'react', value: 50 },
+        { label: 'SQL', icon: 'sql', value: 45 },
+        { label: 'Git', icon: 'git', value: 45 },
+        { label: 'Python', icon: 'python', value: 40 },
+        { label: 'Figma', icon: 'figma', value: 35 },
+        { label: 'Video Editing', icon: 'video', value: 35 },
+      ] as const,
+    [],
+  )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <PageHeader
         title="Profile"
         subtitle="Update your details and profile photo."
@@ -166,14 +370,6 @@ export function ProfilePage() {
             <Button type="button" variant="icon" aria-label="Notifications (UI only)">
               <IconBell size={18} />
             </Button>
-
-            <div className="ml-1 grid size-10 place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/35 text-sm font-semibold text-slate-100">
-              {form.avatar_url ? (
-                <img src={form.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                displayName.slice(0, 1).toUpperCase()
-              )}
-            </div>
           </div>
         }
       />
@@ -184,23 +380,35 @@ export function ProfilePage() {
         </div>
       )}
 
+      {(success || error) && (
+        <div className="grid grid-cols-1 gap-3">
+          {success && (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+              {success}
+            </div>
+          )}
+          {error && (
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100">
+              {error}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Layout: left column (photo + about), right wide column (info + skills + achievements) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card title="Profile Photo" className="lg:col-span-1">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="grid size-20 place-items-center overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950/40">
-                {avatarPreviewUrl || form.avatar_url ? (
-                  <img
-                    src={avatarPreviewUrl || form.avatar_url}
-                    alt="Profile avatar"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xl font-semibold text-slate-200">
-                    {(form.full_name || user?.email || 'U').slice(0, 1).toUpperCase()}
-                  </span>
-                )}
+              <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-1">
+                <Avatar
+                  src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+                  alt="Profile avatar"
+                  fallback={(form.full_name || user?.email || 'U').slice(0, 1).toUpperCase()}
+                  sizeClassName="size-20"
+                  className={cn('rounded-2xl border-0', showSkeleton && 'opacity-80')}
+                  loading="eager"
+                />
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-slate-100">Upload photo</div>
@@ -214,31 +422,16 @@ export function ProfilePage() {
               type="file"
               accept="image/*"
               disabled={saving}
-              onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                setAvatarFile(e.target.files?.[0] ?? null)
+                setIsDirty(true)
+              }}
               className="block w-full text-xs text-slate-300 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600/20 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-100 file:ring-1 file:ring-blue-500/25 hover:file:bg-blue-600/25 disabled:opacity-60"
             />
 
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              variant="primary"
-              fullWidth
-              className={cn(saving && 'opacity-60')}
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </Button>
-
-            {success && (
-              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
-                {success}
-              </div>
-            )}
-            {error && (
-              <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100">
-                {error}
-              </div>
-            )}
+            <div className="text-xs text-slate-500">
+              Tip: Select a file, then click <span className="font-semibold text-slate-300">Save Changes</span> (bottom-right).
+            </div>
           </div>
         </Card>
 
@@ -249,8 +442,11 @@ export function ProfilePage() {
                 <div className="text-xs font-semibold text-slate-400">Full Name</div>
                 <input
                   value={form.full_name}
-                  onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))}
-                  disabled={saving}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, full_name: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
                   className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   placeholder="Your full name"
                 />
@@ -260,8 +456,11 @@ export function ProfilePage() {
                 <div className="text-xs font-semibold text-slate-400">Class</div>
                 <input
                   value={form.class}
-                  onChange={(e) => setForm((p) => ({ ...p, class: e.target.value }))}
-                  disabled={saving}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, class: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
                   className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   placeholder="e.g., DIT 5A"
                 />
@@ -278,7 +477,7 @@ export function ProfilePage() {
             </label>
 
             <div className="text-xs text-slate-500">
-              {loading ? 'Loading…' : 'Tip: Keep your name and class updated for reports and guidance.'}
+              {showSkeleton ? 'Loading…' : 'Tip: Keep your name and class updated for reports and guidance.'}
             </div>
           </div>
         </Card>
@@ -287,50 +486,235 @@ export function ProfilePage() {
           <div className="space-y-4">
             <textarea
               value={aboutMe}
-              onChange={(e) => setAboutMe(e.target.value)}
+              onChange={(e) => {
+                setAboutMe(e.target.value)
+                setIsDirty(true)
+              }}
               rows={4}
-              className="w-full resize-none rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Tell others about you…"
+              disabled={saving || showSkeleton}
+              className="w-full resize-none rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
             />
 
-            <div className="flex flex-wrap gap-2">
-              {interests.map((t) => (
-                <span
-                  key={t}
-                  className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+            <div className="space-y-2">
+              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                Tags
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {interestTags.length === 0 && (
+                  <span className="text-xs text-slate-500">Add tags like “web development”, “UI/UX”, “SQL”…</span>
+                )}
+                {interestTags.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+                  >
+                    {t}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInterestTags((prev) => prev.filter((x) => x !== t))
+                        setIsDirty(true)
+                      }}
+                      className="grid size-5 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25 text-[11px] text-slate-300 hover:bg-slate-950/35"
+                      aria-label={`Remove tag ${t}`}
+                      disabled={saving || showSkeleton}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter') return
+                    e.preventDefault()
+                    const v = newTag.trim()
+                    if (!v) return
+                    setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
+                    setNewTag('')
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
+                  placeholder="Add a tag…"
+                  className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={saving || showSkeleton || !newTag.trim()}
+                  onClick={() => {
+                    const v = newTag.trim()
+                    if (!v) return
+                    setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
+                    setNewTag('')
+                    setIsDirty(true)
+                  }}
                 >
-                  {t}
-                </span>
-              ))}
+                  Add
+                </Button>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4">
               <div className="text-sm font-semibold text-slate-100">Hobbies</div>
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {hobbies.map((h) => (
-                  <div
-                    key={h}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-950/20 px-3 py-3 text-xs font-semibold text-slate-200"
-                  >
-                    <HobbyIcon label={h} />
-                    <span className="truncate">{h}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+              <div className="mt-3">
+                <div className="flex flex-wrap gap-2">
+                  {hobbyTags.length === 0 && (
+                    <span className="text-xs text-slate-500">Choose hobbies below to add them.</span>
+                  )}
+                  {hobbyTags.map((h) => (
+                    <span
+                      key={h}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+                    >
+                      <HobbyIcon label={h} />
+                      <span className="truncate">{h}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHobbyTags((prev) => prev.filter((x) => x !== h))
+                          setIsDirty(true)
+                        }}
+                        className="grid size-5 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25 text-[11px] text-slate-300 hover:bg-slate-950/35"
+                        aria-label={`Remove hobby ${h}`}
+                        disabled={saving || showSkeleton}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
 
-            <div className="pt-1">
-              <Button type="button" variant="secondary" className="mx-auto flex px-10">
-                Save
-              </Button>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving || showSkeleton}
+                    onClick={() => setIsHobbyPickerOpen((v) => !v)}
+                  >
+                    {isHobbyPickerOpen ? 'Close' : 'Add Hobby'}
+                  </Button>
+                  <div className="text-xs text-slate-500">
+                    {hobbyTags.length} selected
+                  </div>
+                </div>
+
+                {isHobbyPickerOpen && (
+                  <div className="mt-3 rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                      Suggested hobbies
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {suggestedHobbies.map((h) => {
+                        const active = hobbyTags.includes(h)
+                        return (
+                          <button
+                            key={h}
+                            type="button"
+                            disabled={saving || showSkeleton}
+                            onClick={() => {
+                              setHobbyTags((prev) => (prev.includes(h) ? prev : [...prev, h]))
+                              setIsDirty(true)
+                            }}
+                            className={cn(
+                              'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
+                              active
+                                ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                                : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
+                              (saving || showSkeleton) && 'opacity-60',
+                            )}
+                            aria-pressed={active}
+                          >
+                            <HobbyIcon label={h} />
+                            <span className="truncate">{h}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Card>
 
         <Card title="My Skills" className="lg:col-span-2">
           <div className="space-y-3">
-            {skills.map((s) => (
-              <SkillRow key={s.id} skill={s} />
+            {skillsState.map((s) => (
+              <SkillRow
+                key={s.id}
+                skill={s}
+                onChange={(next: Skill) =>
+                  (setSkillsState((prev) => prev.map((p) => (p.id === s.id ? next : p))), setIsDirty(true))
+                }
+                onRemove={() => {
+                  setSkillsState((prev) => prev.filter((p) => p.id !== s.id))
+                  setIsDirty(true)
+                }}
+              />
             ))}
+
+            <div className="flex items-center justify-start gap-3 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsSkillPickerOpen((v) => !v)}
+                disabled={saving || showSkeleton}
+              >
+                {isSkillPickerOpen ? 'Close' : 'Add Skill'}
+              </Button>
+            </div>
+
+            {isSkillPickerOpen && (
+              <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                  Suggested skills
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {suggestedSkills.map((sugg) => {
+                    const exists = skillsState.some(
+                      (s) => s.label.trim().toLowerCase() === sugg.label.toLowerCase(),
+                    )
+                    return (
+                      <button
+                        key={sugg.label}
+                        type="button"
+                        disabled={saving || showSkeleton}
+                        onClick={() => {
+                          if (exists) return
+                          setSkillsState((prev) => [
+                            ...prev,
+                            {
+                              id: cryptoId(),
+                              label: sugg.label,
+                              value: sugg.value,
+                              icon: sugg.icon as Skill['icon'],
+                            },
+                          ])
+                          setIsDirty(true)
+                        }}
+                        className={cn(
+                          'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
+                          exists
+                            ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                            : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
+                          (saving || showSkeleton) && 'opacity-60',
+                        )}
+                        aria-pressed={exists}
+                      >
+                        <SkillIcon kind={sugg.icon as Skill['icon']} />
+                        <span className="truncate">{sugg.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -366,6 +750,20 @@ export function ProfilePage() {
             />
           </div>
         </Card>
+      </div>
+
+      {/* Single save button (bottom-right) */}
+      <div className="fixed bottom-6 right-6 z-30">
+        <Button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || showSkeleton || !isSupabaseConfigured || !profileId}
+          size="lg"
+          variant="primary"
+          className={cn('px-6', (saving || !isSupabaseConfigured || !profileId) && 'opacity-60')}
+        >
+          {saving ? 'Saving…' : 'Save Changes'}
+        </Button>
       </div>
     </div>
   )
@@ -419,9 +817,31 @@ function HobbyIcon(props: { label: string }) {
   return <span className="text-[13px] text-blue-200">📖</span>
 }
 
-function SkillRow(props: { skill: Skill }) {
+type SkillRowProps = {
+  skill: Skill
+  onChange: (next: Skill) => void
+  onRemove: () => void
+}
+
+function SkillRow(props: SkillRowProps) {
   const { skill } = props
-  const clamped = Math.max(0, Math.min(100, skill.value))
+  const clamped = clamp100(skill.value)
+  const options: Array<{ icon: Skill['icon']; label: string }> = [
+    { icon: 'html', label: 'HTML' },
+    { icon: 'css', label: 'CSS' },
+    { icon: 'js', label: 'JavaScript' },
+    { icon: 'ts', label: 'TypeScript' },
+    { icon: 'react', label: 'React' },
+    { icon: 'sql', label: 'SQL' },
+    { icon: 'git', label: 'Git' },
+    { icon: 'python', label: 'Python' },
+    { icon: 'figma', label: 'Figma' },
+    { icon: 'video', label: 'Video Editing' },
+  ]
+
+  const labelForIcon = (icon: Skill['icon']) =>
+    options.find((o) => o.icon === icon)?.label ?? skill.label
+
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3">
       <div className="grid size-11 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/25">
@@ -429,8 +849,33 @@ function SkillRow(props: { skill: Skill }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-3">
-          <div className="truncate text-sm font-semibold text-slate-100">{skill.label}</div>
-          <div className="text-sm font-semibold tabular-nums text-slate-200">{clamped}%</div>
+          <select
+            value={skill.icon}
+            onChange={(e) => {
+              const icon = e.target.value as Skill['icon']
+              props.onChange({ ...skill, icon, label: labelForIcon(icon) })
+            }}
+            className="min-w-0 flex-1 rounded-xl border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            aria-label="Skill"
+          >
+            {options.map((o) => (
+              <option key={o.icon} value={o.icon}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={clamped}
+            onChange={(e) => props.onChange({ ...skill, value: clamp100(Number(e.target.value)) })}
+            className="w-20 rounded-xl border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold tabular-nums text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            aria-label="Skill percent"
+          />
+          <Button type="button" variant="ghost" onClick={props.onRemove} aria-label="Remove skill">
+            Remove
+          </Button>
         </div>
         <div className="mt-2 h-2.5 w-full rounded-full bg-slate-950/40 ring-1 ring-slate-800/60">
           <div
@@ -443,11 +888,29 @@ function SkillRow(props: { skill: Skill }) {
   )
 }
 
+function defaultSkills(): Skill[] {
+  return [
+    { id: cryptoId(), label: 'HTML', value: 60, icon: 'html' },
+    { id: cryptoId(), label: 'CSS', value: 55, icon: 'css' },
+    { id: cryptoId(), label: 'JavaScript', value: 55, icon: 'js' },
+    { id: cryptoId(), label: 'TypeScript', value: 50, icon: 'ts' },
+    { id: cryptoId(), label: 'React', value: 50, icon: 'react' },
+    { id: cryptoId(), label: 'SQL', value: 45, icon: 'sql' },
+  ]
+}
+
 function SkillIcon(props: { kind: Skill['icon'] }) {
   const { kind } = props
+  if (kind === 'html') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<HTML>'}</span>
+  if (kind === 'css') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<CSS>'}</span>
+  if (kind === 'js') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<JS>'}</span>
   if (kind === 'ts') return <span className="text-xs font-bold tracking-wide text-slate-100">{'<TS>'}</span>
   if (kind === 'react') return <span className="text-lg text-blue-200">⚛</span>
   if (kind === 'sql') return <span className="text-lg text-blue-200">🛢</span>
+  if (kind === 'git') return <span className="text-lg text-blue-200">◆</span>
+  if (kind === 'python') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<PY>'}</span>
+  if (kind === 'figma') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<UI>'}</span>
+  if (kind === 'video') return <span className="text-xs font-bold tracking-wide text-blue-100">{'<VID>'}</span>
   return <span className="text-lg text-blue-200">◆</span>
 }
 
@@ -586,6 +1049,12 @@ function LockBadgeIcon() {
       </svg>
     </div>
   )
+}
+
+function withCacheBust(url: string, revision: number) {
+  if (!url) return ''
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}v=${revision}`
 }
 
 

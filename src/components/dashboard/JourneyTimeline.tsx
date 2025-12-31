@@ -41,7 +41,7 @@ export function JourneyTimeline(props: {
   avatarUrl?: string | null
   avatarFallback?: string
 }) {
-  const { steps, progressPercent, avatarUrl, avatarFallback = 'U' } = props
+  const { steps, progressPercent } = props
   const completedSteps = steps.filter((s) => s.done).length
   const fallbackProgress =
     steps.length <= 1 ? 0 : ((completedSteps - 1) / (steps.length - 1)) * 100
@@ -65,30 +65,7 @@ export function JourneyTimeline(props: {
             className="absolute left-2 top-[74px] h-px bg-gradient-to-r from-blue-500/70 to-blue-300/70 shadow-[0_0_18px_rgba(59,130,246,0.20)]"
             style={{ width: `calc(${p}% * (100% - 16px) / 100)` }}
           />
-          {/* Moving avatar marker */}
-          <motion.div
-            className="absolute top-[74px] z-10"
-            style={{
-              left: `calc(8px + (100% - 16px) * ${p} / 100)`,
-              transform: 'translate(-50%, -50%)',
-            }}
-            animate={{}}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-          >
-            <div className="relative grid size-11 place-items-center rounded-full border border-blue-500/25 bg-slate-950/60 shadow-[0_0_25px_rgba(59,130,246,0.25)]">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="User avatar"
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-slate-100">
-                  {avatarFallback.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-            </div>
-          </motion.div>
+          {/* Marker removed (user requested no avatar on the timeline) */}
 
           <div className="relative grid grid-cols-5 gap-6">
             {steps.map((s) => (

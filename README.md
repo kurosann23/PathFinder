@@ -92,10 +92,32 @@ create table if not exists public.profiles (
   class text,
   email text,
   avatar_url text,
+  about_me text,
+  skills jsonb default '[]'::jsonb,
+  interests jsonb default '[]'::jsonb,
+  hobbies jsonb default '[]'::jsonb,
   created_at timestamptz default now()
 );
 
 alter table public.profiles enable row level security;
+```
+
+### Add / migrate extra profile fields (About Me + Skills)
+
+If your `profiles` table already exists, run:
+
+```sql
+alter table public.profiles
+  add column if not exists about_me text;
+
+alter table public.profiles
+  add column if not exists skills jsonb default '[]'::jsonb;
+
+alter table public.profiles
+  add column if not exists interests jsonb default '[]'::jsonb;
+
+alter table public.profiles
+  add column if not exists hobbies jsonb default '[]'::jsonb;
 ```
 
 ### RLS policies (authenticated user can access own profile)

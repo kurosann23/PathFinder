@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   careerSnapshotMeta,
   dashboardHeader,
-  initialCareerTraits,
   journeyMeta,
   type JourneyKey,
 } from '../constants/dashboard'
@@ -12,7 +11,6 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/ui/Button'
-import { cn } from '../lib/cn'
 import {
   IconBell,
   IconBook,
@@ -32,7 +30,17 @@ export function DashboardPage() {
   const navigate = useNavigate()
 
   const careerTraits = useMemo(() => {
-    if (!progress.psychometricCompleted) return initialCareerTraits
+    if (!progress.psychometricCompleted) {
+      // After a reset, we should not show demo traits. Show a "cleared" snapshot.
+      return {
+        realistic: 0,
+        investigative: 0,
+        artistic: 0,
+        social: 0,
+        enterprising: 0,
+        conventional: 0,
+      } as const
+    }
 
     // Use REAL psychometric RIASEC percentages for the snapshot once the test is completed.
     return {
@@ -52,6 +60,10 @@ export function DashboardPage() {
   }, [progress.journey])
 
   const topCareerTypeLabel = useMemo(() => {
+    const values = Object.values(careerTraits)
+    const allZero = values.every((v) => (Number.isFinite(v) ? v : 0) <= 0)
+    if (allZero) return '—'
+
     let topKey = careerSnapshotMeta[0]?.key
     let topValue = -Infinity
 
@@ -165,27 +177,6 @@ export function DashboardPage() {
             <Button type="button" variant="icon" aria-label="Notifications (UI only)">
               <IconBell size={18} />
             </Button>
-
-            <Link
-              to="/profile"
-              className={cn(
-                'ml-1 flex items-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-950/25 px-2.5 py-1.5',
-                'backdrop-blur-xl hover:bg-slate-950/35',
-              )}
-              aria-label="Open profile"
-            >
-              <span className="grid size-9 place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/40 text-sm font-semibold text-slate-100">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-                ) : (
-                  (profile?.full_name ?? 'U').slice(0, 1).toUpperCase()
-                )}
-              </span>
-              <span className="hidden max-w-[160px] truncate text-sm font-semibold text-slate-100 sm:block">
-                {profile?.full_name ?? 'Student'}
-              </span>
-              <ChevronDownIcon />
-            </Link>
           </div>
         }
       />
@@ -359,20 +350,6 @@ function MailIcon() {
         d="M6.5 7.5 12 12l5.5-4.5"
         stroke="currentColor"
         strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-slate-300/80">
-      <path
-        d="m6 9 6 6 6-6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>

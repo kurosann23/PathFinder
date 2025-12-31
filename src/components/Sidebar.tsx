@@ -4,6 +4,7 @@ import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { Button } from './ui/Button'
+import { Avatar } from './ui/Avatar'
 import {
   IconBook,
   IconClipboard,
@@ -177,13 +178,14 @@ export function Sidebar(props: SidebarProps) {
           )}
         >
           <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
-            <div className="grid size-11 place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/35 text-base font-semibold text-slate-100 shadow-[0_0_18px_rgba(59,130,246,0.15)]">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                (profile?.full_name?.slice(0, 1) ?? user?.email?.slice(0, 1) ?? 'U').toUpperCase()
-              )}
-            </div>
+            <Avatar
+              src={profile?.avatar_url}
+              alt="Avatar"
+              fallback={(profile?.full_name?.slice(0, 1) ?? user?.email?.slice(0, 1) ?? 'U').toUpperCase()}
+              sizeClassName="size-11"
+              className="shadow-[0_0_18px_rgba(59,130,246,0.15)]"
+              loading="eager"
+            />
             {!isCollapsed && (
               <div className="min-w-0">
                 <div className="truncate text-base font-semibold text-slate-100">

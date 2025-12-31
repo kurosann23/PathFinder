@@ -25,6 +25,11 @@ export function ProfileProvider(props: { children: ReactNode }) {
     try {
       const p = await fetchProfile(user.id)
       setProfile(p)
+      // Preload avatar to avoid "late pop-in" in sidebar/dashboard/timeline.
+      if (p?.avatar_url) {
+        const img = new Image()
+        img.src = p.avatar_url
+      }
     } finally {
       setLoading(false)
     }

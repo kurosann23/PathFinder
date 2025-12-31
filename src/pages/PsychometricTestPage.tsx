@@ -111,6 +111,11 @@ export function PsychometricTestPage() {
   }
 
   async function handleRetest() {
+    const ok = window.confirm(
+      'Are you sure you want to retake the test? This will delete your current results and reset your career guidance.',
+    )
+    if (!ok) return
+
     // Clear saved results + guidance so the user can submit again.
     try {
       await resetPsychometricTest()
@@ -734,70 +739,6 @@ export function PsychometricTestPage() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card
-            title="Personality Description"
-            right={
-              <span className="inline-flex items-center gap-2 rounded-xl bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 ring-1 ring-slate-800/70">
-                <span className="relative block size-2 rounded-full bg-emerald-300/90">
-                  <span className="absolute inset-0 rounded-full bg-emerald-300/60 animate-ping" />
-                </span>
-                Insight
-              </span>
-            }
-          >
-            <div className="space-y-2">
-              <div className="text-sm font-semibold text-slate-100">
-                {resultDescription.title}
-              </div>
-              <p className="text-sm text-slate-300/90">{resultDescription.text}</p>
-            </div>
-          </Card>
-
-          <Card
-            title="Technology Recommendations (Preview)"
-            right={
-              <span className="inline-flex items-center gap-2 rounded-xl bg-blue-600/15 px-3 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/20">
-                <span className="relative block size-2 rounded-full bg-blue-200/90">
-                  <span className="absolute inset-0 rounded-full bg-blue-200/50 animate-ping" />
-                </span>
-                Matches
-              </span>
-            }
-          >
-            <div className="space-y-3">
-              {progress.courseRecommendations.slice(0, 3).map((rec) => (
-                <div
-                  key={rec.subDomain}
-                  className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-100">
-                        {rec.subDomain}
-                      </div>
-                      <p className="mt-2 text-sm text-slate-300/90">
-                        {rec.explanation}
-                      </p>
-                      {rec.suggestedCourses?.length > 0 && (
-                        <div className="mt-3 text-xs text-slate-400">
-                          Suggested courses:{' '}
-                          <span className="text-slate-200">
-                            {rec.suggestedCourses.slice(0, 2).map((c) => c.title).join(' • ')}
-                            {rec.suggestedCourses.length > 2 ? ' • …' : ''}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="shrink-0 rounded-xl bg-blue-600/20 px-3 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25">
-                      {rec.matchPercent}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-          </div>
         </div>
       )}
     </div>
