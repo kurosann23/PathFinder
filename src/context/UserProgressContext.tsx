@@ -72,13 +72,14 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       return
     }
 
+    const userId = user.id
     let cancelled = false
 
     async function hydrate() {
       setIsHydrating(true)
       setHydrationError('')
       try {
-        const row = await fetchPsychometricResult(user.id)
+        const row = await fetchPsychometricResult(userId)
         if (cancelled) return
 
         if (!row) {

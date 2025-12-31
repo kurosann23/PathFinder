@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { IconBook, IconCheck, IconGamepad, IconPin, IconTarget, IconUser } from '../icons'
 
@@ -56,17 +57,17 @@ export function JourneyTimeline(props: {
       </div>
 
       <div className="mt-4 overflow-x-auto">
-        <div className="relative min-w-[860px] px-2 pb-2">
+        <div className="relative min-w-[860px] px-2 pb-4 pt-1">
           {/* Track */}
-          <div className="absolute left-2 right-2 top-6 h-px bg-blue-500/12" />
+          <div className="absolute left-2 right-2 top-[74px] h-px bg-blue-500/12" />
           {/* Progress fill */}
           <div
-            className="absolute left-2 top-6 h-px bg-gradient-to-r from-blue-500/70 to-blue-300/70 shadow-[0_0_18px_rgba(59,130,246,0.20)]"
+            className="absolute left-2 top-[74px] h-px bg-gradient-to-r from-blue-500/70 to-blue-300/70 shadow-[0_0_18px_rgba(59,130,246,0.20)]"
             style={{ width: `calc(${p}% * (100% - 16px) / 100)` }}
           />
           {/* Moving avatar marker */}
           <motion.div
-            className="absolute top-6 z-10"
+            className="absolute top-[74px] z-10"
             style={{
               left: `calc(8px + (100% - 16px) * ${p} / 100)`,
               transform: 'translate(-50%, -50%)',
@@ -91,36 +92,90 @@ export function JourneyTimeline(props: {
 
           <div className="relative grid grid-cols-5 gap-6">
             {steps.map((s) => (
-              <Link
+              <StepLink
                 key={s.key}
                 to={s.to}
-                className={cn('group flex flex-col items-center')}
+                locked={Boolean(s.locked) && !s.done}
+                className="group flex flex-col items-center"
               >
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                <div
                   className={cn(
-                    'grid size-12 place-items-center rounded-full border',
+                    'rounded-2xl border px-4 py-2 text-center text-xs font-semibold',
                     s.done
-                      ? 'border-blue-500/30 bg-blue-500/12 text-blue-200 shadow-[0_0_18px_rgba(59,130,246,0.18)]'
-                      : 'border-slate-800/60 bg-slate-950/18 text-slate-200/90',
+                      ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                      : s.locked
+                        ? 'border-slate-800/60 bg-slate-950/18 text-slate-300/60'
+                        : 'border-slate-800/60 bg-slate-950/18 text-slate-200',
                   )}
                 >
-                  <StepIcon icon={s.icon} done={s.done} />
-                </motion.div>
-
-                <div className="mt-3 text-xs font-semibold text-slate-200">
                   {s.label}
                 </div>
-                <div className="mt-1 text-[11px] font-medium text-slate-400">
-                  {s.done ? 'Completed' : 'Locked'}
+                <motion.div
+                  whileHover={s.locked && !s.done ? undefined : { y: -2 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className={cn(
+                    'mt-4 grid size-12 place-items-center rounded-full border',
+                    s.done
+                      ? 'border-blue-500/30 bg-blue-500/12 text-blue-200 shadow-[0_0_18px_rgba(59,130,246,0.18)]'
+                      : s.locked
+                        ? 'border-slate-800/60 bg-slate-950/18 text-slate-300/70'
+                        : 'border-slate-800/60 bg-slate-950/18 text-slate-200/90',
+                  )}
+                >
+                  {s.locked && !s.done ? <LockIcon /> : <StepIcon icon={s.icon} done={s.done} />}
+                </motion.div>
+
+                <div className="mt-2 text-[11px] font-medium text-slate-400">
+                  {s.done ? 'Completed' : s.locked ? 'Locked' : 'Start'}
                 </div>
-              </Link>
+              </StepLink>
             ))}
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function StepLink(props: { to: string; locked: boolean; className?: string; children: ReactNode }) {
+  const { to, locked, className, children } = props
+  if (locked) {
+    return (
+      <div className={cn(className, 'cursor-not-allowed')} aria-disabled="true">
+        {children}
+      </div>
+    )
+  }
+  return (
+    <Link to={to} className={cn(className)}>
+      {children}
+    </Link>
+  )
+}
+
+function LockIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7.5 11V8.8a4.5 4.5 0 0 1 9 0V11"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 16v2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        opacity="0.7"
+      />
+    </svg>
   )
 }
 

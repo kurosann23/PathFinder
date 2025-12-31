@@ -19,30 +19,11 @@ import {
   IconGamepad,
   IconPin,
   IconSettings,
-  IconTarget,
 } from '../components/icons'
 import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
 import { TodaysFocusCard, type FocusTask } from '../components/dashboard/TodaysFocusCard'
 import { JourneyTimeline, type JourneyStep } from '../components/dashboard/JourneyTimeline'
 import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
-
-function StatIcon(props: { icon: string; className?: string }) {
-  const { icon, className } = props
-  const common = { size: 18, className }
-
-  switch (icon) {
-    case 'target':
-      return <IconTarget {...common} />
-    case 'book':
-      return <IconBook {...common} />
-    case 'pin':
-      return <IconPin {...common} />
-    case 'gamepad':
-      return <IconGamepad {...common} />
-    default:
-      return <IconTarget {...common} />
-  }
-}
 
 export function DashboardPage() {
   const { progress } = useUserProgress()
@@ -85,6 +66,8 @@ export function DashboardPage() {
     return careerSnapshotMeta.find((t) => t.key === topKey)?.label ?? '—'
   }, [careerTraits])
 
+  const meaning = useMemo(() => getMeaning(topCareerTypeLabel), [topCareerTypeLabel])
+
   const focusTasks: FocusTask[] = useMemo(() => {
     // Keep the focus card stable and informative: show the first 2 journey steps,
     // reflecting their real completion status (completed vs locked).
@@ -125,7 +108,7 @@ export function DashboardPage() {
   }, [progress.journey])
 
   const journeySteps: JourneyStep[] = useMemo(() => {
-    return journeyMeta.map((j) => {
+    return journeyMeta.map((j, idx) => {
       const to =
         j.key === 'profile'
           ? '/profile'
@@ -148,35 +131,77 @@ export function DashboardPage() {
                 ? 'roadmap'
                 : 'games'
 
+      const locked =
+        idx === 0
+          ? false
+          : !progress.journey[journeyMeta[idx - 1].key as JourneyKey] &&
+            !progress.journey[j.key as JourneyKey]
+
       return {
         key: j.key,
         label: j.label,
         to,
         done: Boolean(progress.journey[j.key as JourneyKey]),
+        locked,
         icon,
       }
     })
   }, [progress.journey])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 md:space-y-6">
       <PageHeader
         title={dashboardHeader.title}
-        subtitle={dashboardHeader.subtitle}
+        // Matches the reference: cleaner top area with right-side actions
+        subtitle={undefined}
+        right={
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="icon" aria-label="Search (UI only)">
+              <SearchIcon />
+            </Button>
+            <Button type="button" variant="icon" aria-label="Messages (UI only)">
+              <MailIcon />
+            </Button>
+            <Button type="button" variant="icon" aria-label="Notifications (UI only)">
+              <IconBell size={18} />
+            </Button>
+
+            <Link
+              to="/profile"
+              className={cn(
+                'ml-1 flex items-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-950/25 px-2.5 py-1.5',
+                'backdrop-blur-xl hover:bg-slate-950/35',
+              )}
+              aria-label="Open profile"
+            >
+              <span className="grid size-9 place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/40 text-sm font-semibold text-slate-100">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  (profile?.full_name ?? 'U').slice(0, 1).toUpperCase()
+                )}
+              </span>
+              <span className="hidden max-w-[160px] truncate text-sm font-semibold text-slate-100 sm:block">
+                {profile?.full_name ?? 'Student'}
+              </span>
+              <ChevronDownIcon />
+            </Link>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr_360px]">
-        <div className="flex justify-center rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
-          <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={300} />
+        <div className="flex justify-center rounded-2xl border border-slate-800/60 bg-slate-950/16 p-4 backdrop-blur-xl shadow-[0_0_55px_rgba(59,130,246,0.10)]">
+          <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={290} stroke={14} />
         </div>
 
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-5 backdrop-blur-xl">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300/70">
-                Welcome back
+                Welcome back <span aria-hidden="true">👋</span>
               </div>
-              <div className="mt-2 truncate text-4xl font-semibold tracking-tight text-slate-50">
+              <div className="mt-2 truncate text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
                 {profile?.full_name ?? 'Student'}
               </div>
               <div className="mt-3 text-sm text-slate-300/80">
@@ -187,9 +212,6 @@ export function DashboardPage() {
 
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
-                <Button type="button" variant="icon" aria-label="Notifications (UI only)">
-                  <IconBell size={18} />
-                </Button>
                 <Button type="button" variant="icon" aria-label="Settings (UI only)">
                   <IconSettings size={18} />
                 </Button>
@@ -206,6 +228,45 @@ export function DashboardPage() {
               >
                 Logout
               </Button>
+            </div>
+          </div>
+
+          {/* Small glass info card (matches the reference's inner card) */}
+          <div className="mt-6 rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-100">Garc’s Thumers</div>
+                <div className="mt-1 text-xs text-slate-400">
+                  Your personalized hub is getting smarter as you complete more steps.
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-label="More (UI only)"
+                className="rounded-xl border border-slate-800/60 bg-slate-950/25 px-2 py-1 text-xs font-semibold text-slate-300 hover:bg-slate-950/35"
+              >
+                •••
+              </button>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-5 text-[11px] font-semibold text-slate-300/70">
+              <span className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-xl border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                  <IconPin size={16} />
+                </span>
+                Locked
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-xl border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                  <IconBook size={16} />
+                </span>
+                Locked
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-xl border border-slate-800/60 bg-slate-950/20 text-blue-200">
+                  <IconGamepad size={16} />
+                </span>
+                Locked
+              </span>
             </div>
           </div>
         </div>
@@ -239,55 +300,118 @@ export function DashboardPage() {
           topCareerTypeLabel={topCareerTypeLabel}
         />
 
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
-          <div className="text-sm font-semibold text-slate-100">Quick Actions</div>
-          <div className="mt-4 grid grid-cols-1 gap-2">
-            <Link to="/psychometric-test" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
-                    <IconTarget size={18} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-100">Psychometric Test</div>
-                    <div className="mt-0.5 text-xs text-slate-400">Open / view results</div>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-slate-300/70">→</span>
-              </div>
-            </Link>
-            <Link to="/learning-roadmap" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
-                    <IconPin size={18} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-100">Learning Roadmap</div>
-                    <div className="mt-0.5 text-xs text-slate-400">Continue your journey</div>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-slate-300/70">→</span>
-              </div>
-            </Link>
-            <Link to="/course-recommendation" className={cn('rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3 hover:bg-slate-950/26')}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-9 place-items-center rounded-full border border-slate-800/60 bg-slate-950/20 text-blue-200">
-                    <StatIcon icon="book" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-100">Course Recommendation</div>
-                    <div className="mt-0.5 text-xs text-slate-400">Explore suggested paths</div>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-slate-300/70">→</span>
-              </div>
-            </Link>
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-5 backdrop-blur-xl">
+          <div className="text-sm font-semibold text-slate-100">What this means for you</div>
+          <div className="mt-3 text-sm font-semibold text-slate-100">{meaning.title}</div>
+          <div className="mt-2 text-sm leading-relaxed text-slate-300/80">{meaning.body}</div>
+
+          <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+              <span className="grid size-8 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25">
+                <span className="text-[13px]">⛁</span>
+              </span>
+              <span className="tabular-nums">127</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+              <span className="grid size-8 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25">
+                <span className="text-[13px]">◎</span>
+              </span>
+              <span className="tabular-nums">107</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                HAMMED
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M21 21l-4.3-4.3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function MailIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.5 7.5 12 12l5.5-4.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-slate-300/80">
+      <path
+        d="m6 9 6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function getMeaning(topCareerTypeLabel: string) {
+  const copy: Record<string, { title: string; body: string }> = {
+    Conventional: {
+      title: 'Well-organized and detail-oriented',
+      body: 'You excel in structured environments and enjoy working with data and systems. Consider roles in office administration, operations, analysis, or finance.',
+    },
+    Investigative: {
+      title: 'Analytical and curious',
+      body: 'You thrive on problem-solving and learning. Roles involving research, engineering, data, or troubleshooting are often a strong match.',
+    },
+    Artistic: {
+      title: 'Creative and expressive',
+      body: 'You enjoy creating, exploring ideas, and producing original work. Roles involving design, content, UX, or creative tech often fit well.',
+    },
+    Social: {
+      title: 'People-focused and supportive',
+      body: 'You enjoy helping others learn and grow. Roles involving teaching, collaboration, community, or user success often fit well.',
+    },
+    Enterprising: {
+      title: 'Ambitious and persuasive',
+      body: 'You enjoy leading, initiating, and turning ideas into action. Roles involving product, business, marketing, or entrepreneurship often fit well.',
+    },
+    Realistic: {
+      title: 'Hands-on and practical',
+      body: 'You prefer building and doing. Roles involving technical implementation, systems, hardware, or applied engineering often fit well.',
+    },
+  }
+
+  return (
+    copy[topCareerTypeLabel] ?? {
+      title: 'Your strengths are emerging',
+      body: 'Complete the psychometric test to unlock a personalized interpretation and a clearer direction for your next steps.',
+    }
   )
 }
 

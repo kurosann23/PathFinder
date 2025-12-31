@@ -45,7 +45,7 @@ export function CareerSnapshot(props: {
         </Link>
       }
     >
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[180px_1fr_1fr] lg:items-center">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[160px_1fr_1fr] lg:items-center">
         <div className="space-y-2">
           {traits.map((t) => (
             <div
@@ -67,9 +67,9 @@ export function CareerSnapshot(props: {
           ))}
         </div>
 
-        <div className="h-[260px] w-full">
+        <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={data} outerRadius="74%">
+            <RadarChart data={data} outerRadius="82%">
               <PolarGrid stroke="rgba(148,163,184,0.14)" />
               <PolarAngleAxis
                 dataKey="trait"
