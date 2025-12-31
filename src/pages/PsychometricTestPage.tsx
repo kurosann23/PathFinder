@@ -6,42 +6,18 @@ import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import type { RiasecType } from '../constants/dashboard'
 import { cn } from '../lib/cn'
-import { IconBook, IconPin, IconTarget } from '../components/icons'
 import { riasecQuestions } from '../data/riasecQuestions.js'
 import { calculateRiasecScore } from '../utils/calculateRiasecScore.js'
 import { getRiasecDescription } from '../utils/getRiasecDescription.js'
 import { generateTechRecommendations } from '../utils/generateTechRecommendations.js'
 import { generateCareerPath } from '../utils/generateCareerPath.js'
-
-function AnimatedRadar() {
-  return (
-    <div className="relative size-10">
-      <div className="absolute inset-0 rounded-full bg-blue-500/10 ring-1 ring-blue-500/25" />
-      <div className="absolute inset-2 rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20" />
-      <div className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-100" />
-      <div className="absolute inset-0 animate-[spin_3.5s_linear_infinite]">
-        <div className="absolute left-1/2 top-0 size-2 -translate-x-1/2 rounded-full bg-blue-300/90 shadow-[0_0_18px_rgba(147,197,253,0.6)]" />
-      </div>
-      <div className="absolute inset-0 rounded-full bg-blue-500/5 animate-pulse" />
-    </div>
-  )
-}
-
-function TabIcon(props: { tab: 'who' | 'learn' | 'become'; active: boolean }) {
-  const { tab, active } = props
-  const cls = cn(active ? 'text-blue-200' : 'text-slate-300')
-  switch (tab) {
-    case 'who':
-      return <IconTarget size={18} className={cls} />
-    case 'learn':
-      return <IconBook size={18} className={cls} />
-    case 'become':
-      return <IconPin size={18} className={cls} />
-  }
-}
+import { useProfile } from '../context/ProfileContext'
+import { useAuth } from '../context/AuthContext'
 
 export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
+  const { user } = useAuth()
+  const { profile } = useProfile()
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
@@ -51,9 +27,7 @@ export function PsychometricTestPage() {
   const [hasStarted, setHasStarted] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [stepError, setStepError] = useState<string>('')
-  const [careerTab, setCareerTab] = useState<'who' | 'learn' | 'become'>('who')
-  const [supportFocus, setSupportFocus] = useState<RiasecType | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [showAllTraits, setShowAllTraits] = useState(false)
 
   const statusLabel = progress.psychometricCompleted ? 'Completed' : 'Not Taken'
   const statusClass = progress.psychometricCompleted
@@ -137,33 +111,6 @@ export function PsychometricTestPage() {
     })
   }
 
-  async function handleCopySummary() {
-    const report = progress.careerPathReport
-    if (!report) return
-
-    const text = [
-      'PathFinder — Career Path Guidance (Conceptual)',
-      `Holland Code: ${progress.psychometricResult}`,
-      `Primary Path: ${report.primaryPath.title} (${report.primaryPath.riasec})`,
-      report.rationale.summary,
-      '',
-      'Learning focus:',
-      ...report.primaryPath.learningFocus.map((x) => `- ${x}`),
-      '',
-      'Possible roles (examples):',
-      ...report.primaryPath.possibleRoles.map((r) => `- ${r}`),
-    ].join('\n')
-
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1200)
-    } catch {
-      // Non-blocking: clipboard may be unavailable in some environments.
-      setCopied(false)
-    }
-  }
-
   async function handleSubmit() {
     if (!canSubmit) return
 
@@ -196,8 +143,7 @@ export function PsychometricTestPage() {
 
     setHasStarted(false)
     setStepError('')
-    setCareerTab('who')
-    setSupportFocus(null)
+    setShowAllTraits(false)
 
     // Bring the user's attention to the outcome immediately after submission.
     requestAnimationFrame(() => {
@@ -485,264 +431,345 @@ export function PsychometricTestPage() {
       {progress.psychometricCompleted && resultDescription && (
         <div id="results" ref={resultsRef} className="space-y-4">
           {progress.careerPathReport && (
-            <Card
-              title="Career Path Guidance"
-              right={
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopySummary}
-                    className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
-                  >
-                    {copied ? 'Copied' : 'Copy summary'}
-                  </button>
-                  <Link
-                    to="/course-recommendation"
-                    className="rounded-xl bg-emerald-600/20 px-3 py-2 text-xs font-semibold text-emerald-100 ring-1 ring-emerald-500/25 hover:bg-emerald-600/25"
-                  >
-                    Explore courses
-                  </Link>
-                </div>
-              }
-            >
-              <div className="space-y-4">
-                <div className="relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950/30 px-5 py-4">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(500px_circle_at_15%_10%,rgba(59,130,246,0.20),transparent_55%),radial-gradient(500px_circle_at_85%_80%,rgba(16,185,129,0.12),transparent_55%)]" />
-                  <div className="relative">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="text-xs font-semibold text-slate-400">Your guidance report (conceptual)</div>
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className="rounded-xl bg-blue-600/20 px-3 py-1 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25">
-                            Holland Code: {progress.psychometricResult}
-                          </span>
-                          <span className="rounded-xl bg-slate-950/40 px-3 py-1 text-xs font-semibold text-slate-200 ring-1 ring-slate-800/70">
-                            Primary: {progress.careerPathReport.primaryPath.riasec}
-                          </span>
-                        </div>
-                        <div className="mt-3 text-lg font-semibold text-slate-100">
-                          {progress.careerPathReport.primaryPath.title}
-                        </div>
-                        <div className="mt-1 text-sm text-slate-300/90">
-                          {progress.careerPathReport.primaryPath.description}
-                        </div>
-                      </div>
-                      <div className="shrink-0">
-                        <div className="flex items-center gap-3 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-3 py-3">
-                          <AnimatedRadar />
-                          <div className="min-w-0">
-                            <div className="text-xs font-semibold text-slate-300">
-                              Motivation tip
-                            </div>
-                            <div className="mt-1 text-xs text-slate-400">
-                              Pick one role below and explore courses for it.
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {progress.careerPathReport.supportingPaths.length > 0 && (
-                      <div className="mt-4">
-                        <div className="text-xs font-semibold text-slate-400">Supporting interests (click to view)</div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {progress.careerPathReport.supportingPaths.map((p) => {
-                            const active = supportFocus === p.riasec
-                            return (
-                              <button
-                                key={p.riasec}
-                                type="button"
-                                onClick={() => setSupportFocus((prev) => (prev === p.riasec ? null : p.riasec))}
-                                className={`rounded-xl border px-3 py-1 text-xs font-semibold transition ${
-                                  active
-                                    ? 'border-blue-500/35 bg-blue-600/20 text-blue-100'
-                                    : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60'
-                                }`}
-                              >
-                                {p.riasec} • {p.title}
-                              </button>
-                            )
-                          })}
-                        </div>
-
-                        {supportFocus && (
-                          <div className="mt-3 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3">
-                            {(() => {
-                              const p = progress.careerPathReport.supportingPaths.find((x) => x.riasec === supportFocus)
-                              const idx = progress.careerPathReport.supportingPaths.findIndex((x) => x.riasec === supportFocus)
-                              const why = progress.careerPathReport.rationale.supportingWhy[idx] ?? ''
-                              if (!p) return null
-                              return (
-                                <div className="space-y-1">
-                                  <div className="text-xs font-semibold text-slate-400">How it supports you</div>
-                                  <div className="text-sm font-semibold text-slate-100">
-                                    {p.title}
-                                  </div>
-                                  <div className="text-sm text-slate-300/90">{why}</div>
-                                </div>
-                              )
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-                  {([
-                    { key: 'who', label: 'Who I am', hint: 'Your best-fit direction' },
-                    { key: 'learn', label: 'What I’ll learn', hint: 'General learning focus' },
-                    { key: 'become', label: 'What I may become', hint: 'Example future roles' },
-                  ] as const).map((t) => {
-                    const active = careerTab === t.key
-                    return (
-                      <button
-                        key={t.key}
-                        type="button"
-                        onClick={() => setCareerTab(t.key)}
-                        className={cn(
-                          'rounded-2xl border px-4 py-3 text-left transition',
-                          active
-                            ? 'border-blue-500/35 bg-blue-600/15 ring-1 ring-blue-500/20'
-                            : 'border-slate-800/70 bg-slate-950/30 hover:bg-slate-900/50',
-                        )}
-                      >
-                        <div className="text-xs font-semibold text-slate-400">{t.hint}</div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span
-                            className={cn(
-                              'grid size-8 place-items-center rounded-xl ring-1 transition',
-                              active
-                                ? 'bg-blue-600/20 text-blue-100 ring-blue-500/25'
-                                : 'bg-slate-950/40 text-slate-200 ring-slate-800/70',
-                            )}
-                          >
-                            <TabIcon tab={t.key} active={active} />
-                          </span>
-                          <div className={cn('text-sm font-semibold', active ? 'text-blue-100' : 'text-slate-100')}>
-                            {t.label}
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-5 py-4">
-                  {careerTab === 'who' && (
-                    <div className="space-y-3">
-                      <div className="text-xs font-semibold text-slate-400">Why this path fits you</div>
-                      <div className="text-sm text-slate-200">
-                        {progress.careerPathReport.rationale.summary}
-                      </div>
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3">
-                        <div className="text-xs font-semibold text-slate-400">In simple terms</div>
-                        <div className="mt-1 text-sm text-slate-300/90">
-                          {progress.careerPathReport.rationale.primaryWhy}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-xs text-slate-400">
-                          Next: learn what you’ll focus on and what roles you can aim for.
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setCareerTab('learn')}
-                            className="rounded-xl bg-blue-600/20 px-4 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
-                          >
-                            Continue
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {careerTab === 'learn' && (
-                    <div className="space-y-3">
-                      <div className="text-xs font-semibold text-slate-400">Key learning focus</div>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {progress.careerPathReport.primaryPath.learningFocus.map((x) => (
-                          <div
-                            key={x}
-                            className="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200"
-                          >
-                            <div className="pointer-events-none absolute -inset-10 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(250px_circle_at_30%_30%,rgba(59,130,246,0.15),transparent_60%)]" />
-                            <div className="relative flex items-start gap-3">
-                              <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-xl bg-blue-600/15 ring-1 ring-blue-500/20">
-                                <IconBook size={16} className="text-blue-200/90" />
-                              </span>
-                              <span className="leading-snug">{x}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <button
-                          type="button"
-                          onClick={() => setCareerTab('who')}
-                          className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
-                        >
-                          Back
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCareerTab('become')}
-                          className="rounded-xl bg-blue-600/20 px-4 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
-                        >
-                          Continue
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {careerTab === 'become' && (
-                    <div className="space-y-3">
-                      <div className="text-xs font-semibold text-slate-400">Example roles (future outcomes)</div>
-                      <div className="flex flex-wrap gap-2">
-                        {progress.careerPathReport.primaryPath.possibleRoles.map((r) => (
-                          <span
-                            key={r}
-                            className="group inline-flex items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-slate-900/60"
-                          >
-                            <span className="relative grid size-5 place-items-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/15">
-                              <span className="absolute inset-0 rounded-lg bg-emerald-500/10 opacity-0 group-hover:opacity-100 animate-pulse" />
-                              <IconPin size={14} className="relative text-emerald-200/90" />
-                            </span>
-                            {r}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        These are examples, not guarantees — your interests and skills will refine the best fit.
-                      </div>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <button
-                          type="button"
-                          onClick={() => setCareerTab('learn')}
-                          className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
-                        >
-                          Back
-                        </button>
-                        <Link
-                          to="/course-recommendation"
-                          className="rounded-xl bg-emerald-600/20 px-4 py-2 text-xs font-semibold text-emerald-100 ring-1 ring-emerald-500/25 hover:bg-emerald-600/25"
-                        >
-                          See recommended course suggestions
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
+            <InteractiveCareerPathGuidance
+              name={profile?.full_name ?? user?.email?.split('@')[0] ?? 'Student'}
+              hollandCode={progress.psychometricResult}
+              report={progress.careerPathReport}
+              showAllTraits={showAllTraits}
+              onToggleTraits={() => setShowAllTraits((v) => !v)}
+            />
           )}
 
         </div>
       )}
     </div>
   )
+}
+
+function InteractiveCareerPathGuidance(props: {
+  name: string
+  hollandCode: string
+  report: NonNullable<ReturnType<typeof useUserProgress>['progress']['careerPathReport']>
+  showAllTraits: boolean
+  onToggleTraits: () => void
+}) {
+  const { name, hollandCode, report, showAllTraits, onToggleTraits } = props
+
+  const heroTitle = report.primaryPath.title
+  const heroDesc = report.primaryPath.description
+  const primaryFit = report.primaryPath.riasec
+
+  const traitRows = [
+    { label: report.primaryPath.title, icon: '🎨' },
+    ...report.supportingPaths.slice(0, 1).map((p) => ({ label: p.title, icon: '🛠️' })),
+  ]
+
+  const moreTraits = report.supportingPaths.slice(1).map((p) => p.title)
+  const roles = report.primaryPath.possibleRoles.slice(0, 2)
+
+  return (
+    <section className="relative overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-950/12 p-6 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.32)]">
+      <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(1200px_circle_at_25%_20%,black,transparent_70%)]">
+        <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_15%,rgba(59,130,246,0.14),transparent_60%),radial-gradient(900px_circle_at_85%_70%,rgba(168,85,247,0.10),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_40%)]" />
+      </div>
+      <div className="pointer-events-none absolute inset-0 ring-1 ring-white/5" />
+
+      <div className="relative space-y-3">
+        <div className="text-sm font-semibold text-slate-200/90">
+          Great job, <span className="text-slate-50">{name}</span>! Based on your results, follow the{' '}
+          <span className="text-slate-50">{heroTitle}</span> 🎉
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-slate-800/60 bg-slate-950/25 px-3 py-1 text-xs font-semibold text-slate-200">
+            Holland Code: <span className="text-slate-50">{hollandCode}</span>
+          </span>
+          <span className="rounded-full border border-slate-800/60 bg-slate-950/25 px-3 py-1 text-xs font-semibold text-slate-200">
+            Primary Fit: <span className="text-slate-50">{primaryFit}</span>
+          </span>
+        </div>
+
+        <div className="pt-2">
+          <div className="text-4xl font-semibold tracking-tight text-slate-50 md:text-5xl">
+            Your <span className="text-slate-50">{heroTitle}</span>
+          </div>
+          <div className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300/85">
+            {heroDesc}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <ActionCard
+          title="Discover Yourself"
+          bullets={['Learn what makes you unique', 'Understand your strengths']}
+          ctaLabel="Self Discovery"
+          to="#who"
+          tint="blue"
+          icon={<CardIcon kind="discover" />}
+        />
+        <ActionCard
+          title="Explore Opportunities"
+          bullets={['Browse suggested careers', "See each role's key tasks"]}
+          ctaLabel="See Careers"
+          to="#careers"
+          tint="emerald"
+          icon={<CardIcon kind="careers" />}
+        />
+        <ActionCard
+          title="Build Skill Set"
+          bullets={['Get course recommendations', 'Follow a guided roadmap']}
+          ctaLabel="Start Learning"
+          to="/learning-roadmap"
+          tint="cyan"
+          icon={<CardIcon kind="learn" />}
+        />
+      </div>
+
+      <div className="relative mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
+        {/* Connector like the screenshot (desktop only) */}
+        <div className="pointer-events-none absolute left-[55%] top-12 hidden w-[340px] -translate-x-1/2 lg:block">
+          <svg viewBox="0 0 340 220" fill="none" aria-hidden="true">
+            <path
+              d="M40 30C120 30 120 110 200 110C270 110 270 190 330 190"
+              stroke="rgba(148,163,184,0.28)"
+              strokeWidth="2"
+            />
+            <path
+              d="M40 30C120 30 120 110 200 110C270 110 270 190 330 190"
+              stroke="rgba(59,130,246,0.30)"
+              strokeWidth="2"
+              strokeDasharray="6 10"
+            />
+            <path d="M322 184l10 6-10 6" stroke="rgba(226,232,240,0.7)" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        <div id="who" className="space-y-3">
+          <div className="text-2xl font-semibold tracking-tight text-slate-50">Who You Are</div>
+          <div className="rounded-2xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_12px_44px_rgba(0,0,0,0.28)] ring-1 ring-white/5">
+            <div className="space-y-2">
+              {traitRows.map((t) => (
+                <div
+                  key={t.label}
+                  className="flex items-center gap-3 rounded-2xl border border-slate-700/60 bg-slate-950/22 px-4 py-3 text-sm font-semibold text-slate-100 ring-1 ring-white/5"
+                >
+                  <span className="grid size-9 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/25 text-base">
+                    {t.icon}
+                  </span>
+                  <span className="truncate">{t.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 text-sm leading-relaxed text-slate-300/80">{report.rationale.primaryWhy}</div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-blue-500/25 bg-blue-600/10 px-3 py-1 text-xs font-semibold text-blue-100">
+                {primaryFit}
+              </span>
+              {report.primaryPath.learningFocus.slice(0, 1).map((x) => (
+                <span
+                  key={x}
+                  className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+                >
+                  {x}
+                </span>
+              ))}
+              {moreTraits.length > 0 && (
+                <button
+                  type="button"
+                  onClick={onToggleTraits}
+                  className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-950/28"
+                >
+                  {showAllTraits ? 'Hide traits' : `+ ${moreTraits.length} More Traits`}
+                </button>
+              )}
+            </div>
+
+            {showAllTraits && moreTraits.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {moreTraits.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div id="careers" className="space-y-3">
+          <div className="text-2xl font-semibold tracking-tight text-slate-50">Where You Could Go</div>
+          <div className="grid grid-cols-1 gap-3">
+            {roles.map((r) => (
+              <CareerCard
+                key={r}
+                title={r}
+                description={getRoleDescription(r, heroTitle)}
+                tags={[heroTitle, `${primaryFit} fit`]}
+                buttonLabel={getRoleButtonLabel(r)}
+              />
+            ))}
+            <div className="text-center text-sm text-slate-400">And more careers to explore!</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ActionCard(props: {
+  title: string
+  bullets: string[]
+  ctaLabel: string
+  to: string
+  tint: 'blue' | 'emerald' | 'cyan'
+  icon: React.ReactNode
+}) {
+  const { title, bullets, ctaLabel, to, tint, icon } = props
+  const tintCls =
+    tint === 'blue'
+      ? 'from-blue-500/18 to-blue-500/2'
+      : tint === 'emerald'
+        ? 'from-emerald-500/18 to-emerald-500/2'
+        : 'from-cyan-500/18 to-cyan-500/2'
+
+  const btnCls =
+    tint === 'blue'
+      ? 'bg-blue-600/18 text-blue-100 ring-blue-500/20 hover:bg-blue-600/22'
+      : tint === 'emerald'
+        ? 'bg-emerald-600/18 text-emerald-100 ring-emerald-500/20 hover:bg-emerald-600/22'
+        : 'bg-cyan-600/18 text-cyan-100 ring-cyan-500/20 hover:bg-cyan-600/22'
+
+  const content = (
+    <div className="relative overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_12px_44px_rgba(0,0,0,0.26)] ring-1 ring-white/5">
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${tintCls}`} />
+      <div className="relative">
+        <div className="mb-3 flex justify-center">{icon}</div>
+        <div className="text-center text-xl font-semibold text-slate-50">{title}</div>
+        <ul className="mt-3 space-y-2 text-sm text-slate-300/80">
+          {bullets.map((b) => (
+            <li key={b} className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-slate-300/60" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-5 flex justify-center">
+          <span className={cn('inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold ring-1', btnCls)}>
+            <span className="grid size-7 place-items-center rounded-xl border border-white/10 bg-white/5">⌁</span>
+            {ctaLabel} <span aria-hidden="true">›</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (to.startsWith('#')) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          const el = document.querySelector(to)
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
+        className="text-left"
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <Link to={to} className="block">
+      {content}
+    </Link>
+  )
+}
+
+function CareerCard(props: { title: string; description: string; tags: string[]; buttonLabel: string }) {
+  const { title, description, tags, buttonLabel } = props
+  return (
+    <div className="rounded-2xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_12px_44px_rgba(0,0,0,0.26)] ring-1 ring-white/5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate text-base font-semibold text-slate-100">{title}</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {tags.slice(0, 2).map((t) => (
+              <span
+                key={t}
+                className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 text-sm leading-relaxed text-slate-300/80">{description}</div>
+      <div className="mt-4">
+        <Link
+          to="/course-recommendation"
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-950/20 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-950/30"
+        >
+          {buttonLabel} <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function CardIcon(props: { kind: 'discover' | 'careers' | 'learn' }) {
+  const { kind } = props
+  const border =
+    kind === 'discover'
+      ? 'border-blue-500/25 shadow-[0_0_30px_rgba(59,130,246,0.15)]'
+      : kind === 'careers'
+        ? 'border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.12)]'
+        : 'border-cyan-500/20 shadow-[0_0_30px_rgba(34,211,238,0.12)]'
+
+  const icon =
+    kind === 'discover'
+      ? '💡'
+      : kind === 'careers'
+        ? '🧭'
+        : '💻'
+
+  return (
+    <div className={cn('grid size-14 place-items-center rounded-2xl border bg-slate-950/20 text-xl', border)}>
+      {icon}
+    </div>
+  )
+}
+
+function getRoleDescription(role: string, pathTitle: string) {
+  const r = role.toLowerCase()
+  if (r.includes('ui') || r.includes('ux') || r.includes('designer')) {
+    return 'Design user interfaces and improve digital experiences.'
+  }
+  if (r.includes('app') || r.includes('mobile')) {
+    return 'Build mobile or web applications with coding languages.'
+  }
+  if (r.includes('frontend')) {
+    return 'Build responsive interfaces and polished web experiences.'
+  }
+  if (r.includes('game')) {
+    return 'Create interactive experiences and game systems.'
+  }
+  return `Explore careers related to ${pathTitle} and see what you can work towards.`
+}
+
+function getRoleButtonLabel(role: string) {
+  const r = role.toLowerCase()
+  if (r.includes('ui') || r.includes('ux') || r.includes('designer')) return 'Learn About UI/UX'
+  if (r.includes('app') || r.includes('mobile')) return 'Learn About App Dev'
+  if (r.includes('frontend')) return 'Learn About Frontend'
+  if (r.includes('game')) return 'Learn About Game Dev'
+  return `Learn About ${role.split(' ')[0]}`
 }
 
 
