@@ -499,6 +499,39 @@ function getIdentityHeading(riasecType: string): string {
 }
 
 /**
+ * Get RIASEC type full name and short description.
+ */
+function getRiasecTypeInfo(riasecType: string): { name: string; description: string } {
+  const infoMap: Record<string, { name: string; description: string }> = {
+    R: {
+      name: 'Realistic',
+      description: 'You prefer practical, hands-on work and enjoy learning through real-world tasks.',
+    },
+    I: {
+      name: 'Investigative',
+      description: 'You are curious, analytical, and motivated by understanding how things work.',
+    },
+    A: {
+      name: 'Artistic',
+      description: 'You prefer creative expression and open-ended tasks where design and originality matter.',
+    },
+    S: {
+      name: 'Social',
+      description: 'You are people-oriented and gain satisfaction from helping, teaching, and collaborating.',
+    },
+    E: {
+      name: 'Enterprising',
+      description: 'You prefer leading, initiating, and influencing outcomes.',
+    },
+    C: {
+      name: 'Conventional',
+      description: 'You prefer structure, organization, and working with details and systems.',
+    },
+  }
+  return infoMap[riasecType] || infoMap.I
+}
+
+/**
  * Generate meaningful, student-friendly insights about how a person thinks, learns, and works.
  * Uses bullet points for easy scanning and quick understanding.
  */
@@ -869,29 +902,34 @@ function InteractiveCareerPathGuidance(props: {
             Great job, <span className="text-slate-50">{name}</span>! 🎉
           </div>
 
-          {/* Primary heading: Identity-focused */}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-50 md:text-4xl lg:text-5xl">
-              You are a {identityHeading}
-            </h1>
-            {/* Secondary label: Technology path (reduced emphasis) */}
-            <div className="mt-2 text-base font-medium text-slate-300/80 md:text-lg">
-              {heroTitle}
+          {/* Primary heading with prominent RIASEC letter badge */}
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+            {/* Prominent RIASEC letter badge - visual identity anchor */}
+            <RiasecLetterBadge
+              letter={primaryFit}
+              hollandCode={hollandCode}
+            />
+
+            {/* Identity heading and description */}
+            <div className="flex-1 space-y-3">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-50 md:text-4xl lg:text-5xl">
+                You are a {identityHeading}
+              </h1>
+              {/* Secondary label: Technology path (reduced emphasis) */}
+              <div className="text-base font-medium text-slate-300/80 md:text-lg">
+                {heroTitle}
+              </div>
+              {/* Explanation text: Readable and prominent - larger font for better readability */}
+              <p className="max-w-3xl text-base leading-relaxed text-slate-300/90 md:text-lg">
+                {heroDesc}
+              </p>
             </div>
           </div>
-
-          {/* Explanation text: Readable and prominent - larger font for better readability */}
-          <p className="max-w-3xl text-base leading-relaxed text-slate-300/90 md:text-lg">
-            {heroDesc}
-          </p>
 
           {/* Metadata badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-slate-800/60 bg-slate-950/25 px-3 py-1 text-xs font-semibold text-slate-200">
               Holland Code: <span className="text-slate-50">{hollandCode}</span>
-            </span>
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/25 px-3 py-1 text-xs font-semibold text-slate-200">
-              Primary Fit: <span className="text-slate-50">{primaryFit}</span>
             </span>
           </div>
         </div>
@@ -1149,6 +1187,113 @@ function getCareerExplanation(role: string): string {
 
   // Default fallback
   return 'Work in technology to solve problems and create solutions. This role combines technical skills with practical application.'
+}
+
+/**
+ * Prominent RIASEC letter badge component.
+ * Acts as a visual identity anchor showing the user's dominant personality type.
+ */
+function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
+  const { letter, hollandCode } = props
+  const typeInfo = getRiasecTypeInfo(letter)
+  
+  // Extract supporting letters (all letters except the primary)
+  const supportingLetters = hollandCode
+    .split('')
+    .filter((l) => l !== letter)
+    .slice(0, 2) // Show up to 2 supporting letters
+
+  // Color scheme based on RIASEC type
+  const colorScheme = {
+    R: {
+      bg: 'bg-blue-600/20',
+      border: 'border-blue-500/40',
+      text: 'text-blue-100',
+      glow: 'rgba(59, 130, 246, 0.25)',
+    },
+    I: {
+      bg: 'bg-purple-600/20',
+      border: 'border-purple-500/40',
+      text: 'text-purple-100',
+      glow: 'rgba(168, 85, 247, 0.25)',
+    },
+    A: {
+      bg: 'bg-purple-600/20',
+      border: 'border-purple-500/40',
+      text: 'text-purple-100',
+      glow: 'rgba(168, 85, 247, 0.25)',
+    },
+    S: {
+      bg: 'bg-orange-600/20',
+      border: 'border-orange-500/40',
+      text: 'text-orange-100',
+      glow: 'rgba(251, 146, 60, 0.25)',
+    },
+    E: {
+      bg: 'bg-orange-600/20',
+      border: 'border-orange-500/40',
+      text: 'text-orange-100',
+      glow: 'rgba(251, 146, 60, 0.25)',
+    },
+    C: {
+      bg: 'bg-blue-600/20',
+      border: 'border-blue-500/40',
+      text: 'text-blue-100',
+      glow: 'rgba(59, 130, 246, 0.25)',
+    },
+  }
+
+  const colors = colorScheme[letter as keyof typeof colorScheme] || colorScheme.I
+
+  return (
+    <div className="flex-shrink-0">
+      {/* Primary letter badge - large and prominent */}
+      <div
+        className={cn(
+          'relative flex flex-col items-center justify-center rounded-3xl border p-8 shadow-lg backdrop-blur-sm',
+          colors.bg,
+          colors.border,
+        )}
+        style={{ boxShadow: `0 0 40px ${colors.glow}` }}
+      >
+        {/* Large primary letter */}
+        <div className={cn('mb-3 text-7xl font-bold md:text-8xl', colors.text)}>
+          {letter}
+        </div>
+        
+        {/* Full name label */}
+        <div className={cn('mb-2 text-lg font-semibold md:text-xl', colors.text)}>
+          {typeInfo.name}
+        </div>
+        
+        {/* Short description */}
+        <p className="max-w-[200px] text-center text-sm leading-relaxed text-slate-300/90">
+          {typeInfo.description}
+        </p>
+
+        {/* Supporting letters - shown smaller and secondary */}
+        {supportingLetters.length > 0 && (
+          <div className="mt-4 flex items-center gap-2 border-t border-slate-700/40 pt-4">
+            <span className="text-xs font-medium text-slate-400">Also:</span>
+            <div className="flex gap-1.5">
+              {supportingLetters.map((l, idx) => {
+                const suppInfo = getRiasecTypeInfo(l)
+                return (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center rounded-lg border border-slate-700/40 bg-slate-950/30 px-2.5 py-1.5"
+                  >
+                    <span className="text-sm font-bold text-slate-300">{l}</span>
+                    <span className="text-[10px] font-medium text-slate-400">{suppInfo.name.slice(0, 4)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function RiasecCard(props: {
