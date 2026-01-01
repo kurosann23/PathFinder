@@ -449,4 +449,108 @@ export function IconChevronDown(props: IconProps) {
   )
 }
 
+export function IconX(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="m18 6-12 12M6 6l12 12"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconShield(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m9 12 2 2 4-4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconMegaphone(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M3 8v8l6-4v4l6-2V6L9 4v4L3 8Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 8a3 3 0 1 1 0 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function IconRocket(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M4.5 16.5c-1.5-1.5-2-4-1.5-5.5L8 4l7 7-2.5 2.5L12 14l-2.5 2.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 14l-2 2M14 12l2-2M16 16l2 2M18 18l2 2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+export function IconBrowser(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M3 8h18M8 5V8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 12h6M12 15h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 
