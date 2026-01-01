@@ -256,4 +256,197 @@ export function IconCheck(props: IconProps) {
   )
 }
 
+// RIASEC Type Icons
+export function IconWrench(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      {/* Wrench */}
+      <path
+        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Screwdriver handle */}
+      <line
+        x1="6"
+        y1="18"
+        x2="10"
+        y2="14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function IconLightbulb(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M9 21h6M12 3a6 6 0 0 1 6 6c0 2.5-1.5 4.5-3 6H9c-1.5-1.5-3-3.5-3-6a6 6 0 0 1 6-6Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 9v3M10 12h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function IconPalette(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c.55 0 1-.45 1-1v-4H8c-.55 0-1-.45-1-1s.45-1 1-1h5V8c0-.55.45-1 1-1s1 .45 1 1v3h1c.55 0 1 .45 1 1s-.45 1-1 1h-1v3c0 .55.45 1 1 1 .55 0 1-.45 1-1 0-5.52-4.48-10-10-10Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+      <circle cx="16.5" cy="7.5" r="1.5" fill="currentColor" />
+      <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function IconMessageHeart(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      {/* First speech bubble */}
+      <path
+        d="M8 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-4l-2 2v-2H10a2 2 0 0 1-2-2V9Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Second overlapping speech bubble */}
+      <path
+        d="M12 11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2l-2 2v-2h-2a2 2 0 0 1-2-2v-4Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Heart in first bubble */}
+      <path
+        d="M10 12c-.5 0-1 .5-1 1 0 1 1 2 1 2s1-1 1-2c0-.5-.5-1-1-1Z"
+        fill="currentColor"
+      />
+      {/* Heart in second bubble */}
+      <path
+        d="M14 12c-.5 0-1 .5-1 1 0 1 1 2 1 2s1-1 1-2c0-.5-.5-1-1-1Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+export function IconBriefcase(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 20H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4m8 0h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 8v4m-2-2h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function IconClipboardCheck(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M9 5h6a2 2 0 0 1 2 2v14H7V7a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 5a3 3 0 0 1 6 0v2H9V5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m9 12 2 2 4-4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconQuestion(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function IconArrowRight(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M5 12h14m-7-7 7 7-7 7"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconChevronDown(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="m6 9 6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 
