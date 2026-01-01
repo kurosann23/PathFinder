@@ -4,7 +4,7 @@ import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import { cn } from '../lib/cn'
-import { IconPin, IconTarget, IconX, IconChevronDown, IconMap, IconArrowRight, IconShield, IconWrench, IconBrowser, IconMegaphone, IconGamepad, IconRocket } from '../components/icons'
+import { IconPin, IconTarget, IconX, IconChevronDown, IconMap, IconArrowRight, IconShield, IconWrench, IconBrowser, IconMegaphone, IconGamepad, IconRocket, IconBook, IconFolder, IconFolderDashed, IconSettings } from '../components/icons'
 
 // Helper function to get path icon based on subDomain
 function PathIcon({ subDomain, className }: { subDomain: string; className?: string }) {
@@ -124,10 +124,12 @@ export function CourseRecommendationPage() {
     focuses: boolean
     workOn: boolean
     tools: boolean
+    projects: boolean
   }>({
-    focuses: false,
-    workOn: true,
-    tools: true,
+    focuses: true,
+    workOn: false,
+    tools: false,
+    projects: false,
   })
 
   // Mock data for additional paths
@@ -211,9 +213,10 @@ export function CourseRecommendationPage() {
   useEffect(() => {
     if (selectedPath) {
       setExpandedSections({
-        focuses: false,
-        workOn: true,
-        tools: true,
+        focuses: true,
+        workOn: false,
+        tools: false,
+        projects: false,
       })
     }
   }, [selectedPath])
@@ -323,23 +326,23 @@ export function CourseRecommendationPage() {
                     className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md"
                     onClick={() => setSelectedPath(null)}
                   />
-                  {/* Modal - Centered */}
-                  <div className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-800/70 bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl">
+                  {/* Modal - Centered - Bigger */}
+                  <div className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-800/70 bg-slate-950/95 p-8 shadow-2xl backdrop-blur-xl">
                     <div className="space-y-4">
                       {/* Header */}
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <h2 className="text-xl font-semibold text-slate-100">{selected.subDomain}</h2>
-                          <p className="mt-1 text-sm text-slate-400">{getPathDescription(selected.subDomain)}</p>
+                          <h2 className="text-2xl font-semibold text-slate-100">{selected.subDomain}</h2>
+                          <p className="mt-1 text-base text-slate-400">{getPathDescription(selected.subDomain)}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSelectedPath(null)}
-                          className="shrink-0 rounded-xl border border-slate-800/70 bg-slate-950/40 p-2 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
+                          className="shrink-0 rounded-full bg-slate-900/60 p-2 text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
                         >
                           <IconX size={18} />
-                      </button>
-                </div>
+                        </button>
+                      </div>
 
                       {/* Expandable Sections */}
                       <div className="space-y-3">
@@ -351,7 +354,7 @@ export function CourseRecommendationPage() {
                             className="flex w-full items-center justify-between px-4 py-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <IconMap size={18} className="text-slate-400" />
+                              <IconBook size={18} className="text-slate-400" />
                               <span className="text-sm font-semibold text-slate-200">What this path focuses on</span>
                             </div>
                             <IconChevronDown
@@ -377,7 +380,7 @@ export function CourseRecommendationPage() {
                             className="flex w-full items-center justify-between px-4 py-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <IconTarget size={18} className="text-slate-400" />
+                              <IconWrench size={18} className="text-slate-400" />
                               <span className="text-sm font-semibold text-slate-200">What you'll work on</span>
                             </div>
                             <IconChevronDown
@@ -410,11 +413,9 @@ export function CourseRecommendationPage() {
                             className="flex w-full items-center justify-between px-4 py-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <IconPin size={18} className="text-slate-400" />
-                              <span className="text-sm font-semibold text-slate-200">
-                                {selected.tools?.length ?? 0} Tools you'll use
-                              </span>
-                          </div>
+                              <IconSettings size={18} className="text-slate-400" />
+                              <span className="text-sm font-semibold text-slate-200">Tools you'll use</span>
+                            </div>
                             <IconChevronDown
                               size={16}
                               className={cn(
@@ -425,90 +426,108 @@ export function CourseRecommendationPage() {
                           </button>
                           {expandedSections.tools && (
                             <div className="border-t border-slate-800/70 px-4 py-3">
-                              <div className="mb-3 flex flex-wrap gap-2">
+                              <div className="mb-4 flex flex-wrap gap-2">
                                 {(selected.tools ?? []).map((tool) => (
                                   <span
                                     key={tool}
-                                    className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-1 text-xs font-semibold text-slate-200"
+                                    className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-1.5 text-sm font-semibold text-slate-200"
                                   >
                                     {tool}
                                   </span>
                                 ))}
-                        </div>
-                              {/* Preview cards for tools */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-xl border border-slate-800/70 bg-slate-900/40 p-3">
-                                  <div className="mb-2 flex h-16 items-center justify-center rounded bg-slate-800/50">
-                                    <div className="flex flex-col items-center gap-1">
-                                      <div className="relative h-10 w-10">
-                                        <svg className="h-10 w-10 -rotate-90 transform" viewBox="0 0 36 36">
-                                          <circle
-                                            cx="18"
-                                            cy="18"
-                                            r="16"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="3"
-                                            className="text-slate-700"
-                                          />
-                                          <circle
-                                            cx="18"
-                                            cy="18"
-                                            r="16"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="3"
-                                            strokeDasharray={`${(40 * 2 * Math.PI * 16) / 100} ${2 * Math.PI * 16}`}
-                                            className="text-blue-400"
-                                          />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-200">
-                                          40%
-                          </div>
-                        </div>
-                      </div>
-                                  </div>
-                                  <div className="text-[10px] font-semibold text-slate-400">
-                                    Student dashboard showing profile and progress
-                                  </div>
-                                </div>
-                                <div className="rounded-xl border border-slate-800/70 bg-slate-900/40 p-3">
-                                  <div className="mb-2 h-16 rounded bg-slate-50/10 p-2">
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full border border-slate-400"></div>
-                                        <div className="h-1.5 w-16 rounded bg-slate-700/50"></div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full border border-slate-400"></div>
-                                        <div className="h-1.5 w-20 rounded bg-slate-700/50"></div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full border border-slate-400"></div>
-                                        <div className="h-1.5 w-14 rounded bg-slate-700/50"></div>
-                                </div>
                               </div>
-                                  </div>
-                                  <div className="text-[10px] font-semibold text-slate-400">
-                                    Simple record or task management system
+                              {/* Real tool examples with visual representations */}
+                              <div className="grid grid-cols-2 gap-4">
+                                {(selected.tools ?? []).slice(0, 2).map((tool, idx) => {
+                                  const toolLower = tool.toLowerCase()
+                                  const isGit = toolLower.includes('git')
+                                  const isVSCode = toolLower.includes('vs code') || toolLower.includes('code')
+                                  const isPostman = toolLower.includes('postman') || toolLower.includes('insomnia')
+                                  
+                                  return (
+                                    <div key={idx} className="rounded-xl border border-slate-800/70 bg-slate-900/40 p-4">
+                                      <div className="mb-3 flex h-28 items-center justify-center rounded-lg bg-slate-800/50 p-4">
+                                        {isGit ? (
+                                          <div className="flex flex-col items-center gap-2">
+                                            <svg className="h-12 w-12" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500">
+                                              <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48C19.14 20.16 22 16.42 22 12c0-5.52-4.48-10-10-10z"/>
+                                            </svg>
+                                            <div className="text-xs font-semibold text-slate-300">Git & GitHub</div>
+                                          </div>
+                                        ) : isVSCode ? (
+                                          <div className="flex flex-col items-center gap-2">
+                                            <svg className="h-12 w-12" viewBox="0 0 24 24" fill="currentColor" className="text-blue-500">
+                                              <path d="M17.5 2l4.5 4.5v11l-4.5 4.5h-11L2 17.5v-11L6.5 2h11zm-1.06 3.94L12 10.88 7.56 5.94 6.5 7l4.44 4.44L6.5 15.88l1.06 1.06L12 13l4.44 3.94 1.06-1.06L13 11.44 17.44 7l-1.06-1.06z"/>
+                                            </svg>
+                                            <div className="text-xs font-semibold text-slate-300">VS Code</div>
+                                          </div>
+                                        ) : isPostman ? (
+                                          <div className="flex flex-col items-center gap-2">
+                                            <svg className="h-12 w-12" viewBox="0 0 24 24" fill="currentColor" className="text-orange-400">
+                                              <path d="M7.5 2.5c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2v-15c0-1.1-.9-2-2-2h-9zm0 2h9v15h-9v-15zm1 2v2h7v-2h-7zm0 3v2h7v-2h-7zm0 3v2h5v-2h-5z"/>
+                                            </svg>
+                                            <div className="text-xs font-semibold text-slate-300">API Testing</div>
+                                          </div>
+                                        ) : (
+                                          <div className="flex flex-col items-center gap-2">
+                                            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-500/30">
+                                              <IconSettings size={24} className="text-blue-400" />
+                                            </div>
+                                            <div className="text-xs font-semibold text-slate-300">{tool}</div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="text-xs font-semibold text-slate-400">
+                                        {tool} workspace preview
+                                      </div>
                                     </div>
-                                </div>
+                                  )
+                                })}
                               </div>
-                      </div>
-                    )}
+                            </div>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Footer */}
-                      <div className="pt-2 text-xs text-slate-500">
-                        These projects focus on understanding concepts, not advanced complexity.
+                        {/* Example beginner projects */}
+                        <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30">
+                          <button
+                            type="button"
+                            onClick={() => toggleSection('projects')}
+                            className="flex w-full items-center justify-between px-4 py-3 text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconFolderDashed size={18} className="text-slate-400" />
+                              <span className="text-sm font-semibold text-slate-200">Example beginner projects</span>
+                            </div>
+                            <IconChevronDown
+                              size={16}
+                              className={cn(
+                                'text-slate-400 transition-transform',
+                                expandedSections.projects && 'rotate-180',
+                              )}
+                            />
+                          </button>
+                          {expandedSections.projects && (
+                            <div className="border-t border-slate-800/70 px-4 py-3 text-sm text-slate-300/90">
+                              {selected.starterProjects && selected.starterProjects.length > 0 ? (
+                                <div className="space-y-2">
+                                  {selected.starterProjects.map((project, idx) => (
+                                    <div key={idx} className="text-sm text-slate-300/90">• {project}</div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-slate-400">No projects available yet.</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Close Button */}
                       <button
                         type="button"
                         onClick={() => setSelectedPath(null)}
-                        className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
+                        className="w-full rounded-xl bg-purple-600/20 border border-purple-500/30 px-4 py-3 text-base font-semibold text-slate-100 hover:bg-purple-600/30"
                       >
                         Close
                       </button>

@@ -553,4 +553,31 @@ export function IconBrowser(props: IconProps) {
   )
 }
 
+export function IconFolder(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M4 7v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H6a2 2 0 0 0-2 2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconFolderDashed(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M4 7v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H6a2 2 0 0 0-2 2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeDasharray="2 2"
+      />
+    </svg>
+  )
+}
+
 
