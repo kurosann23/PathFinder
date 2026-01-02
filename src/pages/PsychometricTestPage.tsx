@@ -395,7 +395,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="R"
                   title="Realistic"
-                  description="Practical, hands-on tasks"
+                  description="You enjoy working with tools, building things, and solving practical problems. You learn best by doing hands-on projects and prefer concrete, tangible results."
                   icon={<IconWrench size={32} />}
                   gradient="from-blue-600/20 to-blue-800/10"
                   borderColor="border-blue-500/25"
@@ -404,7 +404,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="I"
                   title="Investigative"
-                  description="Problem-solving, thinking"
+                  description="You love analyzing problems, exploring how things work, and diving deep into complex topics. You enjoy research, experiments, and logical thinking."
                   icon={<IconLightbulb size={32} />}
                   gradient="from-purple-600/20 to-purple-800/10"
                   borderColor="border-purple-500/25"
@@ -413,7 +413,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="A"
                   title="Artistic"
-                  description="Creativity and design work"
+                  description="You thrive on creative expression, design, and original ideas. You enjoy open-ended projects where you can explore different possibilities and create something unique."
                   icon={<IconPalette size={32} />}
                   gradient="from-purple-600/20 to-purple-800/10"
                   borderColor="border-purple-500/25"
@@ -422,7 +422,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="S"
                   title="Social"
-                  description="Helping and teaching"
+                  description="You find fulfillment in helping others, working in teams, and making a positive impact. You enjoy teaching, supporting, and collaborating with people."
                   icon={<IconMessageHeart size={32} />}
                   gradient="from-orange-600/20 to-orange-800/10"
                   borderColor="border-orange-500/25"
@@ -431,7 +431,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="E"
                   title="Enterprising"
-                  description="Leading and persuading"
+                  description="You're motivated by leadership, taking initiative, and making things happen. You enjoy planning, organizing projects, and influencing outcomes."
                   icon={<IconBriefcase size={32} />}
                   gradient="from-orange-600/20 to-orange-800/10"
                   borderColor="border-orange-500/25"
@@ -440,7 +440,7 @@ export function PsychometricTestPage() {
                 <RiasecCard
                   letter="C"
                   title="Conventional"
-                  description="Organizing & structuring"
+                  description="You prefer organized, structured work with clear procedures. You excel at managing details, maintaining systems, and ensuring accuracy and consistency."
                   icon={<IconClipboardCheck size={32} />}
                   gradient="from-blue-600/20 to-blue-800/10"
                   borderColor="border-blue-500/25"
@@ -1324,7 +1324,7 @@ function RiasecCard(props: {
         <div className="mb-4 text-5xl font-bold text-slate-100">{letter}</div>
         <div className="mb-3 flex items-center justify-center text-slate-200">{icon}</div>
         <div className="text-lg font-semibold text-slate-100">{title}</div>
-        <div className="mt-1 text-sm text-slate-300/80">{description}</div>
+        <div className="mt-2 text-sm leading-relaxed text-slate-300/90">{description}</div>
       </div>
     </div>
   )

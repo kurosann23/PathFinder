@@ -9,16 +9,10 @@ import {
 import { useUserProgress } from '../context/UserProgressContext'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
-import { Button } from '../components/ui/Button'
 import {
-  IconBell,
   IconBook,
   IconGamepad,
   IconPin,
-  IconSettings,
-  IconHome,
-  IconSearch,
-  IconUser,
   IconArrowRight,
 } from '../components/icons'
 import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
@@ -170,31 +164,9 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header: PATHFINDER Dashboard with navigation icons */}
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-50">PATHFINDER Dashboard</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button type="button" variant="icon" aria-label="Home" className="text-slate-300 hover:text-slate-100">
-            <IconHome size={20} />
-          </Button>
-          <Button type="button" variant="icon" aria-label="Search" className="text-slate-300 hover:text-slate-100">
-            <IconSearch size={20} />
-          </Button>
-          <Button type="button" variant="icon" aria-label="Notifications" className="relative text-slate-300 hover:text-slate-100">
-            <IconBell size={20} />
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
-              0
-            </span>
-          </Button>
-          <Button type="button" variant="icon" aria-label="Settings" className="text-slate-300 hover:text-slate-100">
-            <IconSettings size={20} />
-          </Button>
-          <Button type="button" variant="icon" aria-label="Profile" className="text-slate-300 hover:text-slate-100">
-            <IconUser size={20} />
-          </Button>
-        </div>
+      {/* Header: PATHFINDER Dashboard */}
+      <header>
+        <h1 className="text-2xl font-semibold text-slate-50">PATHFINDER Dashboard</h1>
       </header>
 
       {/* Top Section: 3 columns */}
@@ -318,7 +290,6 @@ export function DashboardPage() {
     </div>
   )
 }
-
 
 type RiasecProfileCardProps = {
   progress: {
