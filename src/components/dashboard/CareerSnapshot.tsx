@@ -10,6 +10,23 @@ import type { CareerTraitKey } from '../../constants/dashboard'
 import { Card } from '../ui/Card'
 import { buttonClasses } from '../ui/buttonStyles'
 
+// Custom tick component to show full labels
+function CustomTick({ payload, x, y }: any) {
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="rgba(203,213,225,0.9)"
+      fontSize={12}
+      fontWeight={600}
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      {payload.value}
+    </text>
+  )
+}
+
 type TraitDatum = {
   key: CareerTraitKey
   label: string
@@ -45,35 +62,39 @@ export function CareerSnapshot(props: {
         </Link>
       }
     >
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[160px_1fr_1fr] lg:items-center">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr_280px] lg:items-start">
         <div className="space-y-2">
           {traits.map((t) => (
             <div
               key={t.key}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-3 py-2"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-3 py-2.5"
             >
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="grid size-5 place-items-center rounded-md border border-slate-800/60 bg-slate-950/20">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="grid size-5 shrink-0 place-items-center rounded-md border border-slate-800/60 bg-slate-950/20">
                   <span className="block size-2 rounded-sm bg-blue-200/80" />
                 </span>
-                <span className="truncate text-xs font-semibold text-slate-200/90">
+                <span className="text-xs font-semibold text-slate-200 whitespace-nowrap">
                   {t.label}
                 </span>
               </div>
-              <span className="text-xs font-semibold tabular-nums text-slate-300/70">
+              <span className="shrink-0 text-xs font-semibold tabular-nums text-slate-300">
                 {Math.round(clamp100(t.value))}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="h-[280px] w-full">
+        <div className="h-[420px] w-full min-w-0">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={data} outerRadius="82%">
+            <RadarChart 
+              data={data} 
+              outerRadius="75%"
+              margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
+            >
               <PolarGrid stroke="rgba(148,163,184,0.14)" />
               <PolarAngleAxis
                 dataKey="trait"
-                tick={{ fill: 'rgba(203,213,225,0.78)', fontSize: 11, fontWeight: 600 }}
+                tick={<CustomTick />}
               />
               <Radar
                 dataKey="value"
@@ -85,15 +106,17 @@ export function CareerSnapshot(props: {
           </ResponsiveContainer>
         </div>
 
-        <div>
-          <div className="text-sm font-semibold text-slate-100">{meaning.title}</div>
-          <div className="mt-2 text-sm leading-relaxed text-slate-300/80">{meaning.body}</div>
+        <div className="min-w-0 space-y-3">
+          <div>
+            <div className="text-sm font-semibold text-slate-100 leading-tight">{meaning.title}</div>
+            <div className="mt-2 text-sm leading-relaxed text-slate-300">{meaning.body}</div>
+          </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
               Top: {topCareerTypeLabel}
             </span>
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200">
+            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
               RIASEC Radar
             </span>
           </div>

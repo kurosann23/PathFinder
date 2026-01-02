@@ -6,9 +6,17 @@ import { uploadAvatar, upsertProfile, type ProfileRow } from '../lib/profileRepo
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
+import { useUserProgress } from '../context/UserProgressContext'
 import { Button } from '../components/ui/Button'
-import { IconBell } from '../components/icons'
+import { IconBell, IconChevronDown, IconX } from '../components/icons'
 import { Avatar } from '../components/ui/Avatar'
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from 'recharts'
 
 type FormState = {
   full_name: string
@@ -104,9 +112,190 @@ function getErrorMessage(e: unknown) {
   }
 }
 
+type RiasecProfileSectionProps = {
+  progress: {
+    psychometricCompleted: boolean
+    riasecPercentages: Record<string, number>
+    psychometricResult: string
+  }
+}
+
+function RiasecProfileSection({ progress }: RiasecProfileSectionProps) {
+  const riasecData = useMemo(() => {
+    const percentages = progress.riasecPercentages || {}
+    // Ensure values are relative and realistic (0-100 range, but not all at 100%)
+    return [
+      { trait: 'Realistic', value: Math.min(100, Math.max(0, percentages.R || 0)) },
+      { trait: 'Investigative', value: Math.min(100, Math.max(0, percentages.I || 0)) },
+      { trait: 'Artistic', value: Math.min(100, Math.max(0, percentages.A || 0)) },
+      { trait: 'Social', value: Math.min(100, Math.max(0, percentages.S || 0)) },
+      { trait: 'Enterprising', value: Math.min(100, Math.max(0, percentages.E || 0)) },
+      { trait: 'Conventional', value: Math.min(100, Math.max(0, percentages.C || 0)) },
+    ]
+  }, [progress.riasecPercentages])
+
+  const topThree = useMemo(() => {
+    const sorted = Object.entries(progress.riasecPercentages || {})
+      .map(([key, value]) => ({ key, value: Math.min(100, Math.max(0, value || 0)) }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 3)
+    return sorted
+  }, [progress.riasecPercentages])
+
+  const getRiasecLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      R: 'Realistic',
+      I: 'Investigative',
+      A: 'Artistic',
+      S: 'Social',
+      E: 'Enterprising',
+      C: 'Conventional',
+    }
+    return labels[key] || key
+  }
+
+  const getRiasecColor = (key: string) => {
+    const colors: Record<string, { bg: string; border: string; glow: string; text: string }> = {
+      R: { bg: 'bg-blue-600/20', border: 'border-blue-500/40', glow: 'rgba(59, 130, 246, 0.3)', text: 'text-blue-100' },
+      I: { bg: 'bg-purple-600/20', border: 'border-purple-500/40', glow: 'rgba(168, 85, 247, 0.3)', text: 'text-purple-100' },
+      A: { bg: 'bg-purple-600/20', border: 'border-purple-500/40', glow: 'rgba(168, 85, 247, 0.3)', text: 'text-purple-100' },
+      S: { bg: 'bg-orange-600/20', border: 'border-orange-500/40', glow: 'rgba(251, 146, 60, 0.3)', text: 'text-orange-100' },
+      E: { bg: 'bg-orange-600/20', border: 'border-orange-500/40', glow: 'rgba(251, 146, 60, 0.3)', text: 'text-orange-100' },
+      C: { bg: 'bg-yellow-600/20', border: 'border-yellow-500/40', glow: 'rgba(234, 179, 8, 0.3)', text: 'text-yellow-100' },
+    }
+    return colors[key] || colors.I
+  }
+
+  const getLearningInsight = (topThree: Array<{ key: string; value: number }>) => {
+    if (topThree.length === 0) return ''
+    
+    const primary = topThree[0]?.key
+    const secondary = topThree[1]?.key
+
+    const insights: Record<string, string> = {
+      I: 'You learn best through analysis and problem-solving. Focus on understanding underlying principles and systematic approaches to technology.',
+      S: 'You thrive in collaborative learning environments. Consider study groups, pair programming, and teaching others to reinforce your understanding.',
+      C: 'You prefer structured, organized learning paths. Follow step-by-step curricula, maintain clear documentation, and work with established frameworks.',
+      R: 'You learn by doing. Hands-on projects, building real applications, and working with physical technology will help you retain knowledge best.',
+      A: 'You excel when creativity meets technology. Explore design systems, user experience, and visual programming to engage your artistic side.',
+      E: "You're motivated by leadership and initiative. Take on project management roles, start your own projects, and focus on practical business applications.",
+    }
+
+    // Combine insights for top 2-3 types
+    const primaryInsight = insights[primary || ''] || ''
+    const secondaryInsight = secondary ? insights[secondary] : ''
+    
+    if (primaryInsight && secondaryInsight && primary !== secondary) {
+      return `${primaryInsight} Additionally, your ${getRiasecLabel(secondary)} trait suggests ${secondaryInsight.toLowerCase()}`
+    }
+    
+    return primaryInsight || 'Your learning style is balanced across multiple dimensions. Experiment with different approaches to find what works best for you.'
+  }
+
+  if (!progress.psychometricCompleted) {
+    return (
+      <div className="text-center py-8 text-slate-400">
+        Complete the psychometric test to see your RIASEC profile.
+      </div>
+    )
+  }
+
+  const primary = topThree[0]
+  const secondary = topThree[1]
+  const tertiary = topThree[2]
+  const learningInsight = getLearningInsight(topThree)
+
+  return (
+    <div className="space-y-6">
+      {/* Hierarchy Level 1: Top 3 Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        {primary && (() => {
+          const colors = getRiasecColor(primary.key)
+          return (
+            <div
+              className={cn(
+                'relative flex flex-col items-center justify-center rounded-2xl border p-6 shadow-lg backdrop-blur-sm',
+                colors.bg,
+                colors.border,
+              )}
+              style={{ boxShadow: `0 0 40px ${colors.glow}` }}
+            >
+              <div className={cn('text-5xl font-bold mb-2', colors.text)}>{primary.key}</div>
+              <div className={cn('text-sm font-semibold', colors.text)}>{getRiasecLabel(primary.key)}</div>
+            </div>
+          )
+        })()}
+        {secondary && (() => {
+          const colors = getRiasecColor(secondary.key)
+          return (
+            <div
+              className={cn(
+                'relative flex flex-col items-center justify-center rounded-2xl border p-6 shadow-lg backdrop-blur-sm',
+                colors.bg,
+                colors.border,
+              )}
+              style={{ boxShadow: `0 0 40px ${colors.glow}` }}
+            >
+              <div className={cn('text-5xl font-bold mb-2', colors.text)}>{secondary.key}</div>
+              <div className={cn('text-sm font-semibold', colors.text)}>{getRiasecLabel(secondary.key)}</div>
+            </div>
+          )
+        })()}
+        {tertiary && (() => {
+          const colors = getRiasecColor(tertiary.key)
+          return (
+            <div
+              className={cn(
+                'relative flex flex-col items-center justify-center rounded-2xl border p-6 shadow-lg backdrop-blur-sm',
+                colors.bg,
+                colors.border,
+              )}
+              style={{ boxShadow: `0 0 40px ${colors.glow}` }}
+            >
+              <div className={cn('text-5xl font-bold mb-2', colors.text)}>{tertiary.key}</div>
+              <div className={cn('text-sm font-semibold', colors.text)}>{getRiasecLabel(tertiary.key)}</div>
+            </div>
+          )
+        })()}
+      </div>
+
+      {/* Hierarchy Level 2: Radar Chart - Full Width */}
+      <div className="h-[280px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart data={riasecData} outerRadius="82%">
+            <PolarGrid stroke="rgba(148,163,184,0.14)" />
+            <PolarAngleAxis
+              dataKey="trait"
+              tick={{ fill: 'rgba(203,213,225,0.78)', fontSize: 11, fontWeight: 600 }}
+            />
+            <Radar
+              dataKey="value"
+              stroke="rgba(59,130,246,0.9)"
+              fill="rgba(59,130,246,0.20)"
+              strokeWidth={2}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Hierarchy Level 3: Interpretation */}
+      <div className="space-y-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4">
+        <div className="text-sm font-semibold text-slate-100">What this means for learning</div>
+        <div className="text-sm leading-relaxed text-slate-300/90">
+          {learningInsight}
+        </div>
+        <a href="/psychometric-test" className="text-sm text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
+          Learn more about RIASEC →
+        </a>
+      </div>
+    </div>
+  )
+}
+
 export function ProfilePage() {
   const { user } = useAuth()
   const { profile, loading: profileLoading, refresh } = useProfile()
+  const { progress } = useUserProgress()
   const profileId = useMemo(() => user?.id ?? '', [user?.id])
   const showSkeleton = profileLoading && !profile
 
@@ -395,182 +584,141 @@ export function ProfilePage() {
         </div>
       )}
 
-      {/* Layout: left column (photo + about), right wide column (info + skills + achievements) */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Profile Photo" className="lg:col-span-1">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-1">
+      {/* Layout: Two columns - Left (Photo, About, Achievements) and Right (Info, Skills, RIASEC) */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* LEFT COLUMN */}
+        <div className="space-y-4">
+          {/* PROFILE PHOTO */}
+          <Card title="PROFILE PHOTO">
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
                 <Avatar
                   src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
                   alt="Profile avatar"
                   fallback={(form.full_name || user?.email || 'U').slice(0, 1).toUpperCase()}
-                  sizeClassName="size-20"
-                  className={cn('rounded-2xl border-0', showSkeleton && 'opacity-80')}
+                  sizeClassName="size-24"
+                  className={cn('rounded-full border-2 border-slate-700/50', showSkeleton && 'opacity-80')}
                   loading="eager"
                 />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-100">Upload photo</div>
-                <div className="mt-1 text-xs text-slate-400">
-                  JPG/PNG recommended.
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-slate-100">Upload photo</div>
+                  <div className="mt-1 text-xs text-slate-400">
+                    JPG/PNG recommended.
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="fit-photo"
+                      className="h-4 w-4 rounded border-slate-700/50 bg-slate-950/40 text-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    />
+                    <label htmlFor="fit-photo" className="text-xs text-slate-300">
+                      Fit the chosen
+                    </label>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={saving}
+                    onChange={(e) => {
+                      setAvatarFile(e.target.files?.[0] ?? null)
+                      setIsDirty(true)
+                    }}
+                    className="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600/20 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-100 file:ring-1 file:ring-blue-500/25 hover:file:bg-blue-600/25 disabled:opacity-60"
+                  />
                 </div>
               </div>
+              <div className="text-xs text-slate-500">
+                Tip: Select and click <span className="font-semibold text-slate-300">Save Changes</span> (bottom-right).
+              </div>
             </div>
+          </Card>
 
-            <input
-              type="file"
-              accept="image/*"
-              disabled={saving}
-              onChange={(e) => {
-                setAvatarFile(e.target.files?.[0] ?? null)
-                setIsDirty(true)
-              }}
-              className="block w-full text-xs text-slate-300 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600/20 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-100 file:ring-1 file:ring-blue-500/25 hover:file:bg-blue-600/25 disabled:opacity-60"
-            />
-
-            <div className="text-xs text-slate-500">
-              Tip: Select a file, then click <span className="font-semibold text-slate-300">Save Changes</span> (bottom-right).
-            </div>
-          </div>
-        </Card>
-
-        <Card title="Student Information" className="lg:col-span-2">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block">
-                <div className="text-xs font-semibold text-slate-400">Full Name</div>
-                <input
-                  value={form.full_name}
-                  onChange={(e) => {
-                    setForm((p) => ({ ...p, full_name: e.target.value }))
-                    setIsDirty(true)
-                  }}
-                  disabled={saving || showSkeleton}
-                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
-                  placeholder="Your full name"
-                />
-              </label>
-
-              <label className="block">
-                <div className="text-xs font-semibold text-slate-400">Class</div>
-                <input
-                  value={form.class}
-                  onChange={(e) => {
-                    setForm((p) => ({ ...p, class: e.target.value }))
-                    setIsDirty(true)
-                  }}
-                  disabled={saving || showSkeleton}
-                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
-                  placeholder="e.g., DIT 5A"
-                />
-              </label>
-            </div>
-
-            <label className="block">
-              <div className="text-xs font-semibold text-slate-400">Email</div>
-              <input
-                value={user?.email ?? form.email}
-                disabled
-                className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 opacity-80"
+          {/* ABOUT ME */}
+          <Card title="ABOUT ME">
+            <div className="space-y-4">
+              <textarea
+                value={aboutMe}
+                onChange={(e) => {
+                  setAboutMe(e.target.value)
+                  setIsDirty(true)
+                }}
+                rows={4}
+                placeholder="Helo"
+                disabled={saving || showSkeleton}
+                className="w-full resize-none rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
               />
-            </label>
 
-            <div className="text-xs text-slate-500">
-              {showSkeleton ? 'Loading…' : 'Tip: Keep your name and class updated for reports and guidance.'}
-            </div>
-          </div>
-        </Card>
-
-        <Card title="About Me" className="lg:col-span-1">
-          <div className="space-y-4">
-            <textarea
-              value={aboutMe}
-              onChange={(e) => {
-                setAboutMe(e.target.value)
-                setIsDirty(true)
-              }}
-              rows={4}
-              placeholder="Tell others about you…"
-              disabled={saving || showSkeleton}
-              className="w-full resize-none rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
-            />
-
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
-                Tags
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {interestTags.length === 0 && (
-                  <span className="text-xs text-slate-500">Add tags like “web development”, “UI/UX”, “SQL”…</span>
-                )}
-                {interestTags.map((t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
-                  >
-                    {t}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setInterestTags((prev) => prev.filter((x) => x !== t))
-                        setIsDirty(true)
-                      }}
-                      className="grid size-5 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25 text-[11px] text-slate-300 hover:bg-slate-950/35"
-                      aria-label={`Remove tag ${t}`}
-                      disabled={saving || showSkeleton}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key !== 'Enter') return
-                    e.preventDefault()
-                    const v = newTag.trim()
-                    if (!v) return
-                    setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
-                    setNewTag('')
-                    setIsDirty(true)
-                  }}
-                  disabled={saving || showSkeleton}
-                  placeholder="Add a tag…"
-                  className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={saving || showSkeleton || !newTag.trim()}
-                  onClick={() => {
-                    const v = newTag.trim()
-                    if (!v) return
-                    setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
-                    setNewTag('')
-                    setIsDirty(true)
-                  }}
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4">
-              <div className="text-sm font-semibold text-slate-100">Hobbies</div>
-              <div className="mt-3">
+              <div className="space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                  TAGS
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {hobbyTags.length === 0 && (
-                    <span className="text-xs text-slate-500">Choose hobbies below to add them.</span>
-                  )}
+                  {interestTags.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200"
+                    >
+                      {t}
+                      <IconChevronDown size={12} className="text-slate-400" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInterestTags((prev) => prev.filter((x) => x !== t))
+                          setIsDirty(true)
+                        }}
+                        className="grid size-4 place-items-center rounded-full text-[10px] text-slate-400 hover:text-slate-200"
+                        aria-label={`Remove tag ${t}`}
+                        disabled={saving || showSkeleton}
+                      >
+                        <IconX size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter') return
+                      e.preventDefault()
+                      const v = newTag.trim()
+                      if (!v) return
+                      setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
+                      setNewTag('')
+                      setIsDirty(true)
+                    }}
+                    disabled={saving || showSkeleton}
+                    placeholder="Add a tag…"
+                    className="flex-1 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving || showSkeleton || !newTag.trim()}
+                    onClick={() => {
+                      const v = newTag.trim()
+                      if (!v) return
+                      setInterestTags((prev) => (prev.includes(v) ? prev : [...prev, v]))
+                      setNewTag('')
+                      setIsDirty(true)
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                  HOBBIES
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {hobbyTags.map((h) => (
                     <span
                       key={h}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200"
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200"
                     >
                       <HobbyIcon label={h} />
                       <span className="truncate">{h}</span>
@@ -580,17 +728,17 @@ export function ProfilePage() {
                           setHobbyTags((prev) => prev.filter((x) => x !== h))
                           setIsDirty(true)
                         }}
-                        className="grid size-5 place-items-center rounded-full border border-slate-800/60 bg-slate-950/25 text-[11px] text-slate-300 hover:bg-slate-950/35"
+                        className="grid size-4 place-items-center rounded-full text-[10px] text-slate-400 hover:text-slate-200"
                         aria-label={`Remove hobby ${h}`}
                         disabled={saving || showSkeleton}
                       >
-                        ×
+                        <IconX size={10} />
                       </button>
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <Button
                     type="button"
                     variant="secondary"
@@ -640,116 +788,158 @@ export function ProfilePage() {
                 )}
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card title="My Skills" className="lg:col-span-2">
-          <div className="space-y-3">
-            {skillsState.map((s) => (
-              <SkillRow
-                key={s.id}
-                skill={s}
-                onChange={(next: Skill) =>
-                  (setSkillsState((prev) => prev.map((p) => (p.id === s.id ? next : p))), setIsDirty(true))
-                }
-                onRemove={() => {
-                  setSkillsState((prev) => prev.filter((p) => p.id !== s.id))
-                  setIsDirty(true)
-                }}
+          {/* MY ACHIEVEMENTS */}
+          <Card title="MY ACHIEVEMENTS">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
+              <AchievementTile
+                title="Code Coder"
+                level="Level 1"
+                chip="+3,90"
+                variant="blue"
+                icon={<CodeBadgeIcon />}
               />
-            ))}
-
-            <div className="flex items-center justify-start gap-3 pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsSkillPickerOpen((v) => !v)}
-                disabled={saving || showSkeleton}
-              >
-                {isSkillPickerOpen ? 'Close' : 'Add Skill'}
-              </Button>
+              <AchievementTile
+                title="React Rookie"
+                level="Level 2"
+                chip="→7/20"
+                variant="cyan"
+                icon={<ReactBadgeIcon />}
+              />
+              <AchievementTile
+                title="Database Dabbler"
+                level="Level 1"
+                chip="5/5"
+                variant="violet"
+                icon={<DbBadgeIcon />}
+              />
+              <AchievementTile
+                title="Unlock more achissements"
+                level=""
+                chip=""
+                variant="locked"
+                icon={<LockBadgeIcon />}
+              />
             </div>
+          </Card>
+        </div>
 
-            {isSkillPickerOpen && (
-              <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
-                  Suggested skills
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {suggestedSkills.map((sugg) => {
-                    const exists = skillsState.some(
-                      (s) => s.label.trim().toLowerCase() === sugg.label.toLowerCase(),
-                    )
-                    return (
-                      <button
-                        key={sugg.label}
-                        type="button"
-                        disabled={saving || showSkeleton}
-                        onClick={() => {
-                          if (exists) return
-                          setSkillsState((prev) => [
-                            ...prev,
-                            {
-                              id: cryptoId(),
-                              label: sugg.label,
-                              value: sugg.value,
-                              icon: sugg.icon as Skill['icon'],
-                            },
-                          ])
-                          setIsDirty(true)
-                        }}
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
-                          exists
-                            ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
-                            : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
-                          (saving || showSkeleton) && 'opacity-60',
-                        )}
-                        aria-pressed={exists}
-                      >
-                        <SkillIcon kind={sugg.icon as Skill['icon']} />
-                        <span className="truncate">{sugg.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+        {/* RIGHT COLUMN */}
+        <div className="space-y-4">
+          {/* STUDENT INFORMATION */}
+          <Card title="STUDENT INFORMATION">
+            <div className="space-y-4">
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-400">Full Name</div>
+                <input
+                  value={form.full_name}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, full_name: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
+                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  placeholder="Your full name"
+                />
+              </label>
+
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-400">Email</div>
+                <input
+                  value={user?.email ?? form.email}
+                  disabled
+                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 opacity-80"
+                />
+              </label>
+
+              <div className="text-xs text-slate-500">
+                {showSkeleton ? 'Loading…' : 'Tip: Keep your name and class updated for reports and guidance.'}
               </div>
-            )}
-          </div>
-        </Card>
+            </div>
+          </Card>
 
-        <Card title="My Achievements" className="lg:col-span-2">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <AchievementTile
-              title="Code Coder"
-              level="Level 5"
-              chip="+3 XP"
-              variant="blue"
-              icon={<CodeBadgeIcon />}
-            />
-            <AchievementTile
-              title="React Rookie"
-              level="Level 3"
-              chip="+1 XP"
-              variant="cyan"
-              icon={<ReactBadgeIcon />}
-            />
-            <AchievementTile
-              title="Database Dabbler"
-              level="Level 2"
-              chip="5/5"
-              variant="violet"
-              icon={<DbBadgeIcon />}
-            />
-            <AchievementTile
-              title="Unlock more"
-              level="achievements"
-              chip=""
-              variant="locked"
-              icon={<LockBadgeIcon />}
-            />
-          </div>
-        </Card>
+          {/* MY SKILLS */}
+          <Card title="MY SKILLS">
+            <div className="space-y-3">
+              {skillsState.map((s) => (
+                <SkillRow
+                  key={s.id}
+                  skill={s}
+                  onChange={(next: Skill) =>
+                    (setSkillsState((prev) => prev.map((p) => (p.id === s.id ? next : p))), setIsDirty(true))
+                  }
+                  onRemove={() => {
+                    setSkillsState((prev) => prev.filter((p) => p.id !== s.id))
+                    setIsDirty(true)
+                  }}
+                />
+              ))}
+
+              <div className="flex items-center justify-start gap-3 pt-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsSkillPickerOpen((v) => !v)}
+                  disabled={saving || showSkeleton}
+                >
+                  {isSkillPickerOpen ? 'Close' : 'Add Skill'}
+                </Button>
+              </div>
+
+              {isSkillPickerOpen && (
+                <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                    Suggested skills
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {suggestedSkills.map((sugg) => {
+                      const exists = skillsState.some(
+                        (s) => s.label.trim().toLowerCase() === sugg.label.toLowerCase(),
+                      )
+                      return (
+                        <button
+                          key={sugg.label}
+                          type="button"
+                          disabled={saving || showSkeleton}
+                          onClick={() => {
+                            if (exists) return
+                            setSkillsState((prev) => [
+                              ...prev,
+                              {
+                                id: cryptoId(),
+                                label: sugg.label,
+                                value: sugg.value,
+                                icon: sugg.icon as Skill['icon'],
+                              },
+                            ])
+                            setIsDirty(true)
+                          }}
+                          className={cn(
+                            'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
+                            exists
+                              ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                              : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
+                            (saving || showSkeleton) && 'opacity-60',
+                          )}
+                          aria-pressed={exists}
+                        >
+                          <SkillIcon kind={sugg.icon as Skill['icon']} />
+                          <span className="truncate">{sugg.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* RIASEC */}
+          <Card title="RIASEC">
+            <RiasecProfileSection progress={progress} />
+          </Card>
+        </div>
       </div>
 
       {/* Single save button (bottom-right) */}
@@ -843,19 +1033,19 @@ function SkillRow(props: SkillRowProps) {
     options.find((o) => o.icon === icon)?.label ?? skill.label
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3">
-      <div className="grid size-11 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/25">
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3">
+      <div className="grid size-10 place-items-center rounded-lg border border-slate-800/60 bg-slate-950/25">
         <SkillIcon kind={skill.icon} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
           <select
             value={skill.icon}
             onChange={(e) => {
               const icon = e.target.value as Skill['icon']
               props.onChange({ ...skill, icon, label: labelForIcon(icon) })
             }}
-            className="min-w-0 flex-1 rounded-xl border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgNEw2IDdMOSA0IiBzdHJva2U9IiM5NDEwM0Y0IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==')] bg-no-repeat bg-right pr-8"
             aria-label="Skill"
           >
             {options.map((o) => (
@@ -864,22 +1054,13 @@ function SkillRow(props: SkillRowProps) {
               </option>
             ))}
           </select>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={clamped}
-            onChange={(e) => props.onChange({ ...skill, value: clamp100(Number(e.target.value)) })}
-            className="w-20 rounded-xl border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold tabular-nums text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            aria-label="Skill percent"
-          />
-          <Button type="button" variant="ghost" onClick={props.onRemove} aria-label="Remove skill">
+          <Button type="button" variant="ghost" onClick={props.onRemove} aria-label="Remove skill" className="text-xs">
             Remove
           </Button>
         </div>
-        <div className="mt-2 h-2.5 w-full rounded-full bg-slate-950/40 ring-1 ring-slate-800/60">
+        <div className="mt-2 h-2 w-full rounded-full bg-slate-950/40 ring-1 ring-slate-800/60">
           <div
-            className="h-2.5 rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 shadow-[0_0_18px_rgba(59,130,246,0.22)]"
+            className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
             style={{ width: `${clamped}%` }}
           />
         </div>

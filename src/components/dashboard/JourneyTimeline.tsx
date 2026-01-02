@@ -50,7 +50,7 @@ export function JourneyTimeline(props: {
   return (
     <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 px-5 py-4 backdrop-blur-xl">
       <div className="flex items-center justify-between gap-4">
-        <div className="text-sm font-semibold text-slate-100">Career Journey</div>
+        <div className="text-sm font-semibold text-slate-100">Gamified Career Journey</div>
         <div className="text-xs font-semibold text-slate-400">
           Click a step to open it
         </div>

@@ -91,16 +91,16 @@ export function HeroProgressRing(props: {
         />
       </svg>
 
-      <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
         <div
           className="font-semibold tracking-tight text-slate-50"
-          style={{ fontSize: pctFontSize, lineHeight: 1 }}
+          style={{ fontSize: pctFontSize, lineHeight: 1.2 }}
         >
           {v}%
         </div>
         <div
-          className="mt-2 font-medium text-slate-300/80"
-          style={{ fontSize: labelFontSize }}
+          className="mt-1.5 font-medium text-slate-300/80"
+          style={{ fontSize: labelFontSize, lineHeight: 1.2 }}
         >
           {label}
         </div>

@@ -143,6 +143,26 @@ export function IconBell(props: IconProps) {
   )
 }
 
+export function IconSearch(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <circle
+        cx="11"
+        cy="11"
+        r="8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="m21 21-4.3-4.3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export function IconSettings(props: IconProps) {
   return (
     <svg {...baseProps(props)}>
