@@ -9,7 +9,7 @@ import { cn } from '../lib/cn'
 import { riasecQuestions } from '../data/riasecQuestions.js'
 import { calculateRiasecScore } from '../utils/calculateRiasecScore.js'
 import { getRiasecDescription } from '../utils/getRiasecDescription.js'
-import { generateTechRecommendations } from '../utils/generateTechRecommendations.js'
+import { generateGeneralCourseRecommendations } from '../utils/generateGeneralCourseRecommendations.js'
 import { generateCareerPath } from '../utils/generateCareerPath.js'
 import { useProfile } from '../context/ProfileContext'
 import { useAuth } from '../context/AuthContext'
@@ -328,7 +328,16 @@ export function PsychometricTestPage() {
 
     const { percentages, topType, code } = calculateRiasecScore(answers)
     const top = topType as RiasecType
-    const recommendations = generateTechRecommendations(top)
+    // Generate general course recommendations and adapt to old format for storage
+    const generalCourses = generateGeneralCourseRecommendations(top)
+    const recommendations = generalCourses.map((course, idx) => ({
+      subDomain: course.courseName,
+      matchPercent: 90 - idx * 5, // Decreasing match percentage
+      explanation: course.focusDescription,
+      suggestedCourses: [], // Not used in new design
+      starterProjects: [], // Not used in new design
+      tools: course.toolsAndSkills,
+    }))
     const topTypes = code.split('').filter(Boolean) as RiasecType[]
     const careerPathReport = generateCareerPath(topTypes)
 
