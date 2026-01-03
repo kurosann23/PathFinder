@@ -25,12 +25,202 @@ import {
   IconChevronDown,
 } from '../components/icons'
 
+// Translation object
+const translations = {
+  en: {
+    // Page headers
+    pageTitle: 'Psychometric Test',
+    pageSubtitle: 'Answer one statement at a time. Your responses are used to generate your guidance.',
+    whatIsTest: 'What is this test?',
+    whatIsTestDesc: 'This psychometric test helps you understand your interests and how they relate to different technology pathways. There are no right or wrong answers — just choose what feels most like you.',
+    
+    // Buttons
+    startTest: 'Start Test',
+    continueTest: 'Continue Test',
+    exit: 'Exit',
+    back: 'Back',
+    next: 'Next',
+    submitTest: 'Submit Test',
+    saving: 'Saving…',
+    loading: 'Loading...',
+    retakeTest: 'Retake Test',
+    viewRecommendations: 'View Recommendations',
+    
+    // Test status
+    completed: 'Completed',
+    notTaken: 'Not Taken',
+    testCompleted: 'Test Completed',
+    yourHollandCode: 'Your Holland Code:',
+    
+    // Questions
+    question: 'Question',
+    of: 'of',
+    type: 'Type',
+    stronglyDisagree: 'Strongly Disagree',
+    stronglyAgree: 'Strongly Agree',
+    answered: 'Answered',
+    tip: 'Tip: You can use Back to review and change answers before submitting.',
+    
+    // Errors
+    pleaseAnswerAll: 'Please answer all questions before submitting.',
+    pleaseSelectRating: 'Please select a rating (1–5) before continuing.',
+    retakeConfirm: 'Are you sure you want to retake the test? This will delete your current results and reset your career guidance.',
+    failedToReset: 'Failed to reset psychometric result.',
+    failedToSave: 'Failed to save result.',
+    
+    // RIASEC section
+    whatDoRiasecMean: 'What do RIASEC types mean?',
+    riasecTypes: 'RIASEC Types',
+    
+    // RIASEC Cards
+    riasecCards: {
+      R: {
+        title: 'Realistic',
+        description: '🛠️ Realistic (R) – Enjoy work involving technical, mechanical, or physical skills, such as engineers, technicians, and athletes.',
+      },
+      I: {
+        title: 'Investigative',
+        description: '🧪 Investigative (I) – Enjoy analyzing, researching, and solving problems, suitable for fields like science, research, and technology.',
+      },
+      A: {
+        title: 'Artistic',
+        description: '🎨 Artistic (A) – Tend towards creativity and self-expression in arts, music, writing, or design.',
+      },
+      S: {
+        title: 'Social',
+        description: '🤝 Social (S) – Enjoy interacting and helping others, suitable for fields like education, counseling, and medicine.',
+      },
+      E: {
+        title: 'Enterprising',
+        description: '💼 Enterprising (E) – Oriented towards leadership, business, and entrepreneurship, suitable for fields like management and marketing.',
+      },
+      C: {
+        title: 'Conventional',
+        description: '🗂️ Conventional (C) – Enjoy structure, rules, and systematic work like accounting, administration, and data.',
+      },
+    },
+  },
+  ms: {
+    // Page headers
+    pageTitle: 'Ujian Psikometrik',
+    pageSubtitle: 'Jawab satu kenyataan pada satu masa. Respons anda digunakan untuk menjana panduan anda.',
+    whatIsTest: 'Apakah ujian ini?',
+    whatIsTestDesc: 'Ujian psikometrik ini membantu anda memahami minat anda dan bagaimana ia berkaitan dengan laluan teknologi yang berbeza. Tiada jawapan betul atau salah — pilih apa yang paling menggambarkan anda.',
+    
+    // Buttons
+    startTest: 'Mula Ujian',
+    continueTest: 'Teruskan Ujian',
+    exit: 'Keluar',
+    back: 'Kembali',
+    next: 'Seterusnya',
+    submitTest: 'Hantar Ujian',
+    saving: 'Menyimpan…',
+    loading: 'Memuatkan...',
+    retakeTest: 'Ambil Ujian Semula',
+    viewRecommendations: 'Lihat Cadangan',
+    
+    // Test status
+    completed: 'Selesai',
+    notTaken: 'Belum Diambil',
+    testCompleted: 'Ujian Selesai',
+    yourHollandCode: 'Kod Holland Anda:',
+    
+    // Questions
+    question: 'Soalan',
+    of: 'daripada',
+    type: 'Jenis',
+    stronglyDisagree: 'Sangat Tidak Setuju',
+    stronglyAgree: 'Sangat Setuju',
+    answered: 'Dijawab',
+    tip: 'Petua: Anda boleh menggunakan Kembali untuk menyemak dan menukar jawapan sebelum menghantar.',
+    
+    // Errors
+    pleaseAnswerAll: 'Sila jawab semua soalan sebelum menghantar.',
+    pleaseSelectRating: 'Sila pilih penilaian (1–5) sebelum meneruskan.',
+    retakeConfirm: 'Adakah anda pasti mahu mengambil ujian semula? Ini akan memadamkan keputusan semasa anda dan menetapkan semula panduan kerjaya anda.',
+    failedToReset: 'Gagal menetapkan semula keputusan psikometrik.',
+    failedToSave: 'Gagal menyimpan keputusan.',
+    
+    // RIASEC section
+    whatDoRiasecMean: 'Apakah maksud jenis RIASEC?',
+    riasecTypes: 'Jenis RIASEC',
+    
+    // RIASEC Cards
+    riasecCards: {
+      R: {
+        title: 'Realistik',
+        description: '🛠️ Realistik (R) – Suka kerja yang melibatkan kemahiran teknikal, mekanikal, atau fizikal, seperti jurutera, tukang, dan atlet.',
+      },
+      I: {
+        title: 'Investigatif',
+        description: '🧪 Investigatif (I) – Gemar menganalisis, menyelidik, dan menyelesaikan masalah, sesuai untuk bidang sains, penyelidikan, dan teknologi.',
+      },
+      A: {
+        title: 'Artistik',
+        description: '🎨 Artistik (A) – Cenderung kepada kreativiti dan ekspresi diri dalam seni, muzik, penulisan, atau reka bentuk.',
+      },
+      S: {
+        title: 'Sosial',
+        description: '🤝 Sosial (S) – Suka berinteraksi dan membantu orang lain, sesuai untuk bidang seperti pendidikan, kaunseling, dan perubatan.',
+      },
+      E: {
+        title: 'Enterprising',
+        description: '💼 Enterprising (E) – Berorientasikan kepimpinan, perniagaan, dan keusahawanan, sesuai untuk bidang pengurusan dan pemasaran.',
+      },
+      C: {
+        title: 'Konvensional',
+        description: '🗂️ Konvensional (C) – Gemar struktur, peraturan, dan kerja yang sistematik seperti akaun, pentadbiran, dan data.',
+      },
+    },
+  },
+}
+
+type Language = 'en' | 'ms'
+
 export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
   const { user } = useAuth()
   const { profile } = useProfile()
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
+
+  // Language state
+  const [language, setLanguage] = useState<Language>('en')
+  const t = translations[language]
+
+  // Get translated questions - memoized for performance
+  const translatedQuestions = useMemo(() => {
+    if (language === 'ms') {
+      // Malay translations for questions
+      return [
+        { id: 1, text: 'Saya suka bekerja dengan perkakasan, alat, atau peralatan fizikal.', type: 'R' },
+        { id: 2, text: 'Saya lebih suka belajar dengan melakukan daripada hanya membaca atau mendengar.', type: 'R' },
+        { id: 3, text: 'Saya suka membaiki atau memasang peranti teknikal.', type: 'R' },
+        { id: 4, text: 'Saya selesa bekerja dengan mesin atau sistem teknikal.', type: 'R' },
+        { id: 5, text: 'Saya suka menyelesaikan masalah logik atau teknikal.', type: 'I' },
+        { id: 6, text: 'Saya suka menganalisis data atau mencari corak untuk menyelesaikan masalah.', type: 'I' },
+        { id: 7, text: 'Saya suka mempelajari bagaimana sistem atau teknologi berfungsi secara dalaman.', type: 'I' },
+        { id: 8, text: 'Saya lebih suka tugas yang mencabar kemahiran berfikir dan penaakulan saya.', type: 'I' },
+        { id: 9, text: 'Saya suka mereka bentuk visual, susun atur, atau kandungan digital.', type: 'A' },
+        { id: 10, text: 'Saya suka menyatakan idea secara kreatif menggunakan teknologi.', type: 'A' },
+        { id: 11, text: 'Saya lebih suka tugas terbuka di mana saya boleh meneroka kreativiti saya.', type: 'A' },
+        { id: 12, text: 'Saya suka menggabungkan kreativiti dengan teknologi, seperti reka bentuk atau media.', type: 'A' },
+        { id: 13, text: 'Saya suka membantu orang lain menyelesaikan masalah atau memahami teknologi.', type: 'S' },
+        { id: 14, text: 'Saya suka bekerja dalam pasukan dan bekerjasama dengan orang lain.', type: 'S' },
+        { id: 15, text: 'Saya selesa menerangkan konsep teknikal kepada orang lain.', type: 'S' },
+        { id: 16, text: 'Saya mendapat kepuasan dalam menyokong atau membimbing orang.', type: 'S' },
+        { id: 17, text: 'Saya suka memimpin projek atau mengambil inisiatif dalam kerja berkumpulan.', type: 'E' },
+        { id: 18, text: 'Saya berminat mengurus projek atau pasukan berasaskan teknologi.', type: 'E' },
+        { id: 19, text: 'Saya suka membuat keputusan dan mempengaruhi orang lain.', type: 'E' },
+        { id: 20, text: 'Saya berminat menggunakan teknologi untuk perniagaan atau keusahawanan.', type: 'E' },
+        { id: 21, text: 'Saya lebih suka bekerja dengan tugas berstruktur dan garis panduan yang jelas.', type: 'C' },
+        { id: 22, text: 'Saya suka mengatur maklumat, data, atau rekod digital.', type: 'C' },
+        { id: 23, text: 'Saya selesa mengikuti prosedur dan proses sistematik.', type: 'C' },
+        { id: 24, text: 'Saya lebih suka tugas yang memerlukan ketepatan, konsistensi, dan perhatian terhadap butiran.', type: 'C' },
+      ]
+    }
+    return riasecQuestions
+  }, [language])
 
   // Local answers for the questionnaire (questionId -> Likert value 1..5).
   const [answers, setAnswers] = useState<Record<string, number>>({})
@@ -41,12 +231,17 @@ export function PsychometricTestPage() {
   const [showAllTraits, setShowAllTraits] = useState(false)
   const [showRiasecInfo, setShowRiasecInfo] = useState(false)
 
-  const statusLabel = progress.psychometricCompleted ? 'Completed' : 'Not Taken'
+  const statusLabel = progress.psychometricCompleted ? t.completed : t.notTaken
   const statusClass = progress.psychometricCompleted
     ? 'text-emerald-200'
     : 'text-slate-300'
   const canSubmit = !progress.psychometricCompleted
   const isTakingTest = hasStarted && canSubmit
+
+  // Toggle language function
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === 'en' ? 'ms' : 'en'))
+  }
 
   const answeredCount = useMemo(
     () => Object.keys(answers).length,
@@ -84,8 +279,8 @@ export function PsychometricTestPage() {
     setCurrentIndex((prev) => {
       // If user already answered some, resume at the first unanswered question.
       if (answeredCount === 0) return 0
-      const firstUnanswered = riasecQuestions.findIndex((q) => !answers[String(q.id)])
-      return firstUnanswered === -1 ? Math.min(riasecQuestions.length - 1, prev) : firstUnanswered
+      const firstUnanswered = translatedQuestions.findIndex((q) => !answers[String(q.id)])
+      return firstUnanswered === -1 ? Math.min(translatedQuestions.length - 1, prev) : firstUnanswered
     })
     setSubmitError('')
     setStepError('')
@@ -97,16 +292,14 @@ export function PsychometricTestPage() {
   }
 
   async function handleRetest() {
-    const ok = window.confirm(
-      'Are you sure you want to retake the test? This will delete your current results and reset your career guidance.',
-    )
+    const ok = window.confirm(t.retakeConfirm)
     if (!ok) return
 
     // Clear saved results + guidance so the user can submit again.
     try {
       await resetPsychometricTest()
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to reset psychometric result.'
+      const msg = e instanceof Error ? e.message : t.failedToReset
       setSubmitError(msg)
       return
     }
@@ -126,8 +319,8 @@ export function PsychometricTestPage() {
   async function handleSubmit() {
     if (!canSubmit) return
 
-    if (answeredCount !== riasecQuestions.length) {
-      setSubmitError('Please answer all questions before submitting.')
+    if (answeredCount !== translatedQuestions.length) {
+      setSubmitError(t.pleaseAnswerAll)
       return
     }
 
@@ -148,7 +341,7 @@ export function PsychometricTestPage() {
         careerPathReport,
       })
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to save result.'
+      const msg = e instanceof Error ? e.message : t.failedToSave
       setSubmitError(msg)
       return
     }
@@ -167,11 +360,11 @@ export function PsychometricTestPage() {
     const q = riasecQuestions[currentIndex]
     const current = answers[String(q.id)]
     if (!current) {
-      setStepError('Please select a rating (1–5) before continuing.')
+      setStepError(t.pleaseSelectRating)
       return
     }
     setStepError('')
-    setCurrentIndex((i) => Math.min(riasecQuestions.length - 1, i + 1))
+    setCurrentIndex((i) => Math.min(translatedQuestions.length - 1, i + 1))
   }
 
   function handleBack() {
@@ -181,20 +374,29 @@ export function PsychometricTestPage() {
 
   // Focused questionnaire: one question at a time.
   if (isTakingTest) {
-    const q = riasecQuestions[currentIndex]
+    const q = translatedQuestions[currentIndex]
     const current = answers[String(q.id)]
-    const isLast = currentIndex === riasecQuestions.length - 1
-    const progressPercent = Math.round(((currentIndex + 1) / riasecQuestions.length) * 100)
+    const isLast = currentIndex === translatedQuestions.length - 1
+    const progressPercent = Math.round(((currentIndex + 1) / translatedQuestions.length) * 100)
 
     return (
       <div className="mx-auto max-w-3xl space-y-4">
-        <PageHeader
-          title="Psychometric Test"
-          subtitle="Answer one statement at a time. Your responses are used to generate your guidance."
-        />
+        <div className="flex items-start justify-between">
+          <PageHeader
+            title={t.pageTitle}
+            subtitle={t.pageSubtitle}
+          />
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900/60 transition-colors"
+          >
+            {language === 'en' ? '🇲🇾 BM' : '🇬🇧 EN'}
+          </button>
+        </div>
 
         <Card
-          title={`Question ${currentIndex + 1} of ${riasecQuestions.length}`}
+          title={`${t.question} ${currentIndex + 1} ${t.of} ${translatedQuestions.length}`}
           right={
             <div className="flex items-center gap-2">
               <div className="text-xs font-semibold text-slate-400">{progressPercent}%</div>
@@ -203,7 +405,7 @@ export function PsychometricTestPage() {
                 onClick={handleExitTest}
                 className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
               >
-                Exit
+                {t.exit}
               </button>
             </div>
           }
@@ -218,7 +420,7 @@ export function PsychometricTestPage() {
 
             <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
               <div className="text-xs font-semibold text-slate-400">
-                Type: <span className="text-slate-200">{q.type}</span>
+                {t.type}: <span className="text-slate-200">{q.type}</span>
               </div>
               <div className="mt-2 text-base font-semibold text-slate-100">
                 {q.text}
@@ -252,8 +454,8 @@ export function PsychometricTestPage() {
                 })}
               </div>
               <div className="mt-2 flex justify-between text-xs text-slate-500">
-                <span>Strongly Disagree</span>
-                <span>Strongly Agree</span>
+                <span>{t.stronglyDisagree}</span>
+                <span>{t.stronglyAgree}</span>
               </div>
             </div>
 
@@ -270,13 +472,13 @@ export function PsychometricTestPage() {
                 disabled={currentIndex === 0}
                 className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900/60 disabled:opacity-50"
               >
-                Back
+                {t.back}
               </button>
 
               <div className="text-xs text-slate-400">
-                Answered:{' '}
+                {t.answered}:{' '}
                 <span className="font-semibold text-slate-200">{answeredCount}</span> /{' '}
-                {riasecQuestions.length}
+                {translatedQuestions.length}
               </div>
 
               {isLast ? (
@@ -286,7 +488,7 @@ export function PsychometricTestPage() {
                   disabled={isSavingPsychometric}
                   className="rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
                 >
-                  {isSavingPsychometric ? 'Saving…' : 'Submit Test'}
+                  {isSavingPsychometric ? t.saving : t.submitTest}
                 </button>
               ) : (
                 <button
@@ -294,13 +496,13 @@ export function PsychometricTestPage() {
                   onClick={handleNext}
                   className="rounded-2xl bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
                 >
-                  Next
+                  {t.next}
                 </button>
               )}
             </div>
 
             <div className="text-xs text-slate-500">
-              Tip: You can use Back to review and change answers before submitting.
+              {t.tip}
             </div>
           </div>
         </Card>
@@ -312,16 +514,23 @@ export function PsychometricTestPage() {
   if (!isTakingTest) {
     return (
       <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-slate-50 md:text-5xl">Psychometric Test</h1>
+        {/* Header with Language Toggle */}
+        <div className="flex items-start justify-between">
+          <h1 className="text-4xl font-bold text-slate-50 md:text-5xl">{t.pageTitle}</h1>
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900/60 transition-colors"
+          >
+            {language === 'en' ? '🇲🇾 BM' : '🇬🇧 EN'}
+          </button>
         </div>
 
         {/* What is this test section */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-100">What is this test?</h2>
+          <h2 className="text-xl font-bold text-slate-100">{t.whatIsTest}</h2>
           <p className="max-w-3xl text-base leading-relaxed text-slate-300/90">
-            This psychometric test helps you understand your interests and how they relate to different technology pathways. There are no right or wrong answers — just choose what feels most like you.
+            {t.whatIsTestDesc}
           </p>
           
           {!progress.psychometricCompleted && (
@@ -332,7 +541,7 @@ export function PsychometricTestPage() {
                 disabled={!canSubmit || isSavingPsychometric}
                 className="rounded-2xl bg-blue-600/20 px-8 py-4 text-base font-semibold text-blue-100 ring-1 ring-blue-500/25 shadow-[0_0_25px_rgba(59,130,246,0.18)] transition hover:bg-blue-600/25 hover:shadow-[0_0_35px_rgba(59,130,246,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSavingPsychometric ? 'Loading...' : answeredCount > 0 ? 'Continue Test' : 'Start Test'}
+                {isSavingPsychometric ? t.loading : answeredCount > 0 ? t.continueTest : t.startTest}
               </button>
             </div>
           )}
@@ -341,10 +550,10 @@ export function PsychometricTestPage() {
             <div className="space-y-4 pt-4">
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-6 py-4">
                 <div className="text-sm font-semibold text-emerald-200">
-                  Test Completed
+                  {t.testCompleted}
                 </div>
                 <div className="mt-2 text-sm text-slate-200">
-                  Your Holland Code: <span className="font-semibold">{progress.psychometricResult}</span>
+                  {t.yourHollandCode} <span className="font-semibold">{progress.psychometricResult}</span>
                 </div>
                 <div className="mt-4 flex gap-3">
                   <button
@@ -352,13 +561,13 @@ export function PsychometricTestPage() {
                     onClick={() => void handleRetest()}
                     className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
                   >
-                    Retake Test
+                    {t.retakeTest}
                   </button>
                   <Link
                     to="/course-recommendation"
                     className="inline-flex items-center justify-center rounded-2xl bg-emerald-600/20 px-5 py-2.5 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-500/25 hover:bg-emerald-600/25"
                   >
-                    View Recommendations
+                    {t.viewRecommendations}
                   </Link>
                 </div>
               </div>
@@ -374,7 +583,7 @@ export function PsychometricTestPage() {
             className="flex items-center gap-2 text-base font-semibold text-slate-100 transition hover:text-slate-50"
           >
             <IconQuestion size={20} className="text-slate-300" />
-            <span>What do RIASEC types mean?</span>
+            <span>{t.whatDoRiasecMean}</span>
             <IconArrowRight
               size={18}
               className={cn(
@@ -387,15 +596,15 @@ export function PsychometricTestPage() {
           {showRiasecInfo && (
             <div className="space-y-6 pt-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                <span>RIASEC Types</span>
+                <span>{t.riasecTypes}</span>
                 <IconArrowRight size={16} className="text-slate-400" />
               </div>
               
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <RiasecCard
                   letter="R"
-                  title="Realistic"
-                  description="You enjoy working with tools, building things, and solving practical problems. You learn best by doing hands-on projects and prefer concrete, tangible results."
+                  title={t.riasecCards.R.title}
+                  description={t.riasecCards.R.description}
                   icon={<IconWrench size={32} />}
                   gradient="from-blue-600/20 to-blue-800/10"
                   borderColor="border-blue-500/25"
@@ -403,8 +612,8 @@ export function PsychometricTestPage() {
                 />
                 <RiasecCard
                   letter="I"
-                  title="Investigative"
-                  description="You love analyzing problems, exploring how things work, and diving deep into complex topics. You enjoy research, experiments, and logical thinking."
+                  title={t.riasecCards.I.title}
+                  description={t.riasecCards.I.description}
                   icon={<IconLightbulb size={32} />}
                   gradient="from-purple-600/20 to-purple-800/10"
                   borderColor="border-purple-500/25"
@@ -412,8 +621,8 @@ export function PsychometricTestPage() {
                 />
                 <RiasecCard
                   letter="A"
-                  title="Artistic"
-                  description="You thrive on creative expression, design, and original ideas. You enjoy open-ended projects where you can explore different possibilities and create something unique."
+                  title={t.riasecCards.A.title}
+                  description={t.riasecCards.A.description}
                   icon={<IconPalette size={32} />}
                   gradient="from-purple-600/20 to-purple-800/10"
                   borderColor="border-purple-500/25"
@@ -421,8 +630,8 @@ export function PsychometricTestPage() {
                 />
                 <RiasecCard
                   letter="S"
-                  title="Social"
-                  description="You find fulfillment in helping others, working in teams, and making a positive impact. You enjoy teaching, supporting, and collaborating with people."
+                  title={t.riasecCards.S.title}
+                  description={t.riasecCards.S.description}
                   icon={<IconMessageHeart size={32} />}
                   gradient="from-orange-600/20 to-orange-800/10"
                   borderColor="border-orange-500/25"
@@ -430,8 +639,8 @@ export function PsychometricTestPage() {
                 />
                 <RiasecCard
                   letter="E"
-                  title="Enterprising"
-                  description="You're motivated by leadership, taking initiative, and making things happen. You enjoy planning, organizing projects, and influencing outcomes."
+                  title={t.riasecCards.E.title}
+                  description={t.riasecCards.E.description}
                   icon={<IconBriefcase size={32} />}
                   gradient="from-orange-600/20 to-orange-800/10"
                   borderColor="border-orange-500/25"
@@ -439,8 +648,8 @@ export function PsychometricTestPage() {
                 />
                 <RiasecCard
                   letter="C"
-                  title="Conventional"
-                  description="You prefer organized, structured work with clear procedures. You excel at managing details, maintaining systems, and ensuring accuracy and consistency."
+                  title={t.riasecCards.C.title}
+                  description={t.riasecCards.C.description}
                   icon={<IconClipboardCheck size={32} />}
                   gradient="from-blue-600/20 to-blue-800/10"
                   borderColor="border-blue-500/25"
@@ -1309,22 +1518,22 @@ function RiasecCard(props: {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 shadow-lg backdrop-blur-sm',
+        'group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-8 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer',
         gradient,
         borderColor,
       )}
       style={{ boxShadow: `0 0 30px ${glowColor}` }}
     >
       {/* Starry background effect */}
-      <div className="pointer-events-none absolute inset-0 opacity-30">
+      <div className="pointer-events-none absolute inset-0 opacity-30 transition-opacity duration-300 group-hover:opacity-40">
         <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:20px_20px]" />
       </div>
       
       <div className="relative">
-        <div className="mb-4 text-5xl font-bold text-slate-100">{letter}</div>
-        <div className="mb-3 flex items-center justify-center text-slate-200">{icon}</div>
-        <div className="text-lg font-semibold text-slate-100">{title}</div>
-        <div className="mt-2 text-sm leading-relaxed text-slate-300/90">{description}</div>
+        <div className="mb-5 text-6xl font-bold text-slate-100 transition-transform duration-300 group-hover:scale-110">{letter}</div>
+        <div className="mb-4 flex items-center justify-center text-slate-200 transition-transform duration-300 group-hover:scale-110">{icon}</div>
+        <div className="text-2xl font-semibold text-slate-100 mb-3">{title}</div>
+        <div className="text-base leading-relaxed text-slate-300/90 group-hover:text-slate-200 transition-colors duration-300">{description}</div>
       </div>
     </div>
   )
