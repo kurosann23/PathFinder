@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
-import { isSupabaseConfigured } from '../lib/supabaseClient'
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { uploadAvatar, upsertProfile, type ProfileRow, type StudentProfileRow, type TeacherProfileRow } from '../lib/profileRepo'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
@@ -177,10 +177,105 @@ function TeacherProfileView(props: {
 
   const [isEditing, setIsEditing] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const teacherName = profile?.full_name || user?.email?.split('@')[0] || 'Teacher'
   const teacherEmail = user?.email || profile?.email || ''
   const teacherPhone = form.phone || '+60 12 345 6789' // Default placeholder
+
+  async function handlePasswordChange() {
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    // Validation
+    if (!currentPassword.trim()) {
+      setPasswordError('Please enter your current password.')
+      return
+    }
+
+    if (!newPassword.trim()) {
+      setPasswordError('Please enter a new password.')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.')
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordError('New password must be different from your current password.')
+      return
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      setPasswordError('Supabase is not configured.')
+      return
+    }
+
+    setChangingPassword(true)
+
+    try {
+      // First, verify the current password by attempting to sign in
+      // This ensures the user knows their current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: currentPassword,
+      })
+
+      if (signInError) {
+        setPasswordError('Current password is incorrect.')
+        setChangingPassword(false)
+        return
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (updateError) {
+        setPasswordError(updateError.message || 'Failed to update password.')
+        setChangingPassword(false)
+        return
+      }
+
+      // Success
+      setPasswordSuccess('Password changed successfully!')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setShowPasswordModal(false)
+        setPasswordSuccess('')
+      }, 2000)
+    } catch (e) {
+      setPasswordError(getErrorMessage(e) || 'An unexpected error occurred.')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  function handleClosePasswordModal() {
+    setShowPasswordModal(false)
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess('')
+  }
 
   return (
     <div className="space-y-6 pb-24">
@@ -472,21 +567,111 @@ function TeacherProfileView(props: {
         </div>
       </Card>
 
-      {/* Password Change Modal (simplified - would need proper implementation) */}
+      {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleClosePasswordModal()
+            }
+          }}
+        >
           <Card className="w-full max-w-md">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-100">Change Password</h3>
-              <p className="text-sm text-slate-400">This feature will be implemented with Supabase Auth.</p>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowPasswordModal(false)}
-                className="w-full"
-              >
-                Close
-              </Button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-100">Change Password</h3>
+                <button
+                  type="button"
+                  onClick={handleClosePasswordModal}
+                  className="text-slate-400 hover:text-slate-200 transition"
+                  aria-label="Close"
+                >
+                  <IconX size={20} />
+                </button>
+              </div>
+
+              {passwordError && (
+                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                  {passwordError}
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                  {passwordSuccess}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <label className="block">
+                  <div className="text-xs font-semibold text-slate-400 mb-2">Current Password</div>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={changingPassword}
+                    className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    placeholder="Enter your current password"
+                    autoComplete="current-password"
+                  />
+                </label>
+
+                <label className="block">
+                  <div className="text-xs font-semibold text-slate-400 mb-2">New Password</div>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={changingPassword}
+                    className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    placeholder="Enter your new password"
+                    autoComplete="new-password"
+                  />
+                  <div className="mt-1 text-xs text-slate-500">
+                    Must be at least 6 characters long
+                  </div>
+                </label>
+
+                <label className="block">
+                  <div className="text-xs font-semibold text-slate-400 mb-2">Confirm New Password</div>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={changingPassword}
+                    className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    placeholder="Confirm your new password"
+                    autoComplete="new-password"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !changingPassword) {
+                        handlePasswordChange()
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword || !isSupabaseConfigured}
+                  className="flex-1"
+                >
+                  {changingPassword ? 'Changing...' : 'Change Password'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleClosePasswordModal}
+                  disabled={changingPassword}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
