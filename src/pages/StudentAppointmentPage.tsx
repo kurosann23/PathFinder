@@ -29,6 +29,7 @@ export function StudentAppointmentPage() {
   const [cancelling, setCancelling] = useState<string | null>(null)
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
+  const [expandedRejected, setExpandedRejected] = useState<Set<string>>(new Set())
 
   // Form state
   const [selectedTeacher, setSelectedTeacher] = useState<string>('')
@@ -376,52 +377,23 @@ export function StudentAppointmentPage() {
                 {approved.length > 0 && (
                   <Card>
                     <div className="mb-4">
-                      <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">
-                        Approved Appointments
-                      </h3>
+                      <h3 className="text-sm font-semibold uppercase tracking-wide">Approved Appointments</h3>
                       <p className="mt-1 text-xs text-slate-400">
                         {approved.length} confirmed appointment{approved.length !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-emerald-500/20">
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                              Teacher
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                              Date
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                              Time
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                              Status
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {approved.map((appointment) => (
-                            <tr
-                              key={appointment.id}
-                              className="border-b border-emerald-500/10 hover:bg-emerald-500/5 transition"
-                            >
-                              <td className="py-3 px-4">
-                                <div className="text-sm font-medium text-slate-100">
-                                  {appointment.teacher_name || 'Teacher'}
-                                </div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="text-sm text-slate-200">{formatDate(appointment.date)}</div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="text-sm text-slate-200">{formatTime(appointment.time)}</div>
-                              </td>
-                              <td className="py-3 px-4">
+                    <div className="space-y-3">
+                      {approved.map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          className="rounded-lg border border-slate-800/70 bg-slate-950/40 p-4"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
                                 <span
                                   className={cn(
-                                    'inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold',
+                                    'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
                                     STATUS_COLORS.approved.bg,
                                     STATUS_COLORS.approved.border,
                                     STATUS_COLORS.approved.text,
@@ -429,11 +401,86 @@ export function StudentAppointmentPage() {
                                 >
                                   Approved
                                 </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                <span className="text-sm font-medium text-slate-100">
+                                  {formatTime(appointment.time)}
+                                </span>
+                                <span className="text-sm text-slate-300">{formatDate(appointment.date)}</span>
+                                <span className="text-xs text-slate-400 capitalize">{appointment.mode}</span>
+                              </div>
+                              <div className="text-sm font-medium text-slate-200 mb-1">
+                                {appointment.teacher_name || 'Teacher'}
+                              </div>
+                              {appointment.reason && (
+                                <div className="text-xs text-slate-400 mt-2 line-clamp-2">{appointment.reason}</div>
+                              )}
+                            </div>
+                          </div>
+                          {/* Next Step Section - Meeting Instructions */}
+                          {(appointment.meeting_link || appointment.meeting_place || appointment.meeting_note) && (
+                            <div className="mt-4 pt-4 border-t border-emerald-500/30">
+                              <div className="mb-3">
+                                <h4 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">
+                                  Next Step
+                                </h4>
+                              </div>
+                              <div className="space-y-3">
+                                {/* Meeting Link - Show only for online appointments */}
+                                {appointment.mode === 'online' && appointment.meeting_link && (
+                                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
+                                    <div className="text-xs text-emerald-400/80 mb-1 font-semibold uppercase tracking-wide">
+                                      Meeting Link
+                                    </div>
+                                    <a
+                                      href={appointment.meeting_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-blue-400 hover:text-blue-300 underline break-all"
+                                    >
+                                      {appointment.meeting_link}
+                                    </a>
+                                  </div>
+                                )}
+                                
+                                {/* Meeting Place - Show for face-to-face appointments */}
+                                {appointment.mode === 'face-to-face' && appointment.meeting_place && (
+                                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
+                                    <div className="text-xs text-emerald-400/80 mb-1 font-semibold uppercase tracking-wide">
+                                      Meeting Place
+                                    </div>
+                                    <div className="text-sm text-slate-100">
+                                      {appointment.meeting_place}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Meeting Place - Also show for online if provided */}
+                                {appointment.mode === 'online' && appointment.meeting_place && (
+                                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
+                                    <div className="text-xs text-emerald-400/80 mb-1 font-semibold uppercase tracking-wide">
+                                      Place
+                                    </div>
+                                    <div className="text-sm text-slate-100">
+                                      {appointment.meeting_place}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Meeting Notes - Show if present */}
+                                {appointment.meeting_note && (
+                                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
+                                    <div className="text-xs text-emerald-400/80 mb-1 font-semibold uppercase tracking-wide">
+                                      Notes
+                                    </div>
+                                    <div className="text-sm text-slate-100 whitespace-pre-wrap">
+                                      {appointment.meeting_note}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </Card>
                 )}
@@ -519,70 +566,89 @@ export function StudentAppointmentPage() {
                 {rejected.length > 0 && (
                   <Card>
                     <div className="mb-4">
-                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                        Rejected / Cancelled
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <h3 className="text-sm font-semibold uppercase tracking-wide">Rejected / Cancelled</h3>
+                      <p className="mt-1 text-xs text-slate-400">
                         {rejected.length} appointment{rejected.length !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-slate-800/50">
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                              Teacher
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                              Date
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                              Time
-                            </th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                              Status
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {rejected.map((appointment) => (
-                            <tr
-                              key={appointment.id}
-                              className="border-b border-slate-800/30 hover:bg-slate-950/20 transition opacity-75"
+                    <div className="space-y-2">
+                      {rejected.map((appointment) => {
+                        const isExpanded = expandedRejected.has(appointment.id)
+                        return (
+                          <div
+                            key={appointment.id}
+                            className="rounded-lg border border-slate-800/50 bg-slate-950/20"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newExpanded = new Set(expandedRejected)
+                                if (isExpanded) {
+                                  newExpanded.delete(appointment.id)
+                                } else {
+                                  newExpanded.add(appointment.id)
+                                }
+                                setExpandedRejected(newExpanded)
+                              }}
+                              className="w-full p-3 flex items-center justify-between gap-3 text-left hover:bg-slate-950/30 transition"
                             >
-                              <td className="py-3 px-4">
-                                <div className="text-sm text-slate-400">{appointment.teacher_name || 'Teacher'}</div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="text-sm text-slate-500">{formatDate(appointment.date)}</div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="text-sm text-slate-500">{formatTime(appointment.time)}</div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <div className="space-y-2">
-                                  <span
-                                    className={cn(
-                                      'inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold',
-                                      STATUS_COLORS.rejected.bg,
-                                      STATUS_COLORS.rejected.border,
-                                      STATUS_COLORS.rejected.text,
-                                    )}
-                                  >
-                                    Rejected
-                                  </span>
-                                  {appointment.rejection_reason && (
-                                    <div className="pt-2 border-t border-slate-800/30">
-                                      <div className="text-xs text-slate-500 mb-1">Reason:</div>
-                                      <div className="text-xs text-slate-400">{appointment.rejection_reason}</div>
-                                    </div>
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                                    STATUS_COLORS.rejected.bg,
+                                    STATUS_COLORS.rejected.border,
+                                    STATUS_COLORS.rejected.text,
                                   )}
+                                >
+                                  Rejected
+                                </span>
+                                <span className="text-sm font-medium text-slate-300 truncate">
+                                  {appointment.teacher_name || 'Teacher'}
+                                </span>
+                                <span className="text-xs text-slate-400 shrink-0">{formatDate(appointment.date)}</span>
+                              </div>
+                              <svg
+                                className={cn(
+                                  'w-4 h-4 text-slate-400 shrink-0 transition-transform',
+                                  isExpanded && 'rotate-180',
+                                )}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            {isExpanded && (
+                              <div className="px-3 pb-3 pt-2 border-t border-slate-800/30 space-y-2">
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-slate-400">Time:</span>
+                                    <span className="ml-2 text-slate-300">{formatTime(appointment.time)}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Mode:</span>
+                                    <span className="ml-2 text-slate-300 capitalize">{appointment.mode}</span>
+                                  </div>
                                 </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                {appointment.reason && (
+                                  <div className="pt-2 border-t border-slate-800/30">
+                                    <div className="text-xs text-slate-400 mb-1">Reason:</div>
+                                    <div className="text-xs text-slate-300">{appointment.reason}</div>
+                                  </div>
+                                )}
+                                {appointment.rejection_reason && (
+                                  <div className="pt-2 border-t border-slate-800/30">
+                                    <div className="text-xs text-slate-400 mb-1">Rejection Reason:</div>
+                                    <div className="text-xs text-slate-300">{appointment.rejection_reason}</div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   </Card>
                 )}

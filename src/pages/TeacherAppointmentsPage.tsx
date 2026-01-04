@@ -12,6 +12,12 @@ import { useAuth } from '../context/AuthContext'
 import { cn } from '../lib/cn'
 import { IconX } from '../components/icons'
 
+const STATUS_COLORS = {
+  pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
+  approved: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  rejected: { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
+}
+
 export function TeacherAppointmentsPage() {
   const { user } = useAuth()
   const [appointments, setAppointments] = useState<AppointmentWithNames[]>([])
@@ -21,6 +27,11 @@ export function TeacherAppointmentsPage() {
   const [success, setSuccess] = useState<string>('')
   const [rejectModalOpen, setRejectModalOpen] = useState<string | null>(null)
   const [rejectionReason, setRejectionReason] = useState<string>('')
+  const [approveModalOpen, setApproveModalOpen] = useState<string | null>(null)
+  const [meetingLink, setMeetingLink] = useState<string>('')
+  const [meetingPlace, setMeetingPlace] = useState<string>('')
+  const [meetingNote, setMeetingNote] = useState<string>('')
+  const [expandedRejected, setExpandedRejected] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) {
@@ -30,6 +41,7 @@ export function TeacherAppointmentsPage() {
     }
 
     loadAppointments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   async function loadAppointments() {
@@ -46,14 +58,43 @@ export function TeacherAppointmentsPage() {
     }
   }
 
-  async function handleApprove(appointmentId: string) {
-    setUpdating(appointmentId)
+  function handleApproveClick(appointmentId: string) {
+    setApproveModalOpen(appointmentId)
+    setMeetingLink('')
+    setMeetingPlace('')
+    setMeetingNote('')
+    setError('')
+  }
+
+  function handleApproveCancel() {
+    setApproveModalOpen(null)
+    setMeetingLink('')
+    setMeetingPlace('')
+    setMeetingNote('')
+    setError('')
+  }
+
+  async function handleApproveConfirm() {
+    if (!approveModalOpen) return
+
+    setUpdating(approveModalOpen)
     setError('')
     setSuccess('')
 
     try {
-      await updateAppointmentStatus(appointmentId, 'approved')
+      await updateAppointmentStatus(
+        approveModalOpen,
+        'approved',
+        undefined,
+        meetingLink.trim() || undefined,
+        meetingPlace.trim() || undefined,
+        meetingNote.trim() || undefined,
+      )
       setSuccess('Appointment approved successfully!')
+      setApproveModalOpen(null)
+      setMeetingLink('')
+      setMeetingPlace('')
+      setMeetingNote('')
       await loadAppointments()
       
       // Clear success message after 3 seconds
@@ -180,49 +221,71 @@ export function TeacherAppointmentsPage() {
           {approvedAppointments.length > 0 && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide">
-                  Approved Appointments
-                </h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide">Approved Appointments</h3>
                 <p className="mt-1 text-xs text-slate-400">
                   {approvedAppointments.length} confirmed appointment{approvedAppointments.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {approvedAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5"
+                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 p-4"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="text-lg font-semibold text-slate-100">
-                            {appointment.student_name || 'Student'}
-                          </div>
-                          <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              STATUS_COLORS.approved.bg,
+                              STATUS_COLORS.approved.border,
+                              STATUS_COLORS.approved.text,
+                            )}
+                          >
                             Approved
                           </span>
+                          <span className="text-sm font-medium text-slate-100">
+                            {formatTime(appointment.time)}
+                          </span>
+                          <span className="text-sm text-slate-300">{formatDate(appointment.date)}</span>
+                          <span className="text-xs text-slate-400 capitalize">{appointment.mode}</span>
                         </div>
-                        <div className="space-y-1 text-sm text-slate-200">
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Mode:</span>
-                            <span className="font-medium capitalize">{appointment.mode}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Date:</span>
-                            <span className="font-medium">{formatDate(appointment.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Time:</span>
-                            <span className="font-medium">{formatTime(appointment.time)}</span>
-                          </div>
-                          {appointment.reason && (
-                            <div className="mt-2 pt-2 border-t border-emerald-500/10">
-                              <div className="text-slate-400 mb-1">Reason:</div>
-                              <div className="text-slate-200">{appointment.reason}</div>
-                            </div>
-                          )}
+                        <div className="text-sm font-medium text-slate-200 mb-1">
+                          {appointment.student_name || 'Student'}
                         </div>
+                        {appointment.reason && (
+                          <div className="text-xs text-slate-400 mt-2 line-clamp-2">{appointment.reason}</div>
+                        )}
+                        {(appointment.meeting_link || appointment.meeting_place || appointment.meeting_note) && (
+                          <div className="mt-3 pt-3 border-t border-slate-800/50 space-y-1">
+                            {appointment.meeting_link && (
+                              <div>
+                                <div className="text-xs text-slate-400 mb-1">Meeting Link:</div>
+                                <a
+                                  href={appointment.meeting_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-400 hover:text-blue-300 underline break-all"
+                                >
+                                  {appointment.meeting_link}
+                                </a>
+                              </div>
+                            )}
+                            {appointment.meeting_place && (
+                              <div>
+                                <div className="text-xs text-slate-400 mb-1">Place:</div>
+                                <div className="text-xs text-slate-200">{appointment.meeting_place}</div>
+                              </div>
+                            )}
+                            {appointment.meeting_note && (
+                              <div>
+                                <div className="text-xs text-slate-400 mb-1">Notes:</div>
+                                <div className="text-xs text-slate-200 whitespace-pre-wrap">{appointment.meeting_note}</div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -276,11 +339,11 @@ export function TeacherAppointmentsPage() {
                     <div className="flex gap-3 pt-2">
                       <Button
                         variant="primary"
-                        onClick={() => handleApprove(appointment.id)}
+                        onClick={() => handleApproveClick(appointment.id)}
                         disabled={updating === appointment.id}
                         className="flex-1"
                       >
-                        {updating === appointment.id ? 'Processing...' : 'Approve'}
+                        Approve
                       </Button>
                       <Button
                         variant="secondary"
@@ -301,59 +364,89 @@ export function TeacherAppointmentsPage() {
           {rejectedAppointments.length > 0 && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                  Rejected / Cancelled
-                </h3>
-                <p className="mt-1 text-xs text-slate-500">
+                <h3 className="text-sm font-semibold uppercase tracking-wide">Rejected / Cancelled</h3>
+                <p className="mt-1 text-xs text-slate-400">
                   {rejectedAppointments.length} appointment{rejectedAppointments.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <div className="space-y-4">
-                {rejectedAppointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="rounded-xl border border-slate-800/50 bg-slate-950/20 p-5 opacity-75"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="text-lg font-semibold text-slate-400">
-                            {appointment.student_name || 'Student'}
-                          </div>
-                          <span className="inline-flex items-center rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-400">
+              <div className="space-y-2">
+                {rejectedAppointments.map((appointment) => {
+                  const isExpanded = expandedRejected.has(appointment.id)
+                  return (
+                    <div
+                      key={appointment.id}
+                      className="rounded-lg border border-slate-800/50 bg-slate-950/20"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newExpanded = new Set(expandedRejected)
+                          if (isExpanded) {
+                            newExpanded.delete(appointment.id)
+                          } else {
+                            newExpanded.add(appointment.id)
+                          }
+                          setExpandedRejected(newExpanded)
+                        }}
+                        className="w-full p-3 flex items-center justify-between gap-3 text-left hover:bg-slate-950/30 transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              STATUS_COLORS.rejected.bg,
+                              STATUS_COLORS.rejected.border,
+                              STATUS_COLORS.rejected.text,
+                            )}
+                          >
                             Rejected
                           </span>
+                          <span className="text-sm font-medium text-slate-300 truncate">
+                            {appointment.student_name || 'Student'}
+                          </span>
+                          <span className="text-xs text-slate-400 shrink-0">{formatDate(appointment.date)}</span>
                         </div>
-                        <div className="space-y-1 text-sm text-slate-400">
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500">Mode:</span>
-                            <span className="font-medium capitalize">{appointment.mode}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500">Date:</span>
-                            <span className="font-medium">{formatDate(appointment.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500">Time:</span>
-                            <span className="font-medium">{formatTime(appointment.time)}</span>
+                        <svg
+                          className={cn(
+                            'w-4 h-4 text-slate-400 shrink-0 transition-transform',
+                            isExpanded && 'rotate-180',
+                          )}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {isExpanded && (
+                        <div className="px-3 pb-3 pt-2 border-t border-slate-800/30 space-y-2">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-slate-400">Time:</span>
+                              <span className="ml-2 text-slate-300">{formatTime(appointment.time)}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400">Mode:</span>
+                              <span className="ml-2 text-slate-300 capitalize">{appointment.mode}</span>
+                            </div>
                           </div>
                           {appointment.reason && (
-                            <div className="mt-2 pt-2 border-t border-slate-800/30">
-                              <div className="text-slate-500 mb-1">Reason:</div>
-                              <div className="text-slate-400">{appointment.reason}</div>
+                            <div className="pt-2 border-t border-slate-800/30">
+                              <div className="text-xs text-slate-400 mb-1">Reason:</div>
+                              <div className="text-xs text-slate-300">{appointment.reason}</div>
                             </div>
                           )}
                           {appointment.rejection_reason && (
-                            <div className="mt-2 pt-2 border-t border-slate-800/30">
-                              <div className="text-slate-500 mb-1">Rejection Reason:</div>
-                              <div className="text-slate-400">{appointment.rejection_reason}</div>
+                            <div className="pt-2 border-t border-slate-800/30">
+                              <div className="text-xs text-slate-400 mb-1">Rejection Reason:</div>
+                              <div className="text-xs text-slate-300">{appointment.rejection_reason}</div>
                             </div>
                           )}
                         </div>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </Card>
           )}
@@ -370,6 +463,110 @@ export function TeacherAppointmentsPage() {
           )}
         </>
       )}
+
+      {/* Approval Modal */}
+      {approveModalOpen && (() => {
+        const appointment = appointments.find((a) => a.id === approveModalOpen)
+        const isOnline = appointment?.mode === 'online'
+        
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleApproveCancel()
+              }
+            }}
+          >
+            <Card className="w-full max-w-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-100">Approve Appointment</h3>
+                  <button
+                    type="button"
+                    onClick={handleApproveCancel}
+                    className="text-slate-400 hover:text-slate-200 transition"
+                    aria-label="Close"
+                  >
+                    <IconX size={20} />
+                  </button>
+                </div>
+
+                {/* Meeting Link - Show only for online appointments */}
+                {isOnline && (
+                  <div>
+                    <label htmlFor="meeting-link" className="block text-sm font-semibold text-slate-400 mb-2">
+                      Meeting Link
+                    </label>
+                    <input
+                      type="text"
+                      id="meeting-link"
+                      value={meetingLink}
+                      onChange={(e) => setMeetingLink(e.target.value)}
+                      disabled={updating === approveModalOpen}
+                      placeholder="Optional: e.g., https://zoom.us/j/..."
+                      className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    />
+                  </div>
+                )}
+
+                {/* Meeting Place - Show for both online and face-to-face */}
+                <div>
+                  <label htmlFor="meeting-place" className="block text-sm font-semibold text-slate-400 mb-2">
+                    Place
+                  </label>
+                  <input
+                    type="text"
+                    id="meeting-place"
+                    value={meetingPlace}
+                    onChange={(e) => setMeetingPlace(e.target.value)}
+                    disabled={updating === approveModalOpen}
+                    placeholder={isOnline ? "Optional: e.g., Zoom Room 1, Google Meet" : "Optional: e.g., Room 201, Building A"}
+                    className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  />
+                </div>
+
+                {/* Meeting Notes - Optional */}
+                <div>
+                  <label htmlFor="meeting-note" className="block text-sm font-semibold text-slate-400 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    id="meeting-note"
+                    value={meetingNote}
+                    onChange={(e) => setMeetingNote(e.target.value)}
+                    disabled={updating === approveModalOpen}
+                    rows={3}
+                    placeholder="Optional: Additional instructions or notes..."
+                    className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleApproveConfirm}
+                    disabled={updating === approveModalOpen}
+                    className="flex-1"
+                  >
+                    {updating === approveModalOpen ? 'Processing...' : 'Confirm Approve'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleApproveCancel}
+                    disabled={updating === approveModalOpen}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )
+      })()}
 
       {/* Rejection Modal */}
       {rejectModalOpen && (

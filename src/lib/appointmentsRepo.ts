@@ -11,6 +11,9 @@ export type AppointmentRow = {
   reason: string
   status: 'pending' | 'approved' | 'rejected'
   rejection_reason: string | null
+  meeting_link: string | null
+  meeting_place: string | null
+  meeting_note: string | null
   created_at: string | null
   updated_at: string | null
 }
@@ -166,11 +169,15 @@ export async function fetchTeacherAppointments(teacherId: string): Promise<Appoi
 /**
  * Update appointment status (teacher only - approve/reject)
  * When rejecting, rejection_reason must be provided
+ * When approving, meeting_link, meeting_place, and meeting_note can optionally be provided
  */
 export async function updateAppointmentStatus(
   appointmentId: string,
   status: 'approved' | 'rejected',
   rejectionReason?: string,
+  meetingLink?: string,
+  meetingPlace?: string,
+  meetingNote?: string,
 ): Promise<AppointmentRow> {
   if (!supabase) throw new Error('Supabase not configured')
 
@@ -178,9 +185,23 @@ export async function updateAppointmentStatus(
     throw new Error('Rejection reason is required when rejecting an appointment.')
   }
 
-  const updateData: { status: 'approved' | 'rejected'; rejection_reason?: string } = { status }
+  const updateData: { 
+    status: 'approved' | 'rejected'
+    rejection_reason?: string
+    meeting_link?: string | null
+    meeting_place?: string | null
+    meeting_note?: string | null
+  } = { status }
+  
   if (status === 'rejected' && rejectionReason) {
     updateData.rejection_reason = rejectionReason.trim()
+  }
+  
+  if (status === 'approved') {
+    // Allow setting meeting instructions when approving (all fields optional)
+    updateData.meeting_link = meetingLink?.trim() || null
+    updateData.meeting_place = meetingPlace?.trim() || null
+    updateData.meeting_note = meetingNote?.trim() || null
   }
 
   const { data, error } = await supabase
