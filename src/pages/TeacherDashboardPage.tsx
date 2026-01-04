@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
+import { Avatar } from '../components/ui/Avatar'
 import { useProfile } from '../context/ProfileContext'
+import { useAuth } from '../context/AuthContext'
 import { IconArrowRight, IconEdit } from '../components/icons'
 import { fetchAllQuestionsForTeachers, type QuestionRow } from '../lib/questionsRepo'
 import { fetchAllCoursesForTeachers, type CourseRow } from '../lib/coursesRepo'
@@ -16,12 +18,26 @@ const RIASEC_COLORS: Record<string, { bg: string; text: string }> = {
   C: { bg: 'bg-green-500/20', text: 'text-green-400' },
 }
 
+// Helper function to add cache-busting query param to avatar URLs
+function withCacheBust(url: string | null | undefined, revision: number): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    u.searchParams.set('v', String(revision))
+    return u.toString()
+  } catch {
+    return url
+  }
+}
+
 export function TeacherDashboardPage() {
   const { profile } = useProfile()
+  const { user } = useAuth()
   const [questions, setQuestions] = useState<QuestionRow[]>([])
   const [courses, setCourses] = useState<CourseRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
+  const [avatarRevision, setAvatarRevision] = useState(() => Date.now())
 
   useEffect(() => {
     loadData()
@@ -40,6 +56,13 @@ export function TeacherDashboardPage() {
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Update avatar revision when profile avatar_url changes to refresh the image
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setAvatarRevision(Date.now())
+    }
+  }, [profile?.avatar_url])
 
   async function loadData() {
     setLoading(true)
@@ -136,10 +159,14 @@ export function TeacherDashboardPage() {
           </div>
           <div className="hidden lg:flex justify-end">
             <div className="relative">
-              {/* Placeholder for illustration - you can add an actual image here */}
-              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                <div className="text-6xl">👩‍🏫</div>
-              </div>
+              <Avatar
+                src={withCacheBust(profile?.avatar_url, avatarRevision)}
+                alt="Teacher profile picture"
+                fallback={(profile?.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
+                sizeClassName="size-48"
+                className="rounded-full border-4 border-slate-700/50 shadow-[0_0_30px_rgba(59,130,246,0.20)]"
+                loading="eager"
+              />
             </div>
           </div>
         </div>

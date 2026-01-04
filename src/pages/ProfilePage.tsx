@@ -177,6 +177,7 @@ function TeacherProfileView(props: {
 
   const [isEditing, setIsEditing] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const teacherName = profile?.full_name || user?.email?.split('@')[0] || 'Teacher'
   const teacherEmail = user?.email || profile?.email || ''
   const teacherPhone = form.phone || '+60 12 345 6789' // Default placeholder
@@ -238,7 +239,7 @@ function TeacherProfileView(props: {
                 <span className="text-sm">{teacherPhone}</span>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <Button
                 type="button"
                 variant="primary"
@@ -249,6 +250,7 @@ function TeacherProfileView(props: {
                 Edit Profile
               </Button>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 disabled={saving}
@@ -257,18 +259,46 @@ function TeacherProfileView(props: {
                   setIsDirty(true)
                 }}
                 className="hidden"
-                id="avatar-upload"
+                id="avatar-upload-teacher"
               />
-              <label htmlFor="avatar-upload">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  as="span"
-                  className="cursor-pointer"
-                >
-                  Change Photo
-                </Button>
-              </label>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={saving}
+              >
+                Change Photo
+              </Button>
+              {avatarFile && (
+                <>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={async () => {
+                      await handleSave()
+                    }}
+                    disabled={saving || !isSupabaseConfigured || !profileId}
+                    className="inline-flex items-center gap-2"
+                  >
+                    {saving ? 'Saving...' : 'Save Photo'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setAvatarFile(null)
+                      setIsDirty(false)
+                      // Reset the file input so the same file can be selected again
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = ''
+                      }
+                    }}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
