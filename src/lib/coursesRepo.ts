@@ -44,6 +44,27 @@ export async function fetchCoursesByType(riasecType: 'R' | 'I' | 'A' | 'S' | 'E'
 }
 
 /**
+ * Fetch all courses (including inactive/drafts) for a specific RIASEC type - for teachers
+ */
+export async function fetchCoursesByTypeForTeachers(riasecType: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'): Promise<CourseRow[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('riasec_type', riasecType)
+    .order('order_index', { ascending: true, nullsFirst: false })
+    .order('id', { ascending: true })
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch courses.'
+    throw new Error(`${msg} (Check table "courses" + RLS policies.)`)
+  }
+
+  return (data as CourseRow[]) || []
+}
+
+/**
  * Fetch all active courses (all RIASEC types)
  */
 export async function fetchAllCourses(): Promise<CourseRow[]> {
@@ -53,6 +74,27 @@ export async function fetchAllCourses(): Promise<CourseRow[]> {
     .from('courses')
     .select('*')
     .eq('is_active', true)
+    .order('riasec_type', { ascending: true })
+    .order('order_index', { ascending: true, nullsFirst: false })
+    .order('id', { ascending: true })
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch courses.'
+    throw new Error(`${msg} (Check table "courses" + RLS policies.)`)
+  }
+
+  return (data as CourseRow[]) || []
+}
+
+/**
+ * Fetch all courses (including inactive) for teachers
+ */
+export async function fetchAllCoursesForTeachers(): Promise<CourseRow[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
     .order('riasec_type', { ascending: true })
     .order('order_index', { ascending: true, nullsFirst: false })
     .order('id', { ascending: true })

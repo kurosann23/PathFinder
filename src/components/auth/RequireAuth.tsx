@@ -11,7 +11,17 @@ export function RequireAuth() {
     return <Navigate to="/login" replace state={{ from: location.pathname, reason: 'supabase_not_configured' }} />
   }
 
-  if (!isReady) return null
+  // Show loading state while checking auth
+  if (!isReady) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#060817]">
+        <div className="text-center">
+          <div className="mb-2 text-sm text-slate-400">Checking authentication...</div>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return <Outlet />
 }

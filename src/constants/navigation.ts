@@ -27,9 +27,8 @@ export const teacherNavigation: Array<{
   label: string
   to: string
 }> = [
-  { key: 'dashboard', label: 'Dashboard', to: '/dashboard' },
+  { key: 'teacher', label: 'Teacher Dashboard', to: '/teacher/dashboard' },
   { key: 'profile', label: 'Profile', to: '/profile' },
-  { key: 'teacher', label: 'Teacher Dashboard', to: '/teacher' },
   { key: 'teacher-questions', label: 'Manage Questions', to: '/teacher/questions' },
   { key: 'teacher-courses', label: 'Manage Courses', to: '/teacher/courses' },
 ] as const

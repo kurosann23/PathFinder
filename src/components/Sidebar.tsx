@@ -59,13 +59,16 @@ export function Sidebar(props: SidebarProps) {
   const isMobile = variant === 'mobile'
   const isCollapsed = !isMobile && collapsed
   const { user, signOut } = useAuth()
-  const { profile } = useProfile()
+  const { profile, loading: profileLoading } = useProfile()
   const navigate = useNavigate()
   
   // Get role - hook must be called unconditionally
   // RoleProvider wraps the app, so this should always be available
   const { isTeacher } = useRole()
-  const navigation = isTeacher ? teacherNavigation : studentNavigation
+  
+  // Wait for profile to load before showing navigation to avoid showing wrong role's nav
+  // This prevents the flash of student navigation when a teacher logs in
+  const navigation = profileLoading ? [] : (isTeacher ? teacherNavigation : studentNavigation)
 
   async function handleLogout() {
     await signOut()
@@ -99,7 +102,7 @@ export function Sidebar(props: SidebarProps) {
                 PathFinder
               </div>
               <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400/90">
-                {isTeacher ? 'Teacher Dashboard' : 'Student Dashboard'}
+                {profileLoading ? 'Loading...' : (isTeacher ? 'Teacher Dashboard' : 'Student Dashboard')}
               </div>
             </div>
           )}
@@ -137,23 +140,37 @@ export function Sidebar(props: SidebarProps) {
       </div>
 
       <nav className="relative mt-5 flex flex-1 flex-col gap-2 px-1">
-        {navigation.map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                'group relative flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-semibold transition',
-                isActive
-                  ? 'border border-blue-500/25 bg-blue-600/15 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
-                  : 'border border-transparent text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
-                isCollapsed && 'justify-center px-2',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <NavIcon
+        {profileLoading ? (
+          // Show loading skeleton while profile loads to prevent wrong navigation from showing
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className={cn(
+                  'h-12 rounded-2xl bg-slate-900/30 animate-pulse',
+                  isCollapsed && 'h-10',
+                )}
+              />
+            ))}
+          </div>
+        ) : (
+          navigation.map((item) => (
+            <NavLink
+              key={item.key}
+              to={item.to}
+              className={({ isActive }) =>
+                cn(
+                  'group relative flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-semibold transition',
+                  isActive
+                    ? 'border border-blue-500/25 bg-blue-600/15 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
+                    : 'border border-transparent text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
+                  isCollapsed && 'justify-center px-2',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <NavIcon
                   navKey={item.key}
                   className={cn(
                     isActive
@@ -161,22 +178,23 @@ export function Sidebar(props: SidebarProps) {
                       : 'group-hover:text-slate-200',
                   )}
                 />
-                {!isCollapsed && (
-                  <span
-                    className={cn(
-                      'min-w-0',
-                      item.key === 'course'
-                        ? 'whitespace-normal leading-snug'
-                        : 'truncate',
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
+                  {!isCollapsed && (
+                    <span
+                      className={cn(
+                        'min-w-0',
+                        item.key === 'course'
+                          ? 'whitespace-normal leading-snug'
+                          : 'truncate',
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))
+        )}
       </nav>
 
       <div className="mt-auto px-1">

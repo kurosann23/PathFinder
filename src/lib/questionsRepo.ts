@@ -35,6 +35,27 @@ export async function fetchAllQuestions(): Promise<QuestionRow[]> {
 }
 
 /**
+ * Fetch all questions (including inactive) for teachers
+ */
+export async function fetchAllQuestionsForTeachers(): Promise<QuestionRow[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('psychometric_questions')
+    .select('*')
+    .order('type', { ascending: true })
+    .order('order_index', { ascending: true, nullsFirst: false })
+    .order('id', { ascending: true })
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch questions.'
+    throw new Error(`${msg} (Check table "psychometric_questions" + RLS policies.)`)
+  }
+
+  return (data as QuestionRow[]) || []
+}
+
+/**
  * Fetch a single question by ID
  */
 export async function fetchQuestion(id: number): Promise<QuestionRow | null> {

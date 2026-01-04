@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
-import { uploadAvatar, upsertProfile, type ProfileRow } from '../lib/profileRepo'
+import { uploadAvatar, upsertProfile, type ProfileRow, type StudentProfileRow, type TeacherProfileRow } from '../lib/profileRepo'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { useUserProgress } from '../context/UserProgressContext'
+import { useRole } from '../context/RoleContext'
 import { Button } from '../components/ui/Button'
-import { IconBell, IconChevronDown, IconX } from '../components/icons'
+import { IconBell, IconChevronDown, IconX, IconEdit, IconUser, IconMail, IconPhone } from '../components/icons'
 import { Avatar } from '../components/ui/Avatar'
 
 type FormState = {
@@ -16,6 +17,7 @@ type FormState = {
   class: string
   email: string
   avatar_url: string
+  phone?: string
 }
 
 type Skill = {
@@ -83,12 +85,43 @@ function cryptoId() {
     : `id_${Math.random().toString(16).slice(2)}`
 }
 
+// Type guard to check if profile is a student profile
+function isStudentProfile(p: ProfileRow | null): p is StudentProfileRow {
+  return p !== null && 'class' in p
+}
+
+// Type guard to check if profile is a teacher profile
+function isTeacherProfile(p: ProfileRow | null): p is TeacherProfileRow {
+  return p !== null && 'phone' in p && !('class' in p)
+}
+
 function toForm(p: ProfileRow | null): FormState {
-  return {
-    full_name: p?.full_name ?? '',
-    class: p?.class ?? '',
-    email: p?.email ?? '',
-    avatar_url: p?.avatar_url ?? '',
+  if (!p) {
+    return {
+      full_name: '',
+      class: '',
+      email: '',
+      avatar_url: '',
+      phone: '',
+    }
+  }
+  
+  if (isStudentProfile(p)) {
+    return {
+      full_name: p.full_name ?? '',
+      class: p.class ?? '',
+      email: p.email ?? '',
+      avatar_url: p.avatar_url ?? '',
+      phone: '',
+    }
+  } else {
+    return {
+      full_name: p.full_name ?? '',
+      class: '',
+      email: p.email ?? '',
+      avatar_url: p.avatar_url ?? '',
+      phone: p.phone ?? '',
+    }
   }
 }
 
@@ -105,10 +138,338 @@ function getErrorMessage(e: unknown) {
   }
 }
 
+function TeacherProfileView(props: {
+  profile: ProfileRow | null
+  form: FormState
+  setForm: (f: FormState | ((prev: FormState) => FormState)) => void
+  user: { email?: string | null } | null
+  saving: boolean
+  error: string
+  success: string
+  showSkeleton: boolean
+  avatarPreviewUrl: string
+  avatarRevision: number
+  avatarFile: File | null
+  setAvatarFile: (f: File | null) => void
+  setIsDirty: (d: boolean) => void
+  handleSave: () => Promise<void>
+  profileId: string
+  isSupabaseConfigured: boolean
+}) {
+  const {
+    profile,
+    form,
+    setForm,
+    user,
+    saving,
+    error,
+    success,
+    showSkeleton,
+    avatarPreviewUrl,
+    avatarRevision,
+    avatarFile,
+    setAvatarFile,
+    setIsDirty,
+    handleSave,
+    profileId,
+    isSupabaseConfigured,
+  } = props
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const teacherName = profile?.full_name || user?.email?.split('@')[0] || 'Teacher'
+  const teacherEmail = user?.email || profile?.email || ''
+  const teacherPhone = form.phone || '+60 12 345 6789' // Default placeholder
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Page Header */}
+      <PageHeader
+        title="TEACHER PROFILE"
+        subtitle="Manage your profile information and account settings."
+      />
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+          {success}
+        </div>
+      )}
+
+      {/* Primary Profile Summary Card */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800/70 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-slate-950/50 p-8 backdrop-blur-xl">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-6 items-center">
+          {/* Avatar Section */}
+          <div className="relative">
+            <Avatar
+              src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+              alt="Profile avatar"
+              fallback={(form.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
+              sizeClassName="size-32"
+              className="rounded-full border-4 border-slate-700/50 shadow-[0_0_30px_rgba(59,130,246,0.20)]"
+              loading="eager"
+            />
+            {/* Info Badge */}
+            <div className="absolute bottom-0 right-0 grid size-8 place-items-center rounded-full bg-blue-600 border-2 border-slate-950">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Name and Contact Info */}
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-100">{teacherName}</h1>
+              <p className="mt-1 text-lg text-slate-400">Teacher</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 text-slate-300">
+                <IconMail size={18} className="text-slate-400" />
+                <span className="text-sm">{teacherEmail}</span>
+              </div>
+              <div className="flex items-center gap-3 text-slate-300">
+                <IconPhone size={18} className="text-slate-400" />
+                <span className="text-sm">{teacherPhone}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center gap-2"
+              >
+                <IconEdit size={16} />
+                Edit Profile
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                disabled={saving}
+                onChange={(e) => {
+                  setAvatarFile(e.target.files?.[0] ?? null)
+                  setIsDirty(true)
+                }}
+                className="hidden"
+                id="avatar-upload"
+              />
+              <label htmlFor="avatar-upload">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  as="span"
+                  className="cursor-pointer"
+                >
+                  Change Photo
+                </Button>
+              </label>
+            </div>
+          </div>
+
+          {/* Mini Profile Widget (Top Right) */}
+          <div className="hidden lg:block">
+            <Card className="w-64">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+                    alt="Profile avatar"
+                    fallback={(form.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
+                    sizeClassName="size-12"
+                    className="rounded-full"
+                    loading="eager"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-100 truncate">{teacherName}</div>
+                    <div className="text-xs text-slate-400">Teacher</div>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs text-slate-400">
+                  <div className="truncate">{teacherEmail}</div>
+                  <div>{teacherPhone}</div>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="w-full"
+                >
+                  Edit Profile
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Details Section */}
+      <Card title="Profile Details">
+        <div className="space-y-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center gap-3">
+                <IconUser size={18} className="text-slate-400" />
+                <div>
+                  <div className="text-xs font-semibold text-slate-400">Full Name</div>
+                  <div className="mt-1 text-sm text-slate-200">{form.full_name || teacherName}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <IconMail size={18} className="text-slate-400" />
+                <div>
+                  <div className="text-xs font-semibold text-slate-400">Email</div>
+                  <div className="mt-1 text-sm text-slate-200">{teacherEmail}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <IconPhone size={18} className="text-slate-400" />
+                <div>
+                  <div className="text-xs font-semibold text-slate-400">Phone</div>
+                  <div className="mt-1 text-sm text-slate-200">{teacherPhone}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-[18px] h-[18px] text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <div>
+                  <div className="text-xs font-semibold text-slate-400">Role</div>
+                  <div className="mt-1 text-sm text-slate-200">Teacher</div>
+                </div>
+              </div>
+            </div>
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+
+          {isEditing && (
+            <div className="mt-6 space-y-4 rounded-2xl border border-slate-800/70 bg-slate-950/40 p-6">
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-400 mb-2">Full Name</div>
+                <input
+                  value={form.full_name}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, full_name: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
+                  className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  placeholder="Your full name"
+                />
+              </label>
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-400 mb-2">Phone Number</div>
+                <input
+                  value={form.phone || ''}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, phone: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
+                  className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  placeholder="+60 12 345 6789"
+                />
+              </label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={async () => {
+                    await handleSave()
+                    setIsEditing(false)
+                  }}
+                  disabled={saving || !isSupabaseConfigured || !profileId}
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Manage Password Section */}
+      <Card>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-100">Manage Password</h3>
+            <p className="mt-1 text-sm text-slate-400">Change your account password</p>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setShowPasswordModal(true)}
+              >
+                Change Password
+              </Button>
+            </div>
+            <div className="hidden lg:block">
+              {/* Security Illustration */}
+              <div className="relative w-32 h-32">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Password Change Modal (simplified - would need proper implementation) */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <Card className="w-full max-w-md">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-100">Change Password</h3>
+              <p className="text-sm text-slate-400">This feature will be implemented with Supabase Auth.</p>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowPasswordModal(false)}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ProfilePage() {
   const { user } = useAuth()
   const { profile, loading: profileLoading, refresh } = useProfile()
   const { progress } = useUserProgress()
+  const { role, isTeacher } = useRole()
   const profileId = useMemo(() => user?.id ?? '', [user?.id])
   const showSkeleton = profileLoading && !profile
 
@@ -116,17 +477,23 @@ export function ProfilePage() {
   const [error, setError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
   const [isDirty, setIsDirty] = useState(false)
-  const [aboutMe, setAboutMe] = useState<string>(() => profile?.about_me ?? '')
-  const [interestTags, setInterestTags] = useState<string[]>(() => safeParseStringArray(profile?.interests))
+  const [aboutMe, setAboutMe] = useState<string>(() => 
+    isStudentProfile(profile) ? (profile.about_me ?? '') : ''
+  )
+  const [interestTags, setInterestTags] = useState<string[]>(() => 
+    safeParseStringArray(isStudentProfile(profile) ? profile.interests : null)
+  )
   const [newTag, setNewTag] = useState('')
-  const [hobbyTags, setHobbyTags] = useState<string[]>(() => safeParseStringArray(profile?.hobbies))
+  const [hobbyTags, setHobbyTags] = useState<string[]>(() => 
+    safeParseStringArray(isStudentProfile(profile) ? profile.hobbies : null)
+  )
   const [isHobbyPickerOpen, setIsHobbyPickerOpen] = useState(false)
   const [isSkillPickerOpen, setIsSkillPickerOpen] = useState(false)
   const [avatarRevision, setAvatarRevision] = useState<number>(() => Date.now())
 
   const [form, setForm] = useState<FormState>(() => toForm(profile ?? null))
   const [skillsState, setSkillsState] = useState<Skill[]>(() => {
-    const parsed = safeParseSkills(profile?.skills)
+    const parsed = safeParseSkills(isStudentProfile(profile) ? profile.skills : null)
     return parsed.length > 0 ? parsed : defaultSkills()
   })
 
@@ -164,13 +531,20 @@ export function ProfilePage() {
 
     initializedForUserRef.current = profileId
     setForm(toForm(profile))
-    setAboutMe(profile.about_me ?? '')
-    setInterestTags(safeParseStringArray(profile.interests))
-    setHobbyTags(safeParseStringArray(profile.hobbies))
+    if (isStudentProfile(profile)) {
+      setAboutMe(profile.about_me ?? '')
+      setInterestTags(safeParseStringArray(profile.interests))
+      setHobbyTags(safeParseStringArray(profile.hobbies))
+      const parsed = safeParseSkills(profile.skills)
+      setSkillsState(parsed.length > 0 ? parsed : defaultSkills())
+    } else {
+      setAboutMe('')
+      setInterestTags([])
+      setHobbyTags([])
+      setSkillsState(defaultSkills())
+    }
     setIsHobbyPickerOpen(false)
     setIsSkillPickerOpen(false)
-    const parsed = safeParseSkills(profile.skills)
-    setSkillsState(parsed.length > 0 ? parsed : defaultSkills())
     setAvatarRevision(Date.now())
     // Do not touch isDirty here.
   }, [profile, profileId, saving, user?.email])
@@ -297,6 +671,8 @@ export function ProfilePage() {
           value: clamp100(s.value),
           icon: s.icon,
         })),
+        phone: form.phone || null,
+        role: role, // Pass role to upsertProfile
       })
 
       setForm((prev) => ({ ...prev, avatar_url: avatarUrl }))
@@ -356,6 +732,29 @@ export function ProfilePage() {
     [],
   )
 
+  // Teacher Profile UI
+  if (isTeacher) {
+    return <TeacherProfileView 
+      profile={profile}
+      form={form}
+      setForm={setForm}
+      user={user}
+      saving={saving}
+      error={error}
+      success={success}
+      showSkeleton={showSkeleton}
+      avatarPreviewUrl={avatarPreviewUrl}
+      avatarRevision={avatarRevision}
+      avatarFile={avatarFile}
+      setAvatarFile={setAvatarFile}
+      setIsDirty={setIsDirty}
+      handleSave={handleSave}
+      profileId={profileId}
+      isSupabaseConfigured={isSupabaseConfigured}
+    />
+  }
+
+  // Student Profile UI (existing)
   return (
     <div className="space-y-6 pb-24">
       <PageHeader

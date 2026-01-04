@@ -31,11 +31,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'play_mini_games',
   ],
   teacher: [
-    'view_dashboard',
     'view_teacher_dashboard',
     'manage_psychometric_questions',
     'manage_courses',
     // Teachers cannot:
+    // - view_dashboard (student dashboard)
     // - take_psychometric_test
     // - view_riasec_results (individual student results)
     // - view_course_recommendations (student-specific)

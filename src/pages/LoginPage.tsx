@@ -42,12 +42,19 @@ export function LoginPage() {
 
     setLoading(true)
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       })
       if (authError) throw authError
-      nav(from || '/dashboard', { replace: true })
+      
+      // Refresh session to ensure we have latest user metadata (including role)
+      if (data.session) {
+        await supabase.auth.setSession(data.session)
+      }
+      
+      // Redirect to root, which will use RoleBasedRedirect to send to correct dashboard
+      nav(from || '/', { replace: true })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Login failed.'
       setError(msg)

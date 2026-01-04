@@ -2,8 +2,8 @@ import { supabase } from './supabaseClient'
 
 import type { UserRole } from '../constants/roles'
 
-export type ProfileRow = {
-  // Auth user id (uuid string)
+// Student Profile Type
+export type StudentProfileRow = {
   id: string
   full_name: string | null
   class: string | null
@@ -14,15 +14,76 @@ export type ProfileRow = {
   skills?: unknown[] | null
   interests?: string[] | null
   hobbies?: string[] | null
-  role?: UserRole | null
 }
+
+// Teacher Profile Type
+export type TeacherProfileRow = {
+  id: string
+  full_name: string | null
+  email: string | null
+  phone: string | null
+  created_at: string | null
+  avatar_url: string | null
+}
+
+// Role-only profile for role checks
+export type RoleProfileRow = {
+  id: string
+  role: UserRole
+  created_at: string | null
+}
+
+// Union type for backward compatibility
+export type ProfileRow = StudentProfileRow | TeacherProfileRow
 
 function getAvatarBucketName() {
   // Default matches our docs, but you can override to your existing bucket name (e.g. "media").
   return (import.meta.env.VITE_SUPABASE_AVATAR_BUCKET as string | undefined) ?? 'avatars'
 }
 
-export async function fetchProfile(id: string) {
+// Fetch user role - check profile tables directly (database as source of truth)
+// First check teacher_profiles, then profiles (students)
+// All users have profiles, so this always returns a role
+export async function fetchUserRole(id: string): Promise<UserRole> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  // First, check teacher_profiles table
+  try {
+    const { data: teacherProfile, error: teacherError } = await supabase
+      .from('teacher_profiles')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (!teacherError && teacherProfile) {
+      return 'teacher'
+    }
+  } catch (error) {
+    console.warn('Failed to check teacher_profiles:', error)
+  }
+
+  // If not a teacher, check profiles table (students)
+  try {
+    const { data: studentProfile, error: studentError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (!studentError && studentProfile) {
+      return 'student'
+    }
+  } catch (error) {
+    console.warn('Failed to check profiles:', error)
+  }
+
+  // Default to student if profile not found (should not happen, but safety fallback)
+  // All signups create student profiles in profiles table, teachers are manually added to teacher_profiles
+  return 'student'
+}
+
+// Fetch student profile from profiles table
+export async function fetchStudentProfile(id: string): Promise<StudentProfileRow | null> {
   if (!supabase) throw new Error('Supabase not configured')
 
   const { data, error } = await supabase
@@ -32,35 +93,165 @@ export async function fetchProfile(id: string) {
     .maybeSingle()
 
   if (error) {
-    const msg = error.message || 'Failed to fetch profile.'
+    // If table doesn't exist or RLS blocks, return null instead of throwing
+    // This allows the app to continue and create the profile later
+    if (error.message?.includes('does not exist') || error.message?.includes('permission denied')) {
+      console.warn('Student profile not found or access denied:', error.message)
+      return null
+    }
+    const msg = error.message || 'Failed to fetch student profile.'
     throw new Error(`${msg} (Check table "profiles" + RLS select policy.)`)
   }
-  return data as ProfileRow | null
+  return data as StudentProfileRow | null
 }
 
-export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'>) {
+// Fetch teacher profile
+export async function fetchTeacherProfile(id: string): Promise<TeacherProfileRow | null> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('teacher_profiles')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) {
+    // If table doesn't exist or RLS blocks, return null instead of throwing
+    // This allows the app to continue and create the profile later
+    if (error.message?.includes('does not exist') || error.message?.includes('permission denied')) {
+      console.warn('Teacher profile not found or access denied:', error.message)
+      return null
+    }
+    const msg = error.message || 'Failed to fetch teacher profile.'
+    throw new Error(`${msg} (Check table "teacher_profiles" + RLS select policy.)`)
+  }
+  return data as TeacherProfileRow | null
+}
+
+// Unified fetch profile - determines role and fetches appropriate profile
+export async function fetchProfile(id: string): Promise<ProfileRow | null> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  // First, get the user's role by checking teacher_profiles, then profiles
+  const role = await fetchUserRole(id)
+
+  // Fetch the appropriate profile based on role
+  if (role === 'teacher') {
+    const teacherProfile = await fetchTeacherProfile(id)
+    // If teacher profile doesn't exist, return null (will be created on first save)
+    return teacherProfile
+  } else {
+    // Student profile is in profiles table
+    const studentProfile = await fetchStudentProfile(id)
+    // If student profile doesn't exist, return null (will be created on first save)
+    return studentProfile
+  }
+}
+
+// Upsert student profile to profiles table
+export async function upsertStudentProfile(profile: Omit<StudentProfileRow, 'created_at'>) {
   if (!supabase) throw new Error('Supabase not configured')
 
   const { data, error } = await supabase
     .from('profiles')
     .upsert({ ...profile }, { onConflict: 'id' })
     .select('*')
-    .single()
+    .maybeSingle()
 
   if (error) {
-    const msg = error.message || 'Failed to save profile.'
+    const msg = error.message || 'Failed to save student profile.'
     const lower = msg.toLowerCase()
     const hint =
       lower.includes('row-level security') || lower.includes('permission denied')
-        ? ' (RLS blocked write. Add INSERT/UPDATE policies for public.profiles as in README.)'
+        ? ' (RLS blocked write. Add INSERT/UPDATE policies for public.profiles.)'
         : lower.includes('column') && lower.includes('does not exist')
-          ? ' (Missing columns. Add about_me (text), skills (jsonb), interests (jsonb), and hobbies (jsonb) to public.profiles as in README.)'
+          ? ' (Missing columns. Check profiles table schema.)'
         : lower.includes('relation') && lower.includes('does not exist')
-          ? ' (Table missing. Create public.profiles table in Supabase SQL editor.)'
+          ? ' (Table missing. Create profiles table.)'
           : ''
     throw new Error(`${msg}${hint}`)
   }
-  return data as ProfileRow
+  return data as StudentProfileRow
+}
+
+// Upsert teacher profile
+export async function upsertTeacherProfile(profile: Omit<TeacherProfileRow, 'created_at'>) {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('teacher_profiles')
+    .upsert({ ...profile }, { onConflict: 'id' })
+    .select('*')
+    .maybeSingle()
+
+  if (error) {
+    const msg = error.message || 'Failed to save teacher profile.'
+    const lower = msg.toLowerCase()
+    const hint =
+      lower.includes('row-level security') || lower.includes('permission denied')
+        ? ' (RLS blocked write. Add INSERT/UPDATE policies for public.teacher_profiles as in migration.)'
+        : lower.includes('column') && lower.includes('does not exist')
+          ? ' (Missing columns. Check teacher_profiles table schema in migration.)'
+        : lower.includes('relation') && lower.includes('does not exist')
+          ? ' (Table missing. Run create_separate_profiles.sql migration.)'
+          : ''
+    throw new Error(`${msg}${hint}`)
+  }
+  return data as TeacherProfileRow
+}
+
+// Unified upsert profile - determines role and saves to appropriate table
+export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'> & { role?: UserRole }) {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  // Determine role - either from profile.role or fetch it
+  let role = profile.role
+  if (!role) {
+    role = await fetchUserRole(profile.id) || 'student' // Default to student
+  }
+
+  // Ensure role is set in profiles table
+  await supabase
+    .from('profiles')
+    .upsert({ id: profile.id, role }, { onConflict: 'id' })
+
+  // Note: To update role in auth.users.raw_user_meta_data.role, use Supabase Admin API
+  // This requires service role key and should be done server-side or via database trigger
+
+  // Save to appropriate profile table
+  if (role === 'teacher') {
+    // For teacher profile, extract phone from the profile object
+    const profileWithPhone = profile as TeacherProfileRow & { phone?: string | null }
+    const teacherProfile: Omit<TeacherProfileRow, 'created_at'> = {
+      id: profile.id,
+      full_name: profile.full_name,
+      email: profile.email,
+      phone: profileWithPhone.phone ?? null,
+      avatar_url: profile.avatar_url,
+    }
+    return await upsertTeacherProfile(teacherProfile)
+  } else {
+    // For student profile, extract all student-specific fields
+    const profileWithStudentFields = profile as StudentProfileRow & { 
+      about_me?: string | null
+      skills?: unknown[] | null
+      interests?: string[] | null
+      hobbies?: string[] | null
+      class?: string | null
+    }
+    const studentProfile: Omit<StudentProfileRow, 'created_at'> = {
+      id: profile.id,
+      full_name: profile.full_name,
+      class: profileWithStudentFields.class ?? null,
+      email: profile.email,
+      avatar_url: profile.avatar_url,
+      about_me: profileWithStudentFields.about_me ?? null,
+      skills: profileWithStudentFields.skills ?? null,
+      interests: profileWithStudentFields.interests ?? null,
+      hobbies: profileWithStudentFields.hobbies ?? null,
+    }
+    return await upsertStudentProfile(studentProfile)
+  }
 }
 
 export async function uploadAvatar(file: File, profileId: string) {

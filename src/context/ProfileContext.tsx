@@ -12,13 +12,15 @@ type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | null>(null)
 
 export function ProfileProvider(props: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, isReady } = useAuth()
   const [profile, setProfile] = useState<ProfileRow | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Start loading if we have a user but haven't loaded profile yet
+  const [loading, setLoading] = useState(() => !!(isReady && user))
 
   async function refresh() {
     if (!isSupabaseConfigured || !user?.id) {
       setProfile(null)
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -30,6 +32,10 @@ export function ProfileProvider(props: { children: ReactNode }) {
         const img = new Image()
         img.src = p.avatar_url
       }
+    } catch (error) {
+      // Log error but don't block the app - profile will be null and can be created later
+      console.warn('Failed to fetch profile:', error)
+      setProfile(null)
     } finally {
       setLoading(false)
     }

@@ -3,12 +3,13 @@ import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/ui/Card'
 import { IconPlus, IconEdit, IconTrash, IconX } from '../components/icons'
 import {
-  fetchAllQuestions,
+  fetchAllQuestionsForTeachers,
   createQuestion,
   updateQuestion,
   hardDeleteQuestion,
   type QuestionRow,
 } from '../lib/questionsRepo'
+import { cn } from '../lib/cn'
 
 export function TeacherQuestionsPage() {
   const [questions, setQuestions] = useState<QuestionRow[]>([])
@@ -16,7 +17,11 @@ export function TeacherQuestionsPage() {
   const [error, setError] = useState<string>('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [formData, setFormData] = useState({ text: '', type: 'R' as 'R' | 'I' | 'A' | 'S' | 'E' | 'C' })
+  const [formData, setFormData] = useState({ 
+    text: '', 
+    type: 'R' as 'R' | 'I' | 'A' | 'S' | 'E' | 'C',
+    is_active: true 
+  })
   const [saving, setSaving] = useState(false)
 
   // Load questions from database
@@ -28,7 +33,7 @@ export function TeacherQuestionsPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await fetchAllQuestions()
+      const data = await fetchAllQuestionsForTeachers()
       setQuestions(data)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load questions.'
@@ -39,7 +44,7 @@ export function TeacherQuestionsPage() {
     }
   }
 
-  async function handleAdd() {
+  async function handleAdd(isActive: boolean) {
     if (!formData.text.trim()) return
     setSaving(true)
     setError('')
@@ -47,9 +52,9 @@ export function TeacherQuestionsPage() {
       await createQuestion({
         text: formData.text,
         type: formData.type,
-        is_active: true,
+        is_active: isActive,
       })
-      setFormData({ text: '', type: 'R' })
+      setFormData({ text: '', type: 'R', is_active: true })
       setShowAddForm(false)
       await loadQuestions() // Reload to get the new question with ID
     } catch (err) {
@@ -63,13 +68,17 @@ export function TeacherQuestionsPage() {
   function handleEdit(id: number) {
     const question = questions.find((q) => q.id === id)
     if (question) {
-      setFormData({ text: question.text, type: question.type })
+      setFormData({ 
+        text: question.text, 
+        type: question.type,
+        is_active: question.is_active ?? true 
+      })
       setEditingId(id)
       setShowAddForm(true)
     }
   }
 
-  async function handleUpdate() {
+  async function handleUpdate(isActive: boolean) {
     if (!formData.text.trim() || editingId === null) return
     setSaving(true)
     setError('')
@@ -77,9 +86,10 @@ export function TeacherQuestionsPage() {
       await updateQuestion(editingId, {
         text: formData.text,
         type: formData.type,
+        is_active: isActive,
       })
       setEditingId(null)
-      setFormData({ text: '', type: 'R' })
+      setFormData({ text: '', type: 'R', is_active: true })
       setShowAddForm(false)
       await loadQuestions() // Reload to get updated data
     } catch (err) {
@@ -105,7 +115,7 @@ export function TeacherQuestionsPage() {
   const handleCancel = () => {
     setShowAddForm(false)
     setEditingId(null)
-    setFormData({ text: '', type: 'R' })
+    setFormData({ text: '', type: 'R', is_active: true })
   }
 
   const questionsByType = {
@@ -203,11 +213,19 @@ export function TeacherQuestionsPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={editingId ? handleUpdate : handleAdd}
+                  onClick={() => editingId ? handleUpdate(true) : handleAdd(true)}
                   disabled={saving || !formData.text.trim()}
                   className="flex-1 rounded-xl bg-blue-600/20 px-4 py-2.5 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : editingId ? 'Update' : 'Add'} Question
+                  {saving ? 'Saving...' : editingId ? 'Update as Active' : 'Save as Active'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editingId ? handleUpdate(false) : handleAdd(false)}
+                  disabled={saving || !formData.text.trim()}
+                  className="flex-1 rounded-xl bg-amber-600/20 px-4 py-2.5 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : editingId ? 'Update as Draft' : 'Save as Draft'}
                 </button>
                 <button
                   type="button"
@@ -238,7 +256,19 @@ export function TeacherQuestionsPage() {
                   className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 p-4"
                 >
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-200">{question.text}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-sm font-medium text-slate-200">{question.text}</div>
+                      <span
+                        className={cn(
+                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                          question.is_active
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-amber-500/20 text-amber-400',
+                        )}
+                      >
+                        {question.is_active ? 'Active' : 'Draft'}
+                      </span>
+                    </div>
                     <div className="mt-1 text-xs text-slate-400">ID: {question.id}</div>
                   </div>
                   <div className="ml-4 flex gap-2">

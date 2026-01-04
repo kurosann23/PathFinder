@@ -4,7 +4,7 @@ import { Card } from '../components/ui/Card'
 import { IconPlus, IconEdit, IconTrash, IconX, IconChevronUp, IconChevronDown } from '../components/icons'
 import { cn } from '../lib/cn'
 import {
-  fetchCoursesByType,
+  fetchCoursesByTypeForTeachers,
   createCourse,
   updateCourse,
   hardDeleteCourse,
@@ -59,7 +59,7 @@ export function TeacherCoursesPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await fetchCoursesByType(selectedRiasecType)
+      const data = await fetchCoursesByTypeForTeachers(selectedRiasecType)
       setCourses(data)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load courses.'
@@ -77,12 +77,13 @@ export function TeacherCoursesPage() {
     // loadCourses will be triggered by useEffect
   }
 
-  async function handleAdd() {
+  async function handleAdd(isActive: boolean) {
     if (!formData.courseName?.trim() || !formData.focusDescription?.trim()) return
     setSaving(true)
     setError('')
     try {
       const courseInput = uiToCourseInput(selectedRiasecType, formData)
+      courseInput.is_active = isActive
       await createCourse(courseInput)
       setFormData({
         courseName: '',
@@ -111,12 +112,13 @@ export function TeacherCoursesPage() {
     }
   }
 
-  async function handleUpdate() {
+  async function handleUpdate(isActive: boolean) {
     if (!formData.courseName?.trim() || !formData.focusDescription?.trim() || editingId === null) return
     setSaving(true)
     setError('')
     try {
       const courseInput = uiToCourseInput(selectedRiasecType, formData)
+      courseInput.is_active = isActive
       await updateCourse(editingId, courseInput)
       setEditingId(null)
       setFormData({
@@ -615,11 +617,19 @@ export function TeacherCoursesPage() {
               </button>
               <button
                 type="button"
-                onClick={editingId !== null ? handleUpdate : handleAdd}
+                onClick={() => editingId !== null ? handleUpdate(true) : handleAdd(true)}
                 disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim()}
                 className="rounded-xl bg-purple-600/20 px-6 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {saving ? 'Saving...' : editingId !== null ? 'Update Course' : 'Add Course'}
+                {saving ? 'Saving...' : editingId !== null ? 'Update as Active' : 'Save as Active'}
+              </button>
+              <button
+                type="button"
+                onClick={() => editingId !== null ? handleUpdate(false) : handleAdd(false)}
+                disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim()}
+                className="rounded-xl bg-amber-600/20 px-6 py-2.5 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {saving ? 'Saving...' : editingId !== null ? 'Update as Draft' : 'Save as Draft'}
               </button>
             </div>
           </div>
@@ -643,7 +653,19 @@ export function TeacherCoursesPage() {
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-slate-100">{uiCourse.courseName}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-semibold text-slate-100">{uiCourse.courseName}</h3>
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                              course.is_active
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-amber-500/20 text-amber-400',
+                            )}
+                          >
+                            {course.is_active ? 'Active' : 'Draft'}
+                          </span>
+                        </div>
                         <p className="mt-2 text-sm text-slate-300/90">{uiCourse.focusDescription}</p>
                       </div>
                       <div className="ml-4 flex gap-2">
