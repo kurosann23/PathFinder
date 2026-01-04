@@ -5,6 +5,7 @@ const TYPES = ['R', 'I', 'A', 'S', 'E', 'C']
 /**
  * Calculate RIASEC totals + percentages from Likert answers.
  * @param {Record<string, number>} answers - Map of questionId -> 1..5
+ * @param {Array<{id: number|string, type: string}>} questions - Array of questions (optional, defaults to static questions)
  * @returns {{
  *  totals: Record<string, number>,
  *  percentages: Record<string, number>,
@@ -12,12 +13,15 @@ const TYPES = ['R', 'I', 'A', 'S', 'E', 'C']
  *  code: string
  * }}
  */
-export function calculateRiasecScore(answers) {
+export function calculateRiasecScore(answers, questions = null) {
   const totals = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 }
   const counts = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 }
 
-  for (const q of riasecQuestions) {
-    const value = answers[q.id]
+  // Use provided questions or fallback to static questions
+  const questionsToUse = questions || riasecQuestions
+
+  for (const q of questionsToUse) {
+    const value = answers[String(q.id)]
     if (typeof value !== 'number') continue
     totals[q.type] += value
     counts[q.type] += 1

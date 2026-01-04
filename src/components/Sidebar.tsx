@@ -1,8 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { navigation, type NavKey } from '../constants/navigation'
+import { studentNavigation, teacherNavigation, type NavKey } from '../constants/navigation'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
+import { useRole } from '../context/RoleContext'
 import { Button } from './ui/Button'
 import { Avatar } from './ui/Avatar'
 import {
@@ -14,6 +15,7 @@ import {
   IconMap,
   IconMoon,
   IconUser,
+  IconSettings,
 } from './icons'
 
 function NavIcon(props: { navKey: NavKey; className?: string }) {
@@ -33,6 +35,12 @@ function NavIcon(props: { navKey: NavKey; className?: string }) {
       return <IconMap {...common} />
     case 'games':
       return <IconGamepad {...common} />
+    case 'teacher':
+      return <IconHome {...common} />
+    case 'teacher-questions':
+      return <IconClipboard {...common} />
+    case 'teacher-courses':
+      return <IconBook {...common} />
     default:
       return <IconHome {...common} />
   }
@@ -53,6 +61,11 @@ export function Sidebar(props: SidebarProps) {
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
   const navigate = useNavigate()
+  
+  // Get role - hook must be called unconditionally
+  // RoleProvider wraps the app, so this should always be available
+  const { isTeacher } = useRole()
+  const navigation = isTeacher ? teacherNavigation : studentNavigation
 
   async function handleLogout() {
     await signOut()
@@ -86,7 +99,7 @@ export function Sidebar(props: SidebarProps) {
                 PathFinder
               </div>
               <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400/90">
-                Student Dashboard
+                {isTeacher ? 'Teacher Dashboard' : 'Student Dashboard'}
               </div>
             </div>
           )}

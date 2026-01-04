@@ -5,8 +5,11 @@ export type NavKey =
   | 'course'
   | 'roadmap'
   | 'games'
+  | 'teacher'
+  | 'teacher-questions'
+  | 'teacher-courses'
 
-export const navigation: Array<{
+export const studentNavigation: Array<{
   key: NavKey
   label: string
   to: string
@@ -18,5 +21,20 @@ export const navigation: Array<{
   { key: 'roadmap', label: 'Learning Roadmap', to: '/learning-roadmap' },
   { key: 'games', label: 'Mini Games', to: '/mini-games' },
 ] as const
+
+export const teacherNavigation: Array<{
+  key: NavKey
+  label: string
+  to: string
+}> = [
+  { key: 'dashboard', label: 'Dashboard', to: '/dashboard' },
+  { key: 'profile', label: 'Profile', to: '/profile' },
+  { key: 'teacher', label: 'Teacher Dashboard', to: '/teacher' },
+  { key: 'teacher-questions', label: 'Manage Questions', to: '/teacher/questions' },
+  { key: 'teacher-courses', label: 'Manage Courses', to: '/teacher/courses' },
+] as const
+
+// Legacy export for backward compatibility
+export const navigation = studentNavigation
 
 

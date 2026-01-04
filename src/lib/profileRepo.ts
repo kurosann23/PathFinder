@@ -1,5 +1,7 @@
 import { supabase } from './supabaseClient'
 
+import type { UserRole } from '../constants/roles'
+
 export type ProfileRow = {
   // Auth user id (uuid string)
   id: string
@@ -12,6 +14,7 @@ export type ProfileRow = {
   skills?: unknown[] | null
   interests?: string[] | null
   hobbies?: string[] | null
+  role?: UserRole | null
 }
 
 function getAvatarBucketName() {

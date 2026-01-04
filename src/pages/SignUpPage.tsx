@@ -57,11 +57,13 @@ export function SignUpPage() {
       }
 
       // Store additional profile fields in public.profiles linked to auth.users.id
+      // Default role is 'student' - teachers should be created manually or through admin process
       const { error: profileError } = await supabase.from('profiles').insert({
         id: user.id,
         full_name: fullName.trim(),
         class: studentClass.trim(),
         email: email.trim(),
+        role: 'student', // Default to student role
         created_at: new Date().toISOString(),
       })
       if (profileError) throw profileError

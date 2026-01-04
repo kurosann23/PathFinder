@@ -7,12 +7,14 @@ import { useUserProgress } from '../context/UserProgressContext'
 import type { RiasecType } from '../constants/dashboard'
 import { cn } from '../lib/cn'
 import { riasecQuestions } from '../data/riasecQuestions.js'
+import { fetchAllQuestions, type QuestionRow } from '../lib/questionsRepo'
 import { calculateRiasecScore } from '../utils/calculateRiasecScore.js'
 import { getRiasecDescription } from '../utils/getRiasecDescription.js'
 import { generateGeneralCourseRecommendations } from '../utils/generateGeneralCourseRecommendations.js'
 import { generateCareerPath } from '../utils/generateCareerPath.js'
 import { useProfile } from '../context/ProfileContext'
 import { useAuth } from '../context/AuthContext'
+import { useRole } from '../context/RoleContext'
 import {
   IconWrench,
   IconLightbulb,
@@ -181,46 +183,69 @@ export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
   const { user } = useAuth()
   const { profile } = useProfile()
+  const { hasPermission } = useRole()
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
+
+  // Check permission
+  if (!hasPermission('take_psychometric_test')) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Access Restricted"
+          subtitle="This feature is only available for students."
+        />
+        <Card title="Permission Denied">
+          <div className="space-y-3 text-sm text-slate-300">
+            <p>Teachers cannot take the psychometric test.</p>
+            <p className="text-xs text-slate-400">Please contact an administrator if you believe this is an error.</p>
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   // Language state
   const [language, setLanguage] = useState<Language>('en')
   const t = translations[language]
 
+  // Questions state - load from database
+  const [questions, setQuestions] = useState<QuestionRow[]>([])
+  const [questionsLoading, setQuestionsLoading] = useState(true)
+
+  // Load questions from database on mount
+  useEffect(() => {
+    async function loadQuestions() {
+      try {
+        const dbQuestions = await fetchAllQuestions()
+        setQuestions(dbQuestions)
+      } catch (error) {
+        // Fallback to static questions if database is not available
+        console.warn('Failed to load questions from database, using static questions:', error)
+        setQuestions(riasecQuestions.map((q) => ({ id: q.id, text: q.text, type: q.type, is_active: true })))
+      } finally {
+        setQuestionsLoading(false)
+      }
+    }
+    loadQuestions()
+  }, [])
+
   // Get translated questions - memoized for performance
   const translatedQuestions = useMemo(() => {
+    // Use database questions if available, otherwise fallback to static
+    const baseQuestions = questions.length > 0 ? questions : riasecQuestions.map((q) => ({ id: q.id, text: q.text, type: q.type }))
+
     if (language === 'ms') {
       // Malay translations for questions
-      return [
-        { id: 1, text: 'Saya suka bekerja dengan perkakasan, alat, atau peralatan fizikal.', type: 'R' },
-        { id: 2, text: 'Saya lebih suka belajar dengan melakukan daripada hanya membaca atau mendengar.', type: 'R' },
-        { id: 3, text: 'Saya suka membaiki atau memasang peranti teknikal.', type: 'R' },
-        { id: 4, text: 'Saya selesa bekerja dengan mesin atau sistem teknikal.', type: 'R' },
-        { id: 5, text: 'Saya suka menyelesaikan masalah logik atau teknikal.', type: 'I' },
-        { id: 6, text: 'Saya suka menganalisis data atau mencari corak untuk menyelesaikan masalah.', type: 'I' },
-        { id: 7, text: 'Saya suka mempelajari bagaimana sistem atau teknologi berfungsi secara dalaman.', type: 'I' },
-        { id: 8, text: 'Saya lebih suka tugas yang mencabar kemahiran berfikir dan penaakulan saya.', type: 'I' },
-        { id: 9, text: 'Saya suka mereka bentuk visual, susun atur, atau kandungan digital.', type: 'A' },
-        { id: 10, text: 'Saya suka menyatakan idea secara kreatif menggunakan teknologi.', type: 'A' },
-        { id: 11, text: 'Saya lebih suka tugas terbuka di mana saya boleh meneroka kreativiti saya.', type: 'A' },
-        { id: 12, text: 'Saya suka menggabungkan kreativiti dengan teknologi, seperti reka bentuk atau media.', type: 'A' },
-        { id: 13, text: 'Saya suka membantu orang lain menyelesaikan masalah atau memahami teknologi.', type: 'S' },
-        { id: 14, text: 'Saya suka bekerja dalam pasukan dan bekerjasama dengan orang lain.', type: 'S' },
-        { id: 15, text: 'Saya selesa menerangkan konsep teknikal kepada orang lain.', type: 'S' },
-        { id: 16, text: 'Saya mendapat kepuasan dalam menyokong atau membimbing orang.', type: 'S' },
-        { id: 17, text: 'Saya suka memimpin projek atau mengambil inisiatif dalam kerja berkumpulan.', type: 'E' },
-        { id: 18, text: 'Saya berminat mengurus projek atau pasukan berasaskan teknologi.', type: 'E' },
-        { id: 19, text: 'Saya suka membuat keputusan dan mempengaruhi orang lain.', type: 'E' },
-        { id: 20, text: 'Saya berminat menggunakan teknologi untuk perniagaan atau keusahawanan.', type: 'E' },
-        { id: 21, text: 'Saya lebih suka bekerja dengan tugas berstruktur dan garis panduan yang jelas.', type: 'C' },
-        { id: 22, text: 'Saya suka mengatur maklumat, data, atau rekod digital.', type: 'C' },
-        { id: 23, text: 'Saya selesa mengikuti prosedur dan proses sistematik.', type: 'C' },
-        { id: 24, text: 'Saya lebih suka tugas yang memerlukan ketepatan, konsistensi, dan perhatian terhadap butiran.', type: 'C' },
-      ]
+      // Note: For now, we'll use English questions. You can add Malay translations to the database later
+      return baseQuestions.map((q) => ({
+        id: q.id,
+        text: q.text, // In future, you can store translations in the database
+        type: q.type,
+      }))
     }
-    return riasecQuestions
-  }, [language])
+    return baseQuestions
+  }, [language, questions])
 
   // Local answers for the questionnaire (questionId -> Likert value 1..5).
   const [answers, setAnswers] = useState<Record<string, number>>({})
@@ -326,7 +351,8 @@ export function PsychometricTestPage() {
 
     setSubmitError('')
 
-    const { percentages, topType, code } = calculateRiasecScore(answers)
+    // Pass questions to calculateRiasecScore
+    const { percentages, topType, code } = calculateRiasecScore(answers, translatedQuestions)
     const top = topType as RiasecType
     // Generate general course recommendations and adapt to old format for storage
     const generalCourses = generateGeneralCourseRecommendations(top)
@@ -381,9 +407,31 @@ export function PsychometricTestPage() {
     setCurrentIndex((i) => Math.max(0, i - 1))
   }
 
+  // Show loading state while questions are loading
+  if (questionsLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} />
+        <Card>
+          <div className="py-8 text-center text-sm text-slate-400">Loading questions...</div>
+        </Card>
+      </div>
+    )
+  }
+
   // Focused questionnaire: one question at a time.
   if (isTakingTest) {
     const q = translatedQuestions[currentIndex]
+    if (!q) {
+      return (
+        <div className="space-y-6">
+          <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} />
+          <Card>
+            <div className="py-8 text-center text-sm text-rose-400">No questions available. Please contact an administrator.</div>
+          </Card>
+        </div>
+      )
+    }
     const current = answers[String(q.id)]
     const isLast = currentIndex === translatedQuestions.length - 1
     const progressPercent = Math.round(((currentIndex + 1) / translatedQuestions.length) * 100)

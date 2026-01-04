@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import { cn } from '../lib/cn'
 import { IconX, IconChevronDown, IconArrowRight, IconBook, IconWrench, IconSettings, IconBriefcase } from '../components/icons'
-import { generateGeneralCourseRecommendations } from '../utils/generateGeneralCourseRecommendations.js'
+import { fetchCoursesByType, courseRowToUI } from '../lib/coursesRepo'
 
 // Course icon component - simple and general
 function CourseIcon({ riasecType, className }: { riasecType: string; className?: string }) {
@@ -41,26 +41,78 @@ function getRiasecTypeName(type: string): string {
   return names[type] || type
 }
 
+type UICourse = {
+  courseName: string
+  focusDescription: string
+  whatYouLearn: string[]
+  toolsAndSkills: string[]
+  exampleJobRoles: Array<{ title: string; description: string }>
+}
+
+const ALL_RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const
+
 export function CourseRecommendationPage() {
   const { progress } = useUserProgress()
 
   const isReady = progress.psychometricCompleted
   const topRiasecType = progress.psychometricResult?.[0] || 'I'
 
-  // Get recommended courses for dominant RIASEC type
-  const primaryCourses = useMemo(
-    () => generateGeneralCourseRecommendations(topRiasecType as 'R' | 'I' | 'A' | 'S' | 'E' | 'C'),
-    [topRiasecType],
-  )
+  const [primaryCourses, setPrimaryCourses] = useState<UICourse[]>([])
+  const [otherCourses, setOtherCourses] = useState<Record<string, UICourse[]>>({})
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
 
   // Get courses for all other RIASEC types (for optional exploration)
-  const allRiasecTypes = ['R', 'I', 'A', 'S', 'E', 'C']
-  const otherRiasecTypes = allRiasecTypes.filter((t) => t !== topRiasecType)
+  const otherRiasecTypes = ALL_RIASEC_TYPES.filter((t) => t !== topRiasecType)
 
   const [selectedCourse, setSelectedCourse] = useState<{
-    course: ReturnType<typeof generateGeneralCourseRecommendations>[0]
+    course: UICourse
     riasecType: string
   } | null>(null)
+
+  const loadPrimaryCourses = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const courses = await fetchCoursesByType(topRiasecType as 'R' | 'I' | 'A' | 'S' | 'E' | 'C')
+      setPrimaryCourses(courses.map(courseRowToUI))
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to load courses.'
+      setError(msg)
+      console.error('Error loading primary courses:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [topRiasecType])
+
+  const loadOtherCourses = useCallback(async () => {
+    const coursesMap: Record<string, UICourse[]> = {}
+    const otherTypes = ALL_RIASEC_TYPES.filter((t) => t !== topRiasecType)
+    for (const type of otherTypes) {
+      try {
+        const courses = await fetchCoursesByType(type as 'R' | 'I' | 'A' | 'S' | 'E' | 'C')
+        coursesMap[type] = courses.map(courseRowToUI)
+      } catch (err) {
+        console.error(`Error loading courses for ${type}:`, err)
+        coursesMap[type] = []
+      }
+    }
+    setOtherCourses(coursesMap)
+  }, [topRiasecType])
+
+  // Load primary courses
+  useEffect(() => {
+    if (isReady) {
+      loadPrimaryCourses()
+    }
+  }, [isReady, loadPrimaryCourses])
+
+  // Load other courses
+  useEffect(() => {
+    if (isReady) {
+      loadOtherCourses()
+    }
+  }, [isReady, loadOtherCourses])
 
   const [expandedSections, setExpandedSections] = useState<{
     learn: boolean
@@ -132,8 +184,22 @@ export function CourseRecommendationPage() {
             </div>
           )}
 
+          {/* Error Message */}
+          {error && (
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+              {error}
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <Card>
+              <div className="py-8 text-center text-sm text-slate-400">Loading course recommendations...</div>
+            </Card>
+          )}
+
           {/* Primary Recommended Courses - Large Cards */}
-          {primaryCourses.length > 0 && (
+          {!loading && primaryCourses.length > 0 && (
             <div className="space-y-4">
               <div>
                 <h2 className="text-xl font-semibold text-slate-100">
@@ -174,8 +240,17 @@ export function CourseRecommendationPage() {
             </div>
           )}
 
+          {/* No Courses Message */}
+          {!loading && primaryCourses.length === 0 && !error && (
+            <Card>
+              <div className="py-8 text-center text-sm text-slate-400">
+                No course recommendations available at this time. Please check back later.
+              </div>
+            </Card>
+          )}
+
           {/* Other RIASEC Courses - Smaller Optional Cards */}
-          {otherRiasecTypes.length > 0 && (
+          {!loading && otherRiasecTypes.length > 0 && Object.keys(otherCourses).length > 0 && (
             <div className="space-y-4 pt-8">
               <div>
                 <h2 className="text-lg font-semibold text-slate-200">
@@ -187,7 +262,7 @@ export function CourseRecommendationPage() {
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {otherRiasecTypes.map((type) => {
-                  const courses = generateGeneralCourseRecommendations(type as 'R' | 'I' | 'A' | 'S' | 'E' | 'C')
+                  const courses = otherCourses[type] || []
                   return courses.slice(0, 1).map((course, idx) => (
                     <button
                       key={`${type}-${idx}`}
