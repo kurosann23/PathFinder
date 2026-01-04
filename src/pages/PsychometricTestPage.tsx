@@ -58,14 +58,14 @@ const translations = {
     question: 'Question',
     of: 'of',
     type: 'Type',
-    stronglyDisagree: 'Strongly Disagree',
-    stronglyAgree: 'Strongly Agree',
+    yes: 'Yes',
+    no: 'No',
     answered: 'Answered',
     tip: 'Tip: You can use Back to review and change answers before submitting.',
     
     // Errors
     pleaseAnswerAll: 'Please answer all questions before submitting.',
-    pleaseSelectRating: 'Please select a rating (1–5) before continuing.',
+    pleaseSelectAnswer: 'Please select Yes or No before continuing.',
     retakeConfirm: 'Are you sure you want to retake the test? This will delete your current results and reset your career guidance.',
     failedToReset: 'Failed to reset psychometric result.',
     failedToSave: 'Failed to save result.',
@@ -131,14 +131,14 @@ const translations = {
     question: 'Soalan',
     of: 'daripada',
     type: 'Jenis',
-    stronglyDisagree: 'Sangat Tidak Setuju',
-    stronglyAgree: 'Sangat Setuju',
+    yes: 'Ya',
+    no: 'Tidak',
     answered: 'Dijawab',
     tip: 'Petua: Anda boleh menggunakan Kembali untuk menyemak dan menukar jawapan sebelum menghantar.',
     
     // Errors
     pleaseAnswerAll: 'Sila jawab semua soalan sebelum menghantar.',
-    pleaseSelectRating: 'Sila pilih penilaian (1–5) sebelum meneruskan.',
+    pleaseSelectAnswer: 'Sila pilih Ya atau Tidak sebelum meneruskan.',
     retakeConfirm: 'Adakah anda pasti mahu mengambil ujian semula? Ini akan memadamkan keputusan semasa anda dan menetapkan semula panduan kerjaya anda.',
     failedToReset: 'Gagal menetapkan semula keputusan psikometrik.',
     failedToSave: 'Gagal menyimpan keputusan.',
@@ -392,10 +392,10 @@ export function PsychometricTestPage() {
   }
 
   function handleNext() {
-    const q = riasecQuestions[currentIndex]
+    const q = translatedQuestions[currentIndex]
     const current = answers[String(q.id)]
-    if (!current) {
-      setStepError(t.pleaseSelectRating)
+    if (current === undefined || current === null) {
+      setStepError(t.pleaseSelectAnswer)
       return
     }
     setStepError('')
@@ -482,37 +482,38 @@ export function PsychometricTestPage() {
               <div className="mt-2 text-base font-semibold text-slate-100">
                 {q.text}
               </div>
-              <div className="mt-4 grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map((v) => {
-                  const selected = current === v
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { value: 1, label: t.yes },
+                  { value: 0, label: t.no },
+                ].map((option) => {
+                  const selected = current === option.value
                   return (
                     <label
-                      key={v}
-                      className={`cursor-pointer rounded-xl border px-2 py-3 text-center text-sm font-semibold transition ${
+                      key={option.value}
+                      className={`cursor-pointer rounded-xl border px-4 py-4 text-center text-sm font-semibold transition ${
                         selected
-                          ? 'border-blue-500/40 bg-blue-600/20 text-blue-100'
+                          ? option.value === 1
+                            ? 'border-emerald-500/40 bg-emerald-600/20 text-emerald-100'
+                            : 'border-rose-500/40 bg-rose-600/20 text-rose-100'
                           : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60'
                       }`}
                     >
                       <input
                         type="radio"
                         name={String(q.id)}
-                        value={v}
+                        value={option.value}
                         checked={selected}
                         onChange={() => {
-                          setAnswer(String(q.id), v)
+                          setAnswer(String(q.id), option.value)
                           setStepError('')
                         }}
                         className="sr-only"
                       />
-                      {v}
+                      {option.label}
                     </label>
                   )
                 })}
-              </div>
-              <div className="mt-2 flex justify-between text-xs text-slate-500">
-                <span>{t.stronglyDisagree}</span>
-                <span>{t.stronglyAgree}</span>
               </div>
             </div>
 

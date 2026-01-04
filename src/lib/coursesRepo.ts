@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 export type JobRole = {
   title: string
   description: string
+  image_url?: string | null
 }
 
 export type CourseRow = {
@@ -13,6 +14,7 @@ export type CourseRow = {
   what_you_learn: string[]
   tools_and_skills: string[]
   example_job_roles: JobRole[]
+  course_image_url?: string | null
   order_index?: number | null
   is_active?: boolean
   created_at?: string
@@ -156,6 +158,7 @@ export async function createCourse(course: CourseInput): Promise<CourseRow> {
       what_you_learn: course.what_you_learn || [],
       tools_and_skills: course.tools_and_skills || [],
       example_job_roles: course.example_job_roles || [],
+      course_image_url: course.course_image_url || null,
       order_index: course.order_index,
       is_active: course.is_active ?? true,
     })
@@ -204,6 +207,9 @@ export async function updateCourse(id: number, updates: Partial<CourseInput>): P
   }
   if (updates.example_job_roles !== undefined) {
     updateData.example_job_roles = updates.example_job_roles
+  }
+  if (updates.course_image_url !== undefined) {
+    updateData.course_image_url = updates.course_image_url
   }
   if (updates.order_index !== undefined) {
     updateData.order_index = updates.order_index
@@ -267,6 +273,7 @@ export function courseRowToUI(course: CourseRow): {
   whatYouLearn: string[]
   toolsAndSkills: string[]
   exampleJobRoles: JobRole[]
+  courseImageUrl?: string | null
 } {
   return {
     courseName: course.course_name,
@@ -274,6 +281,7 @@ export function courseRowToUI(course: CourseRow): {
     whatYouLearn: course.what_you_learn,
     toolsAndSkills: course.tools_and_skills,
     exampleJobRoles: course.example_job_roles,
+    courseImageUrl: course.course_image_url,
   }
 }
 
@@ -288,6 +296,7 @@ export function uiToCourseInput(
     whatYouLearn: string[]
     toolsAndSkills: string[]
     exampleJobRoles: JobRole[]
+    courseImageUrl?: string | null
   },
 ): CourseInput {
   return {
@@ -297,6 +306,43 @@ export function uiToCourseInput(
     what_you_learn: uiCourse.whatYouLearn,
     tools_and_skills: uiCourse.toolsAndSkills,
     example_job_roles: uiCourse.exampleJobRoles,
+    course_image_url: uiCourse.courseImageUrl || null,
     is_active: true,
   }
+}
+
+/**
+ * Upload a course image to Supabase Storage
+ * @param file - The image file to upload
+ * @param courseId - Optional course ID for updating existing course images
+ * @returns The public URL of the uploaded image
+ */
+export async function uploadCourseImage(file: File, courseId?: number): Promise<string> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const bucket = 'courses'
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+  const fileName = courseId 
+    ? `course-${courseId}-${Date.now()}.${ext}`
+    : `course-${Date.now()}.${ext}`
+  const path = fileName
+
+  const { error: uploadErr } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, { upsert: true, cacheControl: '3600' })
+
+  if (uploadErr) {
+    const msg = uploadErr.message || 'Failed to upload course image.'
+    const lower = msg.toLowerCase()
+    const hint =
+      lower.includes('bucket') || lower.includes('not found')
+        ? ` (Check your Storage bucket name. Current: "${bucket}". Ensure the "courses" bucket exists in Supabase Storage.)`
+        : lower.includes('row-level security') || lower.includes('permission denied')
+          ? ` (Storage RLS blocked upload. Add Storage INSERT/UPDATE policies for bucket "${bucket}".)`
+          : ''
+    throw new Error(`${msg}${hint}`)
+  }
+
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+  return data.publicUrl
 }

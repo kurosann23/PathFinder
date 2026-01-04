@@ -46,7 +46,8 @@ type UICourse = {
   focusDescription: string
   whatYouLearn: string[]
   toolsAndSkills: string[]
-  exampleJobRoles: Array<{ title: string; description: string }>
+  exampleJobRoles: Array<{ title: string; description: string; image_url?: string | null }>
+  courseImageUrl?: string | null
 }
 
 const ALL_RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const
@@ -303,6 +304,17 @@ export function CourseRecommendationPage() {
               {/* Modal */}
               <div className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-800/70 bg-slate-950/95 p-8 shadow-2xl backdrop-blur-xl">
                 <div className="space-y-4">
+                  {/* Course Image */}
+                  {selectedCourse.course.courseImageUrl && (
+                    <div className="overflow-hidden rounded-xl">
+                      <img
+                        src={selectedCourse.course.courseImageUrl}
+                        alt={selectedCourse.course.courseName}
+                        className="h-48 w-full object-cover"
+                      />
+                    </div>
+                  )}
+
                   {/* Header */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -429,47 +441,43 @@ export function CourseRecommendationPage() {
                       )}
                     </div>
 
-                    {/* Example job roles */}
-                    <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30">
-                      <button
-                        type="button"
-                        onClick={() => toggleSection('jobs')}
-                        className="flex w-full items-center justify-between px-4 py-3 text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <IconBriefcase size={18} className="text-slate-400" />
-                          <span className="text-sm font-semibold text-slate-200">Example job roles</span>
-                          <span className="rounded-lg bg-slate-950/40 px-2 py-0.5 text-[10px] font-medium text-slate-400 ring-1 ring-slate-800/70">
+                    {/* Example job roles - Static Cards */}
+                    <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 p-4">
+                      <div className="mb-4 flex items-center gap-3">
+                        <IconBriefcase size={18} className="text-slate-400" />
+                        <div>
+                          <span className="text-sm font-semibold text-slate-200">Example Job Roles</span>
+                          <span className="ml-2 rounded-lg bg-slate-950/40 px-2 py-0.5 text-[10px] font-medium text-slate-400 ring-1 ring-slate-800/70">
                             Informational
                           </span>
                         </div>
-                        <IconChevronDown
-                          size={16}
-                          className={cn(
-                            'text-slate-400 transition-transform',
-                            expandedSections.jobs && 'rotate-180',
-                          )}
-                        />
-                      </button>
-                      {expandedSections.jobs && (
-                        <div className="border-t border-slate-800/70 px-4 py-3">
-                          <p className="mb-4 text-xs text-slate-400 italic">
-                            These are example roles that people with similar interests and training often explore. They
-                            are provided for informational purposes only and do not represent guaranteed career outcomes.
-                          </p>
-                          <div className="space-y-3">
-                            {selectedCourse.course.exampleJobRoles.map((role, idx) => (
-                              <div
-                                key={idx}
-                                className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4"
-                              >
+                      </div>
+                      <p className="mb-4 text-xs text-slate-400 italic">
+                        These are example roles that people with similar interests and training often explore. They
+                        are provided for informational purposes only and do not represent guaranteed career outcomes.
+                      </p>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {selectedCourse.course.exampleJobRoles.map((role, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4"
+                          >
+                            <div className="flex gap-3">
+                              {role.image_url && (
+                                <img
+                                  src={role.image_url}
+                                  alt={role.title}
+                                  className="h-16 w-16 shrink-0 rounded-lg border border-slate-800/70 object-cover"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
                                 <h4 className="mb-1 text-sm font-semibold text-slate-200">{role.title}</h4>
                                 <p className="text-sm text-slate-300/90">{role.description}</p>
                               </div>
-                            ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
                   </div>
 

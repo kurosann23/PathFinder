@@ -16,6 +16,11 @@ export function TeacherQuestionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingFormData, setEditingFormData] = useState<{
+    text: string
+    type: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
+    is_active: boolean
+  } | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [formData, setFormData] = useState({ 
     text: '', 
@@ -68,29 +73,27 @@ export function TeacherQuestionsPage() {
   function handleEdit(id: number) {
     const question = questions.find((q) => q.id === id)
     if (question) {
-      setFormData({ 
+      setEditingFormData({ 
         text: question.text, 
         type: question.type,
         is_active: question.is_active ?? true 
       })
       setEditingId(id)
-      setShowAddForm(true)
     }
   }
 
   async function handleUpdate(isActive: boolean) {
-    if (!formData.text.trim() || editingId === null) return
+    if (!editingFormData || !editingFormData.text.trim() || editingId === null) return
     setSaving(true)
     setError('')
     try {
       await updateQuestion(editingId, {
-        text: formData.text,
-        type: formData.type,
+        text: editingFormData.text,
+        type: editingFormData.type,
         is_active: isActive,
       })
       setEditingId(null)
-      setFormData({ text: '', type: 'R', is_active: true })
-      setShowAddForm(false)
+      setEditingFormData(null)
       await loadQuestions() // Reload to get updated data
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to update question.'
@@ -98,6 +101,11 @@ export function TeacherQuestionsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null)
+    setEditingFormData(null)
   }
 
   async function handleDelete(id: number) {
@@ -250,45 +258,137 @@ export function TeacherQuestionsPage() {
               </h3>
             </div>
             <div className="space-y-2">
-              {questionsByType[type].map((question) => (
-                <div
-                  key={question.id}
-                  className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 p-4"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="text-sm font-medium text-slate-200">{question.text}</div>
-                      <span
+              {questionsByType[type].map((question) => {
+                const isEditing = editingId === question.id
+                
+                if (isEditing && editingFormData) {
+                  // Inline edit form
+                  return (
+                    <div
+                      key={question.id}
+                      className="rounded-xl border border-blue-500/30 bg-slate-950/40 p-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-blue-400">Editing Question</h4>
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="rounded-lg p-1 text-slate-400 hover:text-slate-200"
+                          >
+                            <IconX size={16} />
+                          </button>
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-300">RIASEC Type</label>
+                          <select
+                            value={editingFormData.type}
+                            onChange={(e) => setEditingFormData({ 
+                              ...editingFormData, 
+                              type: e.target.value as 'R' | 'I' | 'A' | 'S' | 'E' | 'C' 
+                            })}
+                            disabled={saving}
+                            className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200"
+                          >
+                            <option value="R">Realistic (R)</option>
+                            <option value="I">Investigative (I)</option>
+                            <option value="A">Artistic (A)</option>
+                            <option value="S">Social (S)</option>
+                            <option value="E">Enterprising (E)</option>
+                            <option value="C">Conventional (C)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-300">Question Text</label>
+                          <textarea
+                            value={editingFormData.text}
+                            onChange={(e) => setEditingFormData({ ...editingFormData, text: e.target.value })}
+                            rows={3}
+                            disabled={saving}
+                            className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200"
+                            placeholder="Enter question text..."
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdate(true)}
+                            disabled={saving || !editingFormData.text.trim()}
+                            className="flex-1 rounded-xl bg-blue-600/20 px-3 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
+                          >
+                            {saving ? 'Saving...' : 'Update as Active'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdate(false)}
+                            disabled={saving || !editingFormData.text.trim()}
+                            className="flex-1 rounded-xl bg-amber-600/20 px-3 py-2 text-xs font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50"
+                          >
+                            {saving ? 'Saving...' : 'Update as Draft'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60 disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+                
+                // Regular question card
+                return (
+                  <div
+                    key={question.id}
+                    className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 p-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="text-sm font-medium text-slate-200">{question.text}</div>
+                        <span
+                          className={cn(
+                            'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                            question.is_active
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : 'bg-amber-500/20 text-amber-400',
+                          )}
+                        >
+                          {question.is_active ? 'Active' : 'Draft'}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-slate-400">ID: {question.id}</div>
+                    </div>
+                    <div className="ml-4 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(question.id)}
+                        disabled={editingId !== null}
                         className={cn(
-                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
-                          question.is_active
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-amber-500/20 text-amber-400',
+                          "rounded-lg p-2 text-blue-400 hover:bg-blue-600/20",
+                          editingId !== null && "opacity-50 cursor-not-allowed"
                         )}
                       >
-                        {question.is_active ? 'Active' : 'Draft'}
-                      </span>
+                        <IconEdit size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(question.id)}
+                        disabled={editingId !== null}
+                        className={cn(
+                          "rounded-lg p-2 text-rose-400 hover:bg-rose-600/20",
+                          editingId !== null && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        <IconTrash size={16} />
+                      </button>
                     </div>
-                    <div className="mt-1 text-xs text-slate-400">ID: {question.id}</div>
                   </div>
-                  <div className="ml-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(question.id)}
-                      className="rounded-lg p-2 text-blue-400 hover:bg-blue-600/20"
-                    >
-                      <IconEdit size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(question.id)}
-                      className="rounded-lg p-2 text-rose-400 hover:bg-rose-600/20"
-                    >
-                      <IconTrash size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </Card>

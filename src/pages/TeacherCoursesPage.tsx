@@ -10,8 +10,10 @@ import {
   hardDeleteCourse,
   courseRowToUI,
   uiToCourseInput,
+  uploadCourseImage,
   type CourseRow,
 } from '../lib/coursesRepo'
+import { supabase } from '../lib/supabaseClient'
 
 type UICourse = {
   courseName: string
@@ -36,10 +38,18 @@ export function TeacherCoursesPage() {
     toolsAndSkills: [],
     exampleJobRoles: [],
   })
+  const [formRiasecType, setFormRiasecType] = useState<'R' | 'I' | 'A' | 'S' | 'E' | 'C' | null>(null)
   const [newLearnItem, setNewLearnItem] = useState('')
   const [newToolItem, setNewToolItem] = useState('')
   const [newJobTitle, setNewJobTitle] = useState('')
   const [newJobDescription, setNewJobDescription] = useState('')
+  const [newJobImageFile, setNewJobImageFile] = useState<File | null>(null)
+  const [newJobImagePreview, setNewJobImagePreview] = useState<string | null>(null)
+  const [jobRoleImageFiles, setJobRoleImageFiles] = useState<Map<number, File>>(new Map())
+  const [courseImageFile, setCourseImageFile] = useState<File | null>(null)
+  const [courseImagePreview, setCourseImagePreview] = useState<string | null>(null)
+  const [courseImageUrl, setCourseImageUrl] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   const riasecTypes: Array<{ value: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'; label: string }> = [
     { value: 'R', label: 'Realistic' },
@@ -78,13 +88,69 @@ export function TeacherCoursesPage() {
   }
 
   async function handleAdd(isActive: boolean) {
-    if (!formData.courseName?.trim() || !formData.focusDescription?.trim()) return
+    if (!formData.courseName?.trim() || !formData.focusDescription?.trim() || !formRiasecType) return
     setSaving(true)
     setError('')
     try {
-      const courseInput = uiToCourseInput(selectedRiasecType, formData)
+      let imageUrl = courseImageUrl
+      
+      // Upload image if a new file was selected
+      if (courseImageFile) {
+        setUploadingImage(true)
+        try {
+          imageUrl = await uploadCourseImage(courseImageFile)
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to upload image.'
+          setError(msg)
+          setUploadingImage(false)
+          setSaving(false)
+          return
+        } finally {
+          setUploadingImage(false)
+        }
+      }
+
+      // Upload job role images that have files
+      const jobRolesWithImages = await Promise.all(
+        formData.exampleJobRoles.map(async (role, idx) => {
+          const imageFile = jobRoleImageFiles.get(idx)
+          if (imageFile) {
+            // Create course first to get ID, then upload images
+            // For now, we'll upload after course creation
+            return role
+          }
+          return role
+        })
+      )
+
+      const courseInput = uiToCourseInput(formRiasecType, { ...formData, courseImageUrl: imageUrl })
       courseInput.is_active = isActive
-      await createCourse(courseInput)
+      const createdCourse = await createCourse(courseInput)
+      
+      // Upload job role images after course is created
+      const finalJobRoles = await Promise.all(
+        formData.exampleJobRoles.map(async (role, idx) => {
+          const imageFile = jobRoleImageFiles.get(idx)
+          if (imageFile) {
+            try {
+              const uploadedUrl = await uploadJobRoleImage(imageFile, createdCourse.id, idx)
+              return { ...role, image_url: uploadedUrl }
+            } catch (err) {
+              console.error(`Failed to upload image for job role ${idx}:`, err)
+              return role
+            }
+          }
+          return role
+        })
+      )
+      
+      // Update course with final job role URLs
+      if (jobRoleImageFiles.size > 0) {
+        await updateCourse(createdCourse.id, {
+          ...courseInput,
+          example_job_roles: finalJobRoles,
+        })
+      }
       setFormData({
         courseName: '',
         focusDescription: '',
@@ -92,7 +158,13 @@ export function TeacherCoursesPage() {
         toolsAndSkills: [],
         exampleJobRoles: [],
       })
+      setFormRiasecType(null)
+      setCourseImageUrl(null)
+      setCourseImagePreview(null)
+      setCourseImageFile(null)
       setShowAddForm(false)
+      // Switch to the RIASEC type of the newly created course
+      setSelectedRiasecType(formRiasecType)
       await loadCourses() // Reload to get the new course with ID
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to create course.'
@@ -107,6 +179,10 @@ export function TeacherCoursesPage() {
     if (course) {
       const uiCourse = courseRowToUI(course)
       setFormData(uiCourse)
+      setFormRiasecType(course.riasec_type)
+      setCourseImageUrl(course.course_image_url || null)
+      setCourseImagePreview(course.course_image_url || null)
+      setCourseImageFile(null)
       setEditingId(id)
       setShowAddForm(true)
     }
@@ -117,7 +193,47 @@ export function TeacherCoursesPage() {
     setSaving(true)
     setError('')
     try {
-      const courseInput = uiToCourseInput(selectedRiasecType, formData)
+      let imageUrl = courseImageUrl
+      
+      // Upload image if a new file was selected
+      if (courseImageFile) {
+        setUploadingImage(true)
+        try {
+          imageUrl = await uploadCourseImage(courseImageFile, editingId)
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Failed to upload image.'
+          setError(msg)
+          setUploadingImage(false)
+          setSaving(false)
+          return
+        } finally {
+          setUploadingImage(false)
+        }
+      }
+
+      // Upload job role images that have files
+      const finalJobRoles = await Promise.all(
+        formData.exampleJobRoles.map(async (role, idx) => {
+          const imageFile = jobRoleImageFiles.get(idx)
+          if (imageFile) {
+            try {
+              const uploadedUrl = await uploadJobRoleImage(imageFile, editingId, idx)
+              return { ...role, image_url: uploadedUrl }
+            } catch (err) {
+              console.error(`Failed to upload image for job role ${idx}:`, err)
+              return role
+            }
+          }
+          // If role has a data URL (from preview), keep it as is (it's already uploaded or existing)
+          return role
+        })
+      )
+
+      const courseInput = uiToCourseInput(selectedRiasecType, { 
+        ...formData, 
+        courseImageUrl: imageUrl,
+        exampleJobRoles: finalJobRoles,
+      })
       courseInput.is_active = isActive
       await updateCourse(editingId, courseInput)
       setEditingId(null)
@@ -128,6 +244,12 @@ export function TeacherCoursesPage() {
         toolsAndSkills: [],
         exampleJobRoles: [],
       })
+      setCourseImageUrl(null)
+      setCourseImagePreview(null)
+      setCourseImageFile(null)
+      setNewJobImageFile(null)
+      setNewJobImagePreview(null)
+      setJobRoleImageFiles(new Map())
       setShowAddForm(false)
       await loadCourses() // Reload to get updated data
     } catch (err) {
@@ -160,10 +282,35 @@ export function TeacherCoursesPage() {
       toolsAndSkills: [],
       exampleJobRoles: [],
     })
+    setFormRiasecType(null)
+    setCourseImageUrl(null)
+    setCourseImagePreview(null)
+    setCourseImageFile(null)
     setNewLearnItem('')
     setNewToolItem('')
     setNewJobTitle('')
     setNewJobDescription('')
+    setNewJobImageFile(null)
+    setNewJobImagePreview(null)
+    setJobRoleImageFiles(new Map())
+  }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setCourseImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setCourseImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function handleRemoveImage() {
+    setCourseImageFile(null)
+    setCourseImagePreview(null)
+    setCourseImageUrl(null)
   }
 
   const addLearnItem = () => {
@@ -228,18 +375,114 @@ export function TeacherCoursesPage() {
     })
   }
 
+  async function uploadJobRoleImage(file: File, courseId: number, jobIndex: number): Promise<string> {
+    if (!supabase) throw new Error('Supabase not configured')
+    
+    const bucket = 'courses'
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+    const fileName = `course-${courseId}-job-${jobIndex}-${Date.now()}.${ext}`
+    const path = fileName
+
+    const { error: uploadErr } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { upsert: true, cacheControl: '3600' })
+
+    if (uploadErr) {
+      const msg = uploadErr.message || 'Failed to upload job role image.'
+      throw new Error(`${msg} (Check Storage bucket "courses" exists and has proper RLS policies.)`)
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+    return data.publicUrl
+  }
+
   const addJobRole = () => {
     if (newJobTitle.trim() && newJobDescription.trim()) {
+      const newIndex = formData.exampleJobRoles.length
+      
+      // Store image file if provided
+      if (newJobImageFile) {
+        const newMap = new Map(jobRoleImageFiles)
+        newMap.set(newIndex, newJobImageFile)
+        setJobRoleImageFiles(newMap)
+      }
+      
       setFormData({
         ...formData,
         exampleJobRoles: [
           ...formData.exampleJobRoles,
-          { title: newJobTitle.trim(), description: newJobDescription.trim() },
+          { 
+            title: newJobTitle.trim(), 
+            description: newJobDescription.trim(),
+            image_url: newJobImagePreview || null, // Preview URL for display
+          },
         ],
       })
       setNewJobTitle('')
       setNewJobDescription('')
+      setNewJobImageFile(null)
+      setNewJobImagePreview(null)
     }
+  }
+
+  function handleJobImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setNewJobImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setNewJobImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function handleRemoveNewJobImage() {
+    setNewJobImageFile(null)
+    setNewJobImagePreview(null)
+  }
+
+  function handleJobImageChangeExisting(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Store the file for upload on save
+      const newMap = new Map(jobRoleImageFiles)
+      newMap.set(index, file)
+      setJobRoleImageFiles(newMap)
+      
+      // Show preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const updatedRoles = [...formData.exampleJobRoles]
+        updatedRoles[index] = {
+          ...updatedRoles[index],
+          image_url: reader.result as string, // Preview URL
+        }
+        setFormData({
+          ...formData,
+          exampleJobRoles: updatedRoles,
+        })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  function handleRemoveJobRoleImage(index: number) {
+    // Remove file from map
+    const newMap = new Map(jobRoleImageFiles)
+    newMap.delete(index)
+    setJobRoleImageFiles(newMap)
+    
+    // Remove preview from role
+    const updatedRoles = [...formData.exampleJobRoles]
+    updatedRoles[index] = {
+      ...updatedRoles[index],
+      image_url: null,
+    }
+    setFormData({
+      ...formData,
+      exampleJobRoles: updatedRoles,
+    })
   }
 
   const removeJobRole = (index: number) => {
@@ -265,21 +508,10 @@ export function TeacherCoursesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title="Manage Courses & Learning Paths"
-          subtitle="Create and edit course recommendations for each RIASEC type. Changes are saved to the database."
-        />
-        <button
-          type="button"
-          onClick={() => setShowAddForm(true)}
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-purple-600/20 px-4 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50"
-        >
-          <IconPlus size={18} />
-          Add Course
-        </button>
-      </div>
+      <PageHeader
+        title="Manage Courses & Learning Paths"
+        subtitle="Create and edit course recommendations for each RIASEC type. Changes are saved to the database."
+      />
 
       {/* Error Message */}
       {error && (
@@ -347,6 +579,27 @@ export function TeacherCoursesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Basic Info */}
               <div className="space-y-6">
+                {/* RIASEC Type - Only show when adding new course */}
+                {editingId === null && (
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-200">
+                      RIASEC Type <span className="text-rose-400">*</span>
+                    </label>
+                    <select
+                      value={formRiasecType || ''}
+                      onChange={(e) => setFormRiasecType(e.target.value as 'R' | 'I' | 'A' | 'S' | 'E' | 'C')}
+                      className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    >
+                      <option value="">Select RIASEC type...</option>
+                      {riasecTypes.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label} ({type.value})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Course Name */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-200">
@@ -359,6 +612,44 @@ export function TeacherCoursesPage() {
                     className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
                     placeholder="e.g., Data Science & Analytics"
                   />
+                </div>
+
+                {/* Course Image */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-200">
+                    Course Image (Optional)
+                  </label>
+                  {courseImagePreview || courseImageUrl ? (
+                    <div className="relative">
+                      <img
+                        src={courseImagePreview || courseImageUrl || ''}
+                        alt="Course preview"
+                        className="h-48 w-full rounded-xl border border-slate-800/70 object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        disabled={uploadingImage || saving}
+                        className="absolute right-2 top-2 rounded-lg bg-slate-900/80 p-2 text-slate-300 hover:bg-slate-800/90 disabled:opacity-50 transition"
+                      >
+                        <IconX size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-800/70 bg-slate-950/40 p-6 transition hover:border-slate-700/70 hover:bg-slate-950/60">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        disabled={uploadingImage || saving}
+                        className="hidden"
+                      />
+                      <div className="text-center">
+                        <div className="mb-2 text-sm text-slate-400">Click to upload image</div>
+                        <div className="text-xs text-slate-500">PNG, JPG up to 5MB</div>
+                      </div>
+                    </label>
+                  )}
                 </div>
 
                 {/* Focus Description */}
@@ -529,21 +820,59 @@ export function TeacherCoursesPage() {
               <label className="mb-3 block text-sm font-semibold text-slate-200">
                 Example Job Roles ({formData.exampleJobRoles.length})
               </label>
-              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  value={newJobTitle}
-                  onChange={(e) => setNewJobTitle(e.target.value)}
-                  className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
-                  placeholder="Job title..."
-                />
-                <textarea
-                  value={newJobDescription}
-                  onChange={(e) => setNewJobDescription(e.target.value)}
-                  rows={2}
-                  className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition resize-none"
-                  placeholder="Job description..."
-                />
+              <div className="mb-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={newJobTitle}
+                    onChange={(e) => setNewJobTitle(e.target.value)}
+                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    placeholder="Job title..."
+                  />
+                  <textarea
+                    value={newJobDescription}
+                    onChange={(e) => setNewJobDescription(e.target.value)}
+                    rows={2}
+                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition resize-none"
+                    placeholder="Job description..."
+                  />
+                </div>
+                {/* Job Role Image Upload */}
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-slate-400">
+                    Job Image (Optional)
+                  </label>
+                  {newJobImagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={newJobImagePreview}
+                        alt="Job preview"
+                        className="h-32 w-full rounded-lg border border-slate-800/70 object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveNewJobImage}
+                        disabled={uploadingImage || saving}
+                        className="absolute right-2 top-2 rounded-lg bg-slate-900/80 p-1.5 text-slate-300 hover:bg-slate-800/90 disabled:opacity-50 transition"
+                      >
+                        <IconX size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-800/70 bg-slate-950/40 p-3 transition hover:border-slate-700/70 hover:bg-slate-950/60">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleJobImageChange}
+                        disabled={uploadingImage || saving}
+                        className="hidden"
+                      />
+                      <div className="text-center">
+                        <div className="text-xs text-slate-400">Click to upload job image</div>
+                      </div>
+                    </label>
+                  )}
+                </div>
               </div>
               <button
                 type="button"
@@ -590,8 +919,43 @@ export function TeacherCoursesPage() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-200">{role.title}</div>
-                        <div className="mt-1 text-sm text-slate-300">{role.description}</div>
+                        <div className="flex items-start gap-3">
+                          {role.image_url && (
+                            <img
+                              src={role.image_url}
+                              alt={role.title}
+                              className="h-16 w-16 shrink-0 rounded-lg border border-slate-800/70 object-cover"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-slate-200">{role.title}</div>
+                            <div className="mt-1 text-sm text-slate-300">{role.description}</div>
+                          </div>
+                        </div>
+                        {/* Image Upload/Edit for Existing Job Role */}
+                        <div className="mt-2">
+                          {role.image_url ? (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveJobRoleImage(idx)}
+                              disabled={uploadingImage || saving}
+                              className="text-xs text-slate-400 hover:text-rose-400 transition disabled:opacity-50"
+                            >
+                              Remove image
+                            </button>
+                          ) : (
+                            <label className="cursor-pointer text-xs text-slate-400 hover:text-blue-400 transition">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleJobImageChangeExisting(e, idx)}
+                                disabled={uploadingImage || saving}
+                                className="hidden"
+                              />
+                              Add image
+                            </label>
+                          )}
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -618,7 +982,7 @@ export function TeacherCoursesPage() {
               <button
                 type="button"
                 onClick={() => editingId !== null ? handleUpdate(true) : handleAdd(true)}
-                disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim()}
+                disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim() || (editingId === null && !formRiasecType)}
                 className="rounded-xl bg-purple-600/20 px-6 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {saving ? 'Saving...' : editingId !== null ? 'Update as Active' : 'Save as Active'}
@@ -626,7 +990,7 @@ export function TeacherCoursesPage() {
               <button
                 type="button"
                 onClick={() => editingId !== null ? handleUpdate(false) : handleAdd(false)}
-                disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim()}
+                disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim() || (editingId === null && !formRiasecType)}
                 className="rounded-xl bg-amber-600/20 px-6 py-2.5 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {saving ? 'Saving...' : editingId !== null ? 'Update as Draft' : 'Save as Draft'}
@@ -639,6 +1003,23 @@ export function TeacherCoursesPage() {
       {/* Courses List */}
       {!loading && (
         <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-300">
+              {riasecTypes.find((t) => t.value === selectedRiasecType)?.label} Courses ({courses.length})
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setFormRiasecType(selectedRiasecType)
+                setShowAddForm(true)
+              }}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-purple-600/20 px-4 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50 transition"
+            >
+              <IconPlus size={18} />
+              Add Course
+            </button>
+          </div>
           {courses.length === 0 ? (
             <Card>
               <div className="py-8 text-center text-sm text-slate-400">
