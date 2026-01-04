@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button'
 import {
   fetchTeacherAppointments,
   updateAppointmentStatus,
+  cancelApprovedAppointment,
   type AppointmentWithNames,
 } from '../lib/appointmentsRepo'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
@@ -16,6 +17,7 @@ const STATUS_COLORS = {
   pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
   approved: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' },
   rejected: { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
+  cancelled: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' },
 }
 
 export function TeacherAppointmentsPage() {
@@ -31,6 +33,8 @@ export function TeacherAppointmentsPage() {
   const [meetingLink, setMeetingLink] = useState<string>('')
   const [meetingPlace, setMeetingPlace] = useState<string>('')
   const [meetingNote, setMeetingNote] = useState<string>('')
+  const [cancelModalOpen, setCancelModalOpen] = useState<string | null>(null)
+  const [cancellationReason, setCancellationReason] = useState<string>('')
   const [expandedRejected, setExpandedRejected] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -148,6 +152,47 @@ export function TeacherAppointmentsPage() {
     }
   }
 
+  function handleCancelClick(appointmentId: string) {
+    setCancelModalOpen(appointmentId)
+    setCancellationReason('')
+    setError('')
+  }
+
+  function handleCancelModalCancel() {
+    setCancelModalOpen(null)
+    setCancellationReason('')
+    setError('')
+  }
+
+  async function handleCancelConfirm() {
+    if (!cancelModalOpen) return
+
+    if (!cancellationReason.trim()) {
+      setError('Please provide a reason for cancellation.')
+      return
+    }
+
+    setUpdating(cancelModalOpen)
+    setError('')
+    setSuccess('')
+
+    try {
+      await cancelApprovedAppointment(cancelModalOpen, cancellationReason.trim())
+      setSuccess('Appointment cancelled successfully!')
+      setCancelModalOpen(null)
+      setCancellationReason('')
+      await loadAppointments()
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to cancel appointment.'
+      setError(msg)
+    } finally {
+      setUpdating(null)
+    }
+  }
+
   function formatDate(dateStr: string): string {
     if (!dateStr) return ''
     try {
@@ -171,9 +216,10 @@ export function TeacherAppointmentsPage() {
     }
   }
 
-  // Group appointments by status (priority order: Approved, Pending, Rejected)
+  // Group appointments by status (priority order: Approved, Pending, Cancelled, Rejected)
   const approvedAppointments = appointments.filter((a) => a.status === 'approved')
   const pendingAppointments = appointments.filter((a) => a.status === 'pending')
+  const cancelledAppointments = appointments.filter((a) => a.status === 'cancelled')
   const rejectedAppointments = appointments.filter((a) => a.status === 'rejected')
 
   if (!isSupabaseConfigured) {
@@ -287,6 +333,17 @@ export function TeacherAppointmentsPage() {
                           </div>
                         )}
                       </div>
+                      <div className="flex-shrink-0">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleCancelClick(appointment.id)}
+                          disabled={updating === appointment.id}
+                          className="text-xs"
+                        >
+                          Request Cancellation
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -356,6 +413,97 @@ export function TeacherAppointmentsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Cancelled Appointments */}
+          {cancelledAppointments.length > 0 && (
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wide">Cancelled Appointments</h3>
+                <p className="mt-1 text-xs text-slate-400">
+                  {cancelledAppointments.length} cancelled appointment{cancelledAppointments.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <div className="space-y-2">
+                {cancelledAppointments.map((appointment) => {
+                  const isExpanded = expandedRejected.has(appointment.id)
+                  return (
+                    <div
+                      key={appointment.id}
+                      className="rounded-lg border border-slate-800/50 bg-slate-950/20"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newExpanded = new Set(expandedRejected)
+                          if (isExpanded) {
+                            newExpanded.delete(appointment.id)
+                          } else {
+                            newExpanded.add(appointment.id)
+                          }
+                          setExpandedRejected(newExpanded)
+                        }}
+                        className="w-full p-3 flex items-center justify-between gap-3 text-left hover:bg-slate-950/30 transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              STATUS_COLORS.cancelled.bg,
+                              STATUS_COLORS.cancelled.border,
+                              STATUS_COLORS.cancelled.text,
+                            )}
+                          >
+                            Cancelled
+                          </span>
+                          <span className="text-sm font-medium text-slate-300 truncate">
+                            {appointment.student_name || 'Student'}
+                          </span>
+                          <span className="text-xs text-slate-400 shrink-0">{formatDate(appointment.date)}</span>
+                        </div>
+                        <svg
+                          className={cn(
+                            'w-4 h-4 text-slate-400 shrink-0 transition-transform',
+                            isExpanded && 'rotate-180',
+                          )}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {isExpanded && (
+                        <div className="px-3 pb-3 pt-2 border-t border-slate-800/30 space-y-2">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-slate-400">Time:</span>
+                              <span className="ml-2 text-slate-300">{formatTime(appointment.time)}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400">Mode:</span>
+                              <span className="ml-2 text-slate-300 capitalize">{appointment.mode}</span>
+                            </div>
+                          </div>
+                          {appointment.reason && (
+                            <div className="pt-2 border-t border-slate-800/30">
+                              <div className="text-xs text-slate-400 mb-1">Reason:</div>
+                              <div className="text-xs text-slate-300">{appointment.reason}</div>
+                            </div>
+                          )}
+                          {appointment.cancellation_reason && (
+                            <div className="pt-2 border-t border-slate-800/30">
+                              <div className="text-xs text-slate-400 mb-1">Cancellation Reason:</div>
+                              <div className="text-xs text-slate-300">{appointment.cancellation_reason}</div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </Card>
           )}
@@ -626,6 +774,74 @@ export function TeacherAppointmentsPage() {
                   variant="secondary"
                   onClick={handleRejectCancel}
                   disabled={updating === rejectModalOpen}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Cancellation Modal */}
+      {cancelModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCancelModalCancel()
+            }
+          }}
+        >
+          <Card className="w-full max-w-md">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-100">Request Cancellation</h3>
+                <button
+                  type="button"
+                  onClick={handleCancelModalCancel}
+                  className="text-slate-400 hover:text-slate-200 transition"
+                  aria-label="Close"
+                >
+                  <IconX size={20} />
+                </button>
+              </div>
+
+              <div>
+                <label htmlFor="cancellation-reason" className="block text-sm font-semibold text-slate-400 mb-2">
+                  Reason for Cancellation <span className="text-rose-400">*</span>
+                </label>
+                <textarea
+                  id="cancellation-reason"
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  disabled={updating === cancelModalOpen}
+                  required
+                  rows={4}
+                  placeholder="Please provide a reason for cancelling this appointment..."
+                  className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 resize-none"
+                />
+                <div className="mt-1 text-xs text-slate-500">
+                  This reason will be visible to the other party.
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleCancelConfirm}
+                  disabled={updating === cancelModalOpen || !cancellationReason.trim()}
+                  className="flex-1"
+                >
+                  {updating === cancelModalOpen ? 'Processing...' : 'Confirm Cancellation'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCancelModalCancel}
+                  disabled={updating === cancelModalOpen}
                   className="flex-1"
                 >
                   Cancel

@@ -9,8 +9,9 @@ export type AppointmentRow = {
   date: string
   time: string
   reason: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled'
   rejection_reason: string | null
+  cancellation_reason: string | null
   meeting_link: string | null
   meeting_place: string | null
   meeting_note: string | null
@@ -240,6 +241,39 @@ export async function cancelAppointment(appointmentId: string): Promise<Appointm
   if (error) {
     const msg = error.message || 'Failed to cancel appointment.'
     throw new Error(`${msg} (Check RLS policies. You can only cancel pending appointments.)`)
+  }
+
+  return data as AppointmentRow
+}
+
+/**
+ * Cancel approved appointment (student or teacher)
+ * Can only cancel if status is 'approved'
+ * Sets status to 'cancelled' with mandatory cancellation_reason
+ */
+export async function cancelApprovedAppointment(
+  appointmentId: string,
+  cancellationReason: string,
+): Promise<AppointmentRow> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  if (!cancellationReason?.trim()) {
+    throw new Error('Cancellation reason is required.')
+  }
+
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({
+      status: 'cancelled',
+      cancellation_reason: cancellationReason.trim(),
+    })
+    .eq('id', appointmentId)
+    .select('*')
+    .single()
+
+  if (error) {
+    const msg = error.message || 'Failed to cancel appointment.'
+    throw new Error(`${msg} (Check RLS policies. You can only cancel approved appointments.)`)
   }
 
   return data as AppointmentRow
