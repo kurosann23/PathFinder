@@ -19,6 +19,8 @@ import { TeacherCoursesPage } from './pages/TeacherCoursesPage'
 import { TeacherDashboardPage } from './pages/TeacherDashboardPage'
 import { TeacherQuestionsPage } from './pages/TeacherQuestionsPage'
 import { TeacherStudentOverviewPage } from './pages/TeacherStudentOverviewPage'
+import { TeacherAppointmentsPage } from './pages/TeacherAppointmentsPage'
+import { StudentAppointmentPage } from './pages/StudentAppointmentPage'
 
 export default function App() {
   return (
@@ -53,6 +55,7 @@ export default function App() {
             <Route element={<RequirePermission permission="view_learning_roadmap" />}>
               <Route path="/learning-roadmap" element={<LearningRoadmapPage />} />
             </Route>
+            <Route path="/appointment" element={<StudentAppointmentPage />} />
             <Route element={<RequirePermission permission="play_mini_games" />}>
               <Route path="/mini-games" element={<MiniGamesPage />} />
             </Route>
@@ -62,6 +65,7 @@ export default function App() {
           <Route element={<RequireRole allowedRoles={['teacher']} />}>
             <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
             <Route path="/teacher/students" element={<TeacherStudentOverviewPage />} />
+            <Route path="/teacher/appointments" element={<TeacherAppointmentsPage />} />
             <Route path="/teacher/questions" element={<TeacherQuestionsPage />} />
             <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
           </Route>
