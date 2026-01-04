@@ -18,6 +18,7 @@ import { SignUpPage } from './pages/SignUpPage'
 import { TeacherCoursesPage } from './pages/TeacherCoursesPage'
 import { TeacherDashboardPage } from './pages/TeacherDashboardPage'
 import { TeacherQuestionsPage } from './pages/TeacherQuestionsPage'
+import { TeacherStudentOverviewPage } from './pages/TeacherStudentOverviewPage'
 
 export default function App() {
   return (
@@ -60,6 +61,7 @@ export default function App() {
           {/* Teacher-only routes - block students from accessing */}
           <Route element={<RequireRole allowedRoles={['teacher']} />}>
             <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+            <Route path="/teacher/students" element={<TeacherStudentOverviewPage />} />
             <Route path="/teacher/questions" element={<TeacherQuestionsPage />} />
             <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
           </Route>

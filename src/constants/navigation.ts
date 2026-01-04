@@ -8,6 +8,7 @@ export type NavKey =
   | 'teacher'
   | 'teacher-questions'
   | 'teacher-courses'
+  | 'teacher-students'
 
 export const studentNavigation: Array<{
   key: NavKey
@@ -29,6 +30,7 @@ export const teacherNavigation: Array<{
 }> = [
   { key: 'teacher', label: 'Teacher Dashboard', to: '/teacher/dashboard' },
   { key: 'profile', label: 'Profile', to: '/profile' },
+  { key: 'teacher-students', label: 'Student Overview', to: '/teacher/students' },
   { key: 'teacher-questions', label: 'Manage Questions', to: '/teacher/questions' },
   { key: 'teacher-courses', label: 'Manage Courses', to: '/teacher/courses' },
 ] as const

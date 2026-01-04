@@ -282,4 +282,98 @@ export async function uploadAvatar(file: File, profileId: string) {
   return data.publicUrl
 }
 
+// ============================================
+// Teacher-only functions for Student Overview
+// ============================================
+
+/**
+ * Get all unique classes from student profiles (for teachers)
+ * Requires RLS policy allowing teachers to read student profiles
+ */
+export async function fetchAllClasses(): Promise<string[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('class')
+    .not('class', 'is', null)
+    .neq('class', '')
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch classes.'
+    throw new Error(`${msg} (Check RLS policies for teachers to read student profiles.)`)
+  }
+
+  // Extract unique classes and sort them
+  const classes = Array.from(new Set((data || []).map((row) => row.class).filter(Boolean))) as string[]
+  return classes.sort()
+}
+
+/**
+ * Get all students in a specific class (for teachers)
+ * Requires RLS policy allowing teachers to read student profiles
+ */
+export async function fetchStudentsByClass(className: string): Promise<StudentProfileRow[]> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('class', className)
+    .order('full_name', { ascending: true, nullsFirst: false })
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch students.'
+    throw new Error(`${msg} (Check RLS policies for teachers to read student profiles.)`)
+  }
+
+  return (data as StudentProfileRow[]) || []
+}
+
+/**
+ * Get RIASEC results for multiple students (for teachers)
+ * Returns a map of userId -> dominant RIASEC code (1-2 letters)
+ */
+export async function fetchRiasecResultsForStudents(
+  userIds: string[],
+): Promise<Record<string, { code: string; dominantCode: string }>> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  if (userIds.length === 0) return {}
+
+  const { data, error } = await supabase
+    .from('psychometric_results')
+    .select('user_id, code')
+    .in('user_id', userIds)
+
+  if (error) {
+    const msg = error.message || 'Failed to fetch RIASEC results.'
+    throw new Error(`${msg} (Check RLS policies for teachers to read psychometric_results.)`)
+  }
+
+  const results: Record<string, { code: string; dominantCode: string }> = {}
+
+  for (const row of data || []) {
+    const code = row.code || ''
+    // Extract dominant code: first 1-2 letters
+    // If code is "ISA", show "I" (1 code) or "I-S" (2 codes)
+    // Always show at least the first letter, optionally show second if available
+    let dominantCode = ''
+    if (code.length >= 2) {
+      // Show first 2 codes joined with hyphen: "I-S"
+      dominantCode = code.slice(0, 2).split('').join('-')
+    } else if (code.length === 1) {
+      // Show single code: "I"
+      dominantCode = code
+    }
+    
+    results[row.user_id] = {
+      code,
+      dominantCode,
+    }
+  }
+
+  return results
+}
+
 
