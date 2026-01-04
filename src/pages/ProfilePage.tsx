@@ -493,8 +493,10 @@ export function ProfilePage() {
 
   const [form, setForm] = useState<FormState>(() => toForm(profile ?? null))
   const [skillsState, setSkillsState] = useState<Skill[]>(() => {
-    const parsed = safeParseSkills(isStudentProfile(profile) ? profile.skills : null)
-    return parsed.length > 0 ? parsed : defaultSkills()
+    if (!isStudentProfile(profile)) return defaultSkills()
+    // If skills is null/undefined, use defaults. If it's an empty array, use that (user removed all skills)
+    const parsed = safeParseSkills(profile.skills)
+    return profile.skills === null || profile.skills === undefined ? defaultSkills() : parsed
   })
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -535,8 +537,9 @@ export function ProfilePage() {
       setAboutMe(profile.about_me ?? '')
       setInterestTags(safeParseStringArray(profile.interests))
       setHobbyTags(safeParseStringArray(profile.hobbies))
+      // If skills is null/undefined, use defaults. If it's an empty array, use that (user removed all skills)
       const parsed = safeParseSkills(profile.skills)
-      setSkillsState(parsed.length > 0 ? parsed : defaultSkills())
+      setSkillsState(profile.skills === null || profile.skills === undefined ? defaultSkills() : parsed)
     } else {
       setAboutMe('')
       setInterestTags([])

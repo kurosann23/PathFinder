@@ -35,12 +35,14 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<RoleBasedRedirect />} />
           
+          {/* Profile route - accessible by both students and teachers */}
+          <Route path="/profile" element={<ProfilePage />} />
+
           {/* Student-only routes - block teachers from accessing */}
           <Route element={<RequireStudent />}>
             <Route element={<RequirePermission permission="view_dashboard" />}>
               <Route path="/dashboard" element={<DashboardPage />} />
             </Route>
-            <Route path="/profile" element={<ProfilePage />} />
             <Route element={<RequirePermission permission="take_psychometric_test" />}>
               <Route path="/psychometric-test" element={<PsychometricTestPage />} />
             </Route>
