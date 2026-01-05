@@ -91,7 +91,9 @@ export function DashboardPage() {
               ? '/psychometric-test'
               : j.key === 'course'
                 ? '/course-recommendation'
-                : '/learning-roadmap'
+              : j.key === 'futureRole'
+                ? '/psychometric-test'
+                : '/profile'
 
         const subtitle =
           progress.journey[j.key as JourneyKey]
@@ -117,23 +119,27 @@ export function DashboardPage() {
 
   const journeySteps: JourneyStep[] = useMemo(() => {
     return journeyMeta.map((j, idx) => {
-      const to =
-        j.key === 'profile'
-          ? '/profile'
-          : j.key === 'psychometric'
-            ? '/psychometric-test'
-            : j.key === 'course'
-              ? '/course-recommendation'
-              : '/learning-roadmap'
+        const to =
+          j.key === 'profile'
+            ? '/profile'
+            : j.key === 'psychometric'
+              ? '/psychometric-test'
+              : j.key === 'course'
+                ? '/course-recommendation'
+              : j.key === 'futureRole'
+                ? '/psychometric-test'
+                : '/profile'
 
-      const icon =
-        j.key === 'profile'
-          ? 'profile'
-          : j.key === 'psychometric'
-            ? 'psychometric'
-            : j.key === 'course'
-              ? 'course'
-              : 'roadmap'
+        const icon =
+          j.key === 'profile'
+            ? 'profile'
+            : j.key === 'psychometric'
+              ? 'psychometric'
+              : j.key === 'course'
+                ? 'course'
+              : j.key === 'futureRole'
+                ? 'roadmap'
+                : 'profile'
 
       const locked =
         idx === 0

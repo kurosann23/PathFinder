@@ -10,8 +10,7 @@ export type JourneyKey =
   | 'profile'
   | 'psychometric'
   | 'course'
-  | 'roadmap'
-  | 'minigame'
+  | 'futureRole'
 
 export type RiasecType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
 
@@ -88,8 +87,7 @@ export const journeyMeta: Array<{ key: JourneyKey; label: string }> = [
   { key: 'profile', label: 'Complete Profile' },
   { key: 'psychometric', label: 'Take Psychometric Test' },
   { key: 'course', label: 'Explore Course Recommendations' },
-  { key: 'roadmap', label: 'Start Career Roadmap' },
-  { key: 'minigame', label: 'Play Mini Game' },
+  { key: 'futureRole', label: 'Future Roles' },
 ]
 
 export const initialCareerTraits: Record<CareerTraitKey, number> = {
@@ -113,8 +111,7 @@ export const initialUserProgressState: UserProgressState = {
     profile: true,
     psychometric: false,
     course: false,
-    roadmap: false,
-    minigame: false,
+    futureRole: false,
   },
 }
 

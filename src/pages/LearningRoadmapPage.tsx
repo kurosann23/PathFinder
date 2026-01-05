@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
@@ -9,9 +9,7 @@ import {
   IconBook,
   IconCheck,
   IconClipboard,
-  IconGamepad,
-  IconMap,
-  IconPin,
+  IconArrowRight,
   IconTarget,
   IconUser,
 } from '../components/icons'
@@ -19,12 +17,7 @@ import {
 type RoadmapNodeKey =
   | 'profile'
   | 'psychometric'
-  | 'careerPath'
-  | 'track'
-  | 'skills'
-  | 'tools'
-  | 'projects'
-  | 'minigame'
+  | 'course'
   | 'futureRole'
 
 type Accent = 'blue' | 'emerald' | 'violet' | 'orange'
@@ -39,141 +32,28 @@ type RoadmapNode = {
   cta: { label: string; to: string }
   accent: Accent
   icon: (props: { className?: string }) => ReactNode
-}
-
-function IconBadge(props: { accent: Accent; children: ReactNode }) {
-  const { accent, children } = props
-  const { theme } = useTheme()
-  const isLight = theme === 'light'
-  const styles: Record<Accent, string> = isLight
-    ? {
-        blue: 'bg-blue-100 text-blue-900 ring-blue-300',
-        emerald: 'bg-emerald-100 text-emerald-900 ring-emerald-300',
-        violet: 'bg-violet-100 text-violet-900 ring-violet-300',
-        orange: 'bg-orange-100 text-orange-900 ring-orange-300',
-      }
-    : {
-        blue: 'bg-blue-600/20 text-blue-100 ring-blue-500/25',
-        emerald: 'bg-emerald-600/20 text-emerald-100 ring-emerald-500/25',
-        violet: 'bg-violet-600/20 text-violet-100 ring-violet-500/25',
-        orange: 'bg-orange-600/20 text-orange-100 ring-orange-500/25',
-      }
-  return (
-    <span className={cn('grid size-11 place-items-center rounded-2xl ring-1', styles[accent])}>
-      {children}
-    </span>
-  )
-}
-
-function ArrowRight() {
-  return (
-    <div className="hidden items-center justify-center px-3 lg:flex">
-      <svg width="44" height="18" viewBox="0 0 44 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 9H40" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M34 2l8 7-8 7" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  )
-}
-
-function ArrowLeft() {
-  return (
-    <div className="hidden items-center justify-center px-3 lg:flex">
-      <svg width="44" height="18" viewBox="0 0 44 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M43 9H4" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M10 2 2 9l8 7" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  )
-}
-
-function ArrowDown() {
-  return (
-    <div className="hidden items-center justify-center py-3 lg:flex">
-      <svg width="18" height="44" viewBox="0 0 18 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 1v38" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M2 34l7 8 7-8" stroke="rgba(148,163,184,0.65)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  )
-}
-
-function accentClasses(accent: Accent, isLight: boolean) {
-  if (isLight) {
-    switch (accent) {
-      case 'emerald':
-        return {
-          node: 'bg-emerald-50 ring-emerald-300 text-emerald-900',
-          line: 'bg-emerald-400',
-          glow: 'shadow-[0_0_0_1px_rgba(16,185,129,0.15),0_0_15px_rgba(16,185,129,0.08)]',
-        }
-      case 'violet':
-        return {
-          node: 'bg-violet-50 ring-violet-300 text-violet-900',
-          line: 'bg-violet-400',
-          glow: 'shadow-[0_0_0_1px_rgba(167,139,250,0.15),0_0_15px_rgba(167,139,250,0.08)]',
-        }
-      case 'orange':
-        return {
-          node: 'bg-orange-50 ring-orange-300 text-orange-900',
-          line: 'bg-orange-400',
-          glow: 'shadow-[0_0_0_1px_rgba(251,146,60,0.15),0_0_15px_rgba(251,146,60,0.08)]',
-        }
-      default: // blue
-        return {
-          node: 'bg-blue-50 ring-blue-300 text-blue-900',
-          line: 'bg-blue-400',
-          glow: 'shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_15px_rgba(59,130,246,0.08)]',
-        }
-    }
-  }
-  switch (accent) {
-    case 'emerald':
-      return {
-        node: 'bg-emerald-600/15 ring-emerald-500/25 text-emerald-100',
-        line: 'bg-emerald-500/30',
-        glow: 'shadow-[0_0_0_1px_rgba(16,185,129,0.25),0_0_25px_rgba(16,185,129,0.10)]',
-      }
-    case 'violet':
-      return {
-        node: 'bg-violet-600/15 ring-violet-500/25 text-violet-100',
-        line: 'bg-violet-500/30',
-        glow: 'shadow-[0_0_0_1px_rgba(139,92,246,0.25),0_0_25px_rgba(139,92,246,0.10)]',
-      }
-    case 'orange':
-      return {
-        node: 'bg-orange-600/15 ring-orange-500/25 text-orange-100',
-        line: 'bg-orange-500/30',
-        glow: 'shadow-[0_0_0_1px_rgba(249,115,22,0.25),0_0_25px_rgba(249,115,22,0.10)]',
-      }
-    default:
-      return {
-        node: 'bg-blue-600/15 ring-blue-500/25 text-blue-100',
-        line: 'bg-blue-500/30',
-        glow: 'shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_0_25px_rgba(59,130,246,0.10)]',
-      }
-  }
+  color: string // For the circle color
+  stepNumber: number
 }
 
 export function LearningRoadmapPage() {
   const { progress } = useUserProgress()
   const { theme } = useTheme()
   const isLight = theme === 'light'
-  const [selected, setSelected] = useState<RoadmapNodeKey>('psychometric')
+  
+  const [selected, setSelected] = useState<RoadmapNodeKey | null>(null)
 
   const stepStatus = useMemo(() => {
     return {
       profile: progress.journey.profile,
       psychometric: progress.journey.psychometric,
       course: progress.journey.course,
-      roadmap: progress.journey.roadmap,
-      minigame: progress.journey.minigame,
+      futureRole: progress.journey.futureRole ?? false,
     } as const
   }, [progress.journey])
 
   const nodes: RoadmapNode[] = useMemo(() => {
     const pathTitle = progress.careerPathReport?.primaryPath?.title ?? 'Technology Career Path'
-    const topMatch = progress.courseRecommendations?.[0]?.subDomain ?? 'Top Technology Track'
     return [
       {
         key: 'profile',
@@ -182,14 +62,16 @@ export function LearningRoadmapPage() {
         bullets: ['Your interests', 'Your goal', 'Your context'],
         detailTitle: 'Complete Profile',
         detailText:
-          'This step gives basic context so the system can explain guidance in a way that fits you (still frontend-only).',
+          'This step gives basic context so the system can explain guidance in a way that fits you.',
         cta: { label: 'Go to Profile', to: '/profile' },
         accent: 'blue',
         icon: ({ className }) => <IconUser size={20} className={className} />,
+        color: '#ef4444', // Red
+        stepNumber: 1,
       },
       {
         key: 'psychometric',
-        title: 'Psychometric',
+        title: 'Test',
         badge: 'RIASEC',
         bullets: ['Test Mode', '24 statements', 'Retake anytime'],
         detailTitle: 'Take Psychometric Test',
@@ -198,70 +80,26 @@ export function LearningRoadmapPage() {
         cta: { label: 'Go to Psychometric Test', to: '/psychometric-test' },
         accent: 'emerald',
         icon: ({ className }) => <IconClipboard size={20} className={className} />,
+        color: '#f97316', // Orange
+        stepNumber: 2,
       },
       {
-        key: 'careerPath',
-        title: 'Career Path',
-        badge: 'Who I am',
-        bullets: ['Your direction', 'Your style', 'Your strengths'],
-        detailTitle: 'Career Path Guidance',
+        key: 'course',
+        title: 'Career',
+        badge: 'Explore',
+        bullets: ['Course recommendations', 'Learning paths', 'Skills to build'],
+        detailTitle: 'Explore Course Recommendations',
         detailText:
-          'This explains “who you are”, “what you will generally learn”, and “what you may become” in simple language.',
-        cta: { label: 'View Guidance', to: '/psychometric-test' },
-        accent: 'violet',
-        icon: ({ className }) => <IconTarget size={20} className={className} />,
-      },
-      {
-        key: 'track',
-        title: 'Pick Track',
-        badge: 'Choose',
-        bullets: ['Top match', 'Compare 3', 'Decide 1'],
-        detailTitle: `Choose a Track: ${topMatch}`,
-        detailText:
-          'Pick one technology direction first. This keeps your next steps clear instead of overwhelming.',
+          'Discover courses and learning paths tailored to your RIASEC profile and career interests.',
         cta: { label: 'Go to Course Recommendations', to: '/course-recommendation' },
         accent: 'blue',
         icon: ({ className }) => <IconBook size={20} className={className} />,
-      },
-      {
-        key: 'skills',
-        title: 'Core Skills',
-        badge: 'Learn',
-        bullets: ['Basics first', 'Build confidence', 'Stay consistent'],
-        detailTitle: 'Build Core Skills (Conceptual)',
-        detailText:
-          'Focus on foundational skills that support your chosen track. The goal is confidence, not grades.',
-        cta: { label: 'Explore Suggested Courses', to: '/course-recommendation' },
-        accent: 'emerald',
-        icon: ({ className }) => <IconMap size={20} className={className} />,
-      },
-      {
-        key: 'tools',
-        title: 'Tools',
-        badge: 'Hands-on',
-        bullets: ['Tools list', 'Setup basics', 'Practice'],
-        detailTitle: 'Tools You’ll Use',
-        detailText:
-          'Use the tools suggested in your recommendation. Tools make learning practical and measurable.',
-        cta: { label: 'See Tools', to: '/course-recommendation' },
-        accent: 'violet',
-        icon: ({ className }) => <IconPin size={20} className={className} />,
-      },
-      {
-        key: 'projects',
-        title: 'Projects',
-        badge: 'Prove it',
-        bullets: ['1 starter', 'Finish it', 'Show results'],
-        detailTitle: 'Starter Projects',
-        detailText:
-          'Projects turn learning into evidence. Start with one simple project and complete it before moving on.',
-        cta: { label: 'View Projects', to: '/course-recommendation' },
-        accent: 'orange',
-        icon: ({ className }) => <IconCheck size={20} className={className} />,
+        color: '#22c55e', // Green
+        stepNumber: 3,
       },
       {
         key: 'futureRole',
-        title: 'Future Role',
+        title: 'Future Roles',
         badge: 'Outcome',
         bullets: ['A role target', 'A portfolio', 'A direction'],
         detailTitle: `Your Direction: ${pathTitle}`,
@@ -270,95 +108,41 @@ export function LearningRoadmapPage() {
         cta: { label: 'Review Career Path', to: '/psychometric-test' },
         accent: 'emerald',
         icon: ({ className }) => <IconTarget size={20} className={className} />,
+        color: '#3b82f6', // Blue
+        stepNumber: 4,
       },
     ]
-  }, [progress.careerPathReport?.primaryPath?.title, progress.courseRecommendations])
+  }, [progress.careerPathReport?.primaryPath?.title])
 
   const nodeStatus = useMemo(() => {
     return {
       profile: stepStatus.profile,
       psychometric: stepStatus.psychometric,
-      careerPath: stepStatus.psychometric,
-      track: stepStatus.course,
-      skills: stepStatus.course,
-      tools: stepStatus.roadmap,
-      projects: stepStatus.roadmap,
-      futureRole: stepStatus.roadmap,
+      course: stepStatus.course,
+      futureRole: stepStatus.futureRole,
     } as const
   }, [stepStatus])
 
   const completedCount = useMemo(() => {
-    const keys: RoadmapNodeKey[] = ['profile', 'psychometric', 'careerPath', 'track', 'skills', 'tools', 'projects', 'minigame', 'futureRole']
+    const keys: RoadmapNodeKey[] = ['profile', 'psychometric', 'course', 'futureRole']
     return keys.filter((k) => nodeStatus[k]).length
   }, [nodeStatus])
 
   const overallPercent = useMemo(() => {
+    if (nodes.length === 0) return 0
     return Math.round((completedCount / nodes.length) * 100)
-  }, [completedCount])
-
-  const activeNode = useMemo(() => nodes.find((s) => s.key === selected) ?? nodes[0], [selected, nodes])
+  }, [completedCount, nodes.length])
 
   const nextRecommended = useMemo(() => {
     return nodes.find((n) => !nodeStatus[n.key]) ?? null
   }, [nodes, nodeStatus])
 
-  function RoadmapNodeCard(props: { node: RoadmapNode; active: boolean }) {
-    const { node, active } = props
-    const accent = accentClasses(node.accent, isLight)
-    const done = nodeStatus[node.key]
-    return (
-      <button
-        type="button"
-        onClick={() => setSelected(node.key)}
-        className={cn(
-          'group w-full rounded-3xl border px-4 py-4 text-left transition',
-          isLight
-            ? active
-              ? 'border-blue-400 bg-blue-50/50 ring-1 ring-blue-300 hover:bg-blue-50'
-              : 'border-slate-200 bg-white hover:bg-slate-50'
-            : active
-              ? 'border-blue-500/35 bg-slate-950/25 ring-1 ring-blue-500/15 hover:bg-slate-900/40'
-              : 'border-slate-800/70 bg-slate-950/25 hover:bg-slate-900/40',
-        )}
-      >
-        <div className="flex items-start gap-4">
-          <div className={cn('shrink-0 rounded-3xl ring-1', accent.node, active && accent.glow)}>
-            <div className="p-3">
-              <IconBadge accent={node.accent}>
-                {done ? <IconCheck size={18} className={cn(isLight ? "text-emerald-700" : "text-emerald-200")} /> : node.icon({ className: 'text-current' })}
-              </IconBadge>
-            </div>
-          </div>
-          <div className="min-w-0">
-            <div className={cn(
-              "inline-flex items-center gap-2 rounded-xl px-3 py-1 text-[11px] font-semibold ring-1",
-              isLight
-                ? "bg-slate-100 text-slate-800 ring-slate-300"
-                : "bg-slate-950/40 text-slate-200 ring-slate-800/70"
-            )}>
-              {node.badge}
-            </div>
-            <div className={cn(
-              'mt-2 text-base font-semibold',
-              isLight
-                ? active ? 'text-blue-900' : 'text-slate-900'
-                : active ? 'text-blue-100' : 'text-slate-100'
-            )}>
-              {node.title}
-            </div>
-            <ul className={cn(
-              "mt-2 list-disc space-y-1 pl-5 text-xs",
-              isLight ? "text-slate-600" : "text-slate-400"
-            )}>
-              {node.bullets.slice(0, 3).map((b) => (
-                <li key={b}>{b}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </button>
-    )
-  }
+  const activeNode = useMemo(() => {
+    if (selected) {
+      return nodes.find((n) => n.key === selected) ?? nextRecommended ?? nodes[0]
+    }
+    return nextRecommended ?? nodes[0]
+  }, [selected, nodes, nextRecommended])
 
   return (
     <div className="space-y-6">
@@ -373,15 +157,15 @@ export function LearningRoadmapPage() {
           </span>
         </div>
         <div className={cn(
-          "text-sm",
+          "text-base",
           isLight ? "text-slate-600" : "text-slate-400"
         )}>
-          Visual guidance only (not an LMS). Click each node to see what it means and what to do next.
+          Visual guidance only (not an LMS). Click each step to see what it means and what to do next.
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <Card title="Roadmap Progress" className="xl:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Card title="Roadmap Progress" className="lg:col-span-2">
           <div className="space-y-4">
             <ProgressBar label="Overall" value={overallPercent} barClass="bg-violet-400" />
             <div className={cn(
@@ -392,13 +176,13 @@ export function LearningRoadmapPage() {
             )}>
               <div className="flex items-center justify-between gap-4">
                 <div className={cn(
-                  "text-sm font-semibold",
+                  "text-base font-semibold",
                   isLight ? "text-slate-900" : "text-slate-100"
                 )}>
                   {completedCount} / {nodes.length} steps completed
                 </div>
                 <div className={cn(
-                  "text-xs font-semibold",
+                  "text-sm font-semibold",
                   isLight ? "text-slate-700" : "text-slate-300"
                 )}>
                   {overallPercent}%
@@ -406,7 +190,7 @@ export function LearningRoadmapPage() {
               </div>
               {nextRecommended && (
                 <div className={cn(
-                  "mt-2 text-xs",
+                  "mt-2 text-sm",
                   isLight ? "text-slate-600" : "text-slate-400"
                 )}>
                   Recommended next step:{' '}
@@ -428,195 +212,203 @@ export function LearningRoadmapPage() {
           </div>
         </Card>
 
-        <Card title="Visual Roadmap (Infographic Style)" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>Like your reference</span>} className="xl:col-span-3">
-          {/* Desktop infographic: 3x3 snake layout */}
-          <div className="hidden lg:block">
-            <div className="space-y-4">
-              <div className="flex items-stretch">
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[0]} active={selected === nodes[0]?.key} />
-                </div>
-                <ArrowRight />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[1]} active={selected === nodes[1]?.key} />
-                </div>
-                <ArrowRight />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[2]} active={selected === nodes[2]?.key} />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <ArrowDown />
-              </div>
-
-              <div className="flex items-stretch">
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[5]} active={selected === nodes[5]?.key} />
-                </div>
-                <ArrowLeft />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[4]} active={selected === nodes[4]?.key} />
-                </div>
-                <ArrowLeft />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[3]} active={selected === nodes[3]?.key} />
-                </div>
-              </div>
-
-              <div className="flex justify-start">
-                <ArrowDown />
-              </div>
-
-              <div className="flex items-stretch">
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[6]} active={selected === nodes[6]?.key} />
-                </div>
-                <ArrowRight />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[7]} active={selected === nodes[7]?.key} />
-                </div>
-                <ArrowRight />
-                <div className="flex-1">
-                  <RoadmapNodeCard node={nodes[8]} active={selected === nodes[8]?.key} />
-                </div>
+        <Card title="Visual Roadmap (Infographic Style)" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>4 Steps</span>} className="lg:col-span-3">
+          {/* Infographic-style horizontal flow */}
+          <div className="relative py-8 px-2">
+            {/* Connecting line */}
+            <div className="absolute top-12 sm:top-16 left-8 sm:left-10 right-8 sm:right-10 h-1 hidden sm:block">
+              <div className="relative h-full w-full">
+                {nodes.map((node, idx) => {
+                  if (idx === nodes.length - 1) return null
+                  const isCompleted = nodeStatus[node.key]
+                  const nextNode = nodes[idx + 1]
+                  const nextCompleted = nodeStatus[nextNode.key]
+                  const lineColor = isCompleted && nextCompleted 
+                    ? node.color 
+                    : isCompleted 
+                      ? node.color 
+                      : isLight ? '#e2e8f0' : '#475569'
+                  
+                  return (
+                    <div
+                      key={`line-${idx}`}
+                      className="absolute h-full"
+                      style={{
+                        left: `${(idx / (nodes.length - 1)) * 100}%`,
+                        width: `${(1 / (nodes.length - 1)) * 100}%`,
+                        backgroundColor: lineColor,
+                        opacity: isCompleted || nextCompleted ? 1 : 0.3,
+                      }}
+                    />
+                  )
+                })}
               </div>
             </div>
-          </div>
+            
+            {/* Steps */}
+            <div className="relative flex items-start justify-between gap-2 sm:gap-0">
+              {nodes.map((node, idx) => {
+                const isCompleted = nodeStatus[node.key]
+                const isActive = selected === node.key || (!selected && node.key === nextRecommended?.key)
+                
+                return (
+                  <button
+                    key={node.key}
+                    type="button"
+                    onClick={() => setSelected(node.key)}
+                    className="flex-1 flex flex-col items-center group relative z-10"
+                  >
+                    {/* Circle with number and icon */}
+                    <div
+                      className={cn(
+                        "relative w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all shadow-lg",
+                        isActive && "scale-110"
+                      )}
+                      style={{
+                        backgroundColor: node.color,
+                        boxShadow: isActive 
+                          ? `0 10px 25px -5px ${node.color}60, 0 0 0 4px ${node.color}30`
+                          : `0 4px 6px -1px ${node.color}40, 0 2px 4px -1px ${node.color}30`
+                      }}
+                    >
+                      {/* Inner white circle */}
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex flex-col items-center justify-center">
+                        {/* Icon */}
+                        <div className="mb-0.5" style={{ color: node.color }}>
+                          {isCompleted ? (
+                            <IconCheck size={14} style={{ color: node.color }} />
+                          ) : (
+                            <div style={{ color: node.color }}>
+                              {node.icon({ className: '' })}
+                            </div>
+                          )}
+                        </div>
+                        {/* Number */}
+                        <div className="text-xs sm:text-sm font-bold" style={{ color: node.color }}>
+                          {node.stepNumber}
+                        </div>
+                      </div>
+                    </div>
 
-          {/* Mobile: simple vertical list (still clickable) */}
-          <div className="lg:hidden">
-            <div className="space-y-3">
-              {nodes.map((n) => (
-                <RoadmapNodeCard key={n.key} node={n} active={selected === n.key} />
-              ))}
+                    {/* Label */}
+                    <div className="mt-3 text-center w-full">
+                      <div className={cn(
+                        "text-xs sm:text-sm font-semibold mb-1",
+                        isActive
+                          ? isLight ? "text-slate-900" : "text-slate-100"
+                          : isLight ? "text-slate-700" : "text-slate-300"
+                      )}>
+                        {node.title}
+                      </div>
+                      {isActive && (
+                        <div className={cn(
+                          "text-[10px] sm:text-xs mt-0.5",
+                          isLight ? "text-slate-600" : "text-slate-400"
+                        )}>
+                          {node.badge}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </Card>
       </div>
 
-      <Card
-        title="Node Details"
-        right={
-          <span className={cn(
-            "text-xs",
-            isLight ? "text-slate-600" : "text-slate-400"
-          )}>
-            {activeNode.key.toUpperCase()}
-          </span>
-        }
-      >
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className={cn(
-            "rounded-2xl border px-4 py-4",
-            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
-          )}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className={cn(
-                  "text-xs font-semibold",
-                  isLight ? "text-slate-600" : "text-slate-400"
-                )}>
-                  Selected node
+      {activeNode && (
+        <Card
+          title="Node Details"
+          right={
+            <span className={cn(
+              "text-xs",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              {activeNode.key.toUpperCase()}
+            </span>
+          }
+        >
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className={cn(
+              "rounded-2xl border px-4 py-4",
+              isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+            )}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
+                    Selected node
+                  </div>
+                  <div className={cn(
+                    "mt-2 text-lg font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-100"
+                  )}>
+                    {activeNode.detailTitle}
+                  </div>
                 </div>
-                <div className={cn(
-                  "mt-2 text-lg font-semibold",
-                  isLight ? "text-slate-900" : "text-slate-100"
-                )}>
-                  {activeNode.detailTitle}
-                </div>
-                <div className={cn(
-                  "mt-1 text-sm",
-                  isLight ? "text-slate-700" : "text-slate-300/90"
-                )}>
-                  {activeNode.title}
-                </div>
-              </div>
-              <div className={cn(
-                "shrink-0 rounded-2xl px-3 py-2 text-xs font-semibold ring-1",
-                isLight
-                  ? "bg-slate-100 text-slate-800 ring-slate-300"
-                  : "bg-slate-950/40 text-slate-200 ring-slate-800/70"
-              )}>
-                {nodeStatus[activeNode.key] ? 'Done' : 'Next'}
               </div>
             </div>
             <div className={cn(
-              "mt-4 text-sm",
-              isLight ? "text-slate-700" : "text-slate-300/90"
+              "rounded-2xl border px-4 py-4",
+              isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
             )}>
-              {activeNode.detailText}
-            </div>
-          </div>
-
-          <div className={cn(
-            "rounded-2xl border px-4 py-4",
-            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
-          )}>
-            <div className={cn(
-              "text-xs font-semibold",
-              isLight ? "text-slate-600" : "text-slate-400"
-            )}>
-              Quick actions
-            </div>
-            <div className="mt-3 space-y-2">
-              {activeNode.bullets.map((b) => (
-                <div key={b} className={cn(
-                  "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm",
-                  isLight
-                    ? "border-slate-200 bg-slate-50 text-slate-700"
-                    : "border-slate-800/70 bg-slate-950/40 text-slate-200"
-                )}>
-                  <span className="mt-0.5 block size-2 rounded-full bg-blue-300/80" />
-                  <span className="leading-snug">{b}</span>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
+                    Description
+                  </div>
+                  <div className={cn(
+                    "mt-2 text-base leading-relaxed",
+                    isLight ? "text-slate-700" : "text-slate-300"
+                  )}>
+                    {activeNode.detailText}
+                  </div>
                 </div>
-              ))}
+              </div>
+            </div>
+            <div className={cn(
+              "rounded-2xl border px-4 py-4",
+              isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+            )}>
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="min-w-0">
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
+                    Status
+                  </div>
+                  <div className={cn(
+                    "mt-2 text-base font-semibold",
+                    nodeStatus[activeNode.key]
+                      ? isLight ? "text-emerald-700" : "text-emerald-300"
+                      : isLight ? "text-slate-700" : "text-slate-300"
+                  )}>
+                    {nodeStatus[activeNode.key] ? 'Completed' : 'In Progress'}
+                  </div>
+                </div>
+                <Link
+                  to={activeNode.cta.to}
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-base font-semibold transition",
+                    isLight
+                      ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  )}
+                >
+                  {activeNode.cta.label}
+                </Link>
+              </div>
             </div>
           </div>
-
-          <div className={cn(
-            "rounded-2xl border px-4 py-4",
-            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
-          )}>
-            <div className={cn(
-              "text-xs font-semibold",
-              isLight ? "text-slate-600" : "text-slate-400"
-            )}>
-              Action
-            </div>
-            <div className={cn(
-              "mt-2 text-sm",
-              isLight ? "text-slate-700" : "text-slate-300/90"
-            )}>
-              Jump to the relevant page to complete this step.
-            </div>
-            <div className="mt-4">
-              <Link
-                to={activeNode.cta.to}
-                className={cn(
-                  "inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold ring-1 transition",
-                  isLight
-                    ? "bg-blue-500 text-white ring-blue-500/30 hover:bg-blue-600"
-                    : "bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25"
-                )}
-              >
-                {activeNode.cta.label}
-              </Link>
-            </div>
-            <div className={cn(
-              "mt-4 flex items-center gap-2 rounded-2xl border px-4 py-3 text-xs",
-              isLight
-                ? "border-slate-200 bg-slate-50 text-slate-600"
-                : "border-slate-800/70 bg-slate-950/40 text-slate-400"
-            )}>
-              <IconPin size={16} className={cn(isLight ? "text-slate-600" : "text-slate-300")} />
-              This roadmap is guidance-only (no grading, no syllabus).
-            </div>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   )
 }
-
-
