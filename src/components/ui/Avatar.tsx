@@ -39,7 +39,8 @@ export function Avatar(props: {
   return (
     <div
       className={cn(
-        'relative grid place-items-center overflow-hidden rounded-full border border-slate-800/60 bg-slate-950/35 text-sm font-semibold text-slate-100',
+        'relative grid place-items-center overflow-hidden rounded-full border text-sm font-semibold',
+        'border-slate-800/60 bg-slate-950/35 text-slate-100',
         sizeClassName,
         className,
       )}

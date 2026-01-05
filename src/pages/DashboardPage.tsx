@@ -9,6 +9,7 @@ import {
 import { useUserProgress } from '../context/UserProgressContext'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
+import { useTheme } from '../context/ThemeContext'
 import {
   IconBook,
   IconGamepad,
@@ -162,34 +163,88 @@ export function DashboardPage() {
     return journeySteps.slice(0, 3)
   }, [journeySteps])
 
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+
   return (
     <div className="space-y-6">
       {/* Header: PATHFINDER Dashboard */}
       <header>
-        <h1 className="text-2xl font-semibold text-slate-50">PATHFINDER Dashboard</h1>
+        <h1 className={cn('text-2xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-50')}>
+          PATHFINDER Dashboard
+        </h1>
       </header>
 
       {/* Top Section: 3 columns */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr_360px]">
+      <div className={cn(
+        'grid grid-cols-1 gap-6 rounded-3xl p-6',
+        isLight 
+          ? 'bg-gradient-to-br from-blue-50/50 via-slate-50/30 to-blue-50/30' 
+          : ''
+      )}>
+        <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr_360px]', isLight && 'lg:gap-6')}>
         {/* Left: Journey Progress Ring */}
-        <div className="flex justify-center rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl shadow-[0_0_55px_rgba(59,130,246,0.10)]">
-          <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={240} stroke={14} />
+        <div className={cn(
+          'flex flex-col justify-center rounded-2xl border p-6 backdrop-blur-xl',
+          isLight 
+            ? 'border-blue-100/60 bg-white shadow-lg' 
+            : 'border-slate-800/60 bg-slate-950/16 shadow-[0_0_55px_rgba(59,130,246,0.10)]'
+        )}>
+          <div className="mb-4 text-center">
+            <h3 className={cn(
+              'text-base font-bold',
+              isLight ? 'text-slate-900' : 'text-slate-100'
+            )}>
+              Career Journey Progress
+            </h3>
+            <p className={cn(
+              'mt-1 text-xs',
+              isLight ? 'text-slate-600' : 'text-slate-400'
+            )}>
+              Keep going! You're making great progress.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={240} stroke={14} />
+          </div>
         </div>
 
         {/* Middle: User Profile and GaTCS Themes */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300/70">
+        <div className={cn(
+          'rounded-2xl border p-6 backdrop-blur-xl',
+          isLight 
+            ? 'border-blue-100/60 bg-white shadow-lg' 
+            : 'border-slate-800/60 bg-slate-950/16'
+        )}>
+          <div className="space-y-5">
+            <div className={cn(
+              'rounded-xl p-5',
+              isLight 
+                ? 'bg-gradient-to-br from-blue-50/80 to-blue-100/40' 
+                : ''
+            )}>
+              <div className={cn(
+                'flex items-center gap-2 text-xs font-semibold uppercase tracking-wider',
+                isLight ? 'text-slate-600' : 'text-slate-300/70'
+              )}>
                 <span>🔥</span>
                 <span>WELCOME BACK</span>
               </div>
-              <div className="mt-2 text-3xl font-bold tracking-tight text-slate-50">
+              <div className={cn(
+                'mt-3 text-3xl font-bold tracking-tight',
+                isLight ? 'text-slate-900' : 'text-slate-50'
+              )}>
                 {profile?.full_name ?? 'Student'}
               </div>
-              <div className="mt-2 text-sm text-slate-300/80">
-                Top career type:{' '}
-                <span className="font-semibold text-slate-100">{topCareerTypeLabel}</span>
+              <div className="mt-3">
+                <span className={cn(
+                  'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
+                  isLight 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200/60' 
+                    : 'text-slate-300/80'
+                )}>
+                  Top career type: {topCareerTypeLabel}
+                </span>
               </div>
             </div>
 
@@ -207,17 +262,28 @@ export function DashboardPage() {
             { id: 'r3', type: 'trophy' },
           ]}
         />
+        </div>
       </div>
 
       {/* Gamified Career Journey - 3 Step Progression */}
-      <div className="rounded-2xl border border-slate-800/60 bg-slate-950/16 p-6 backdrop-blur-xl">
-        <div className="mb-6 text-sm font-semibold text-slate-100">Gamified Career Journey</div>
+      <div className={cn(
+        'rounded-2xl border p-6 backdrop-blur-xl',
+        isLight 
+          ? 'border-slate-200 bg-white shadow-md' 
+          : 'border-slate-800/60 bg-slate-950/16'
+      )}>
+        <div className={cn('mb-6 text-sm font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>Gamified Career Journey</div>
         <div className="relative">
           {/* Progress bar background */}
           <div className="absolute left-0 right-0 top-12 h-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-orange-500/20" />
           {/* Progress fill */}
           <div
-            className="absolute left-0 top-12 h-1.5 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+            className={cn(
+              'absolute left-0 top-12 h-1.5 rounded-full',
+              isLight 
+                ? 'bg-blue-500 shadow-sm' 
+                : 'bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+            )}
             style={{ width: `${(firstThreeSteps.filter(s => s.done).length / firstThreeSteps.length) * 100}%` }}
           />
           
@@ -235,21 +301,30 @@ export function DashboardPage() {
                   className={cn(
                     'relative z-10 rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition-all',
                     step.done
-                      ? 'border-blue-500/40 bg-blue-600/20 text-blue-100 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+                      ? isLight
+                        ? 'border-blue-500/50 bg-blue-50 text-blue-700 shadow-sm'
+                        : 'border-blue-500/40 bg-blue-600/20 text-blue-100 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
                       : idx === 2
-                        ? 'border-orange-500/40 bg-orange-600/20 text-orange-100 shadow-[0_0_20px_rgba(251,146,60,0.3)]'
-                        : 'border-purple-500/40 bg-purple-600/20 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.3)]',
+                        ? isLight
+                          ? 'border-blue-500/30 bg-white text-slate-700 border-2'
+                          : 'border-orange-500/40 bg-orange-600/20 text-orange-100 shadow-[0_0_20px_rgba(251,146,60,0.3)]'
+                        : isLight
+                          ? 'border-slate-300 bg-white text-slate-700'
+                          : 'border-purple-500/40 bg-purple-600/20 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.3)]',
                     !step.locked && 'group-hover:scale-105'
                   )}
                 >
                   {step.label}
                   {idx === 2 && (
-                    <span className="ml-2 rounded-full bg-orange-500/30 px-2 py-0.5 text-[10px] font-semibold text-orange-100">
+                    <span className={cn(
+                      'ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                      isLight ? 'bg-emerald-500/20 text-emerald-700' : 'bg-orange-500/30 text-orange-100'
+                    )}>
                       New!
                     </span>
                   )}
                 </div>
-                <div className="mt-3 text-xs text-slate-400">
+                <div className={cn('mt-3 text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
                   {step.done
                     ? 'Completed'
                     : step.locked
@@ -300,6 +375,9 @@ type RiasecProfileCardProps = {
 }
 
 function RiasecProfileCard({ progress }: RiasecProfileCardProps) {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  
   const topThree = useMemo(() => {
     if (!progress.psychometricCompleted) return []
     const sorted = Object.entries(progress.riasecPercentages || {})
@@ -322,6 +400,17 @@ function RiasecProfileCard({ progress }: RiasecProfileCardProps) {
   }
 
   const getRiasecColor = (key: string) => {
+    if (isLight) {
+      const lightColors: Record<string, { bg: string; border: string; glow: string; text: string }> = {
+        R: { bg: 'bg-blue-50', border: 'border-blue-200', glow: 'rgba(59, 130, 246, 0.2)', text: 'text-blue-700' },
+        I: { bg: 'bg-emerald-50', border: 'border-emerald-200', glow: 'rgba(16, 185, 129, 0.2)', text: 'text-emerald-700' },
+        A: { bg: 'bg-amber-50', border: 'border-amber-200', glow: 'rgba(245, 158, 11, 0.2)', text: 'text-amber-700' },
+        S: { bg: 'bg-orange-50', border: 'border-orange-200', glow: 'rgba(251, 146, 60, 0.2)', text: 'text-orange-700' },
+        E: { bg: 'bg-purple-50', border: 'border-purple-200', glow: 'rgba(168, 85, 247, 0.2)', text: 'text-purple-700' },
+        C: { bg: 'bg-slate-50', border: 'border-slate-200', glow: 'rgba(148, 163, 184, 0.2)', text: 'text-slate-700' },
+      }
+      return lightColors[key] || lightColors.I
+    }
     const colors: Record<string, { bg: string; border: string; glow: string; text: string }> = {
       R: { bg: 'bg-blue-600/20', border: 'border-blue-500/40', glow: 'rgba(59, 130, 246, 0.4)', text: 'text-blue-100' },
       I: { bg: 'bg-purple-600/20', border: 'border-purple-500/40', glow: 'rgba(168, 85, 247, 0.4)', text: 'text-purple-100' },
@@ -350,7 +439,7 @@ function RiasecProfileCard({ progress }: RiasecProfileCardProps) {
   return (
     <Card title="RIASEC Profile">
       <div className="space-y-4">
-        <div className="text-xs text-slate-400">
+        <div className={cn('text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
           Your dominant personality traits based on your psychometric test.
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -445,6 +534,9 @@ function getMeaning(topCareerTypeLabel: string) {
 }
 
 function MotivationalCarousel() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  
   const motivationalQuotes = [
     "Every expert was once a beginner. Every pro was once an amateur. Keep going! 💪",
     "Your career journey is unique. Trust the process and celebrate every step forward. 🌟",
@@ -498,8 +590,23 @@ function MotivationalCarousel() {
   }
 
   return (
-    <div className="mt-6 rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4">
-      <div className="mb-3 text-sm font-semibold text-slate-100">Daily Motivation</div>
+    <div className={cn(
+      'relative pl-4',
+      isLight 
+        ? '' 
+        : 'mt-6 rounded-2xl border border-slate-800/60 bg-slate-950/18 p-4'
+    )}>
+      {/* Left accent line for light mode */}
+      {isLight && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-blue-400 to-blue-500" />
+      )}
+      
+      <div className={cn(
+        'mb-3 text-sm font-semibold',
+        isLight ? 'text-slate-700' : 'text-slate-100'
+      )}>
+        Daily Motivation
+      </div>
       <div
         className="relative overflow-hidden"
         onTouchStart={handleTouchStart}
@@ -507,7 +614,7 @@ function MotivationalCarousel() {
         onTouchEnd={handleTouchEnd}
       >
         {/* Quote Container */}
-        <div className="relative h-16">
+        <div className={cn('relative', isLight ? 'h-20' : 'h-16')}>
           {motivationalQuotes.map((quote, index) => (
             <div
               key={index}
@@ -520,7 +627,12 @@ function MotivationalCarousel() {
                     : 'translate-x-full opacity-0'
               )}
             >
-              <p className="text-sm leading-relaxed text-slate-300">{quote}</p>
+              <p className={cn(
+                'leading-relaxed',
+                isLight ? 'text-base text-slate-800' : 'text-sm text-slate-300'
+              )}>
+                {quote}
+              </p>
             </div>
           ))}
         </div>
@@ -530,7 +642,12 @@ function MotivationalCarousel() {
           <button
             type="button"
             onClick={goToPrevious}
-            className="flex items-center justify-center rounded-lg border border-slate-800/60 bg-slate-950/20 p-2 text-slate-400 transition-colors hover:bg-slate-950/30 hover:text-slate-200"
+            className={cn(
+              'flex items-center justify-center rounded-lg p-2 transition-colors',
+              isLight
+                ? 'border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'
+                : 'border border-slate-800/60 bg-slate-950/20 text-slate-400 hover:bg-slate-950/30 hover:text-slate-200'
+            )}
             aria-label="Previous quote"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -548,8 +665,8 @@ function MotivationalCarousel() {
                 className={cn(
                   'h-2 rounded-full transition-all',
                   index === currentIndex
-                    ? 'w-6 bg-blue-500'
-                    : 'w-2 bg-slate-700/50 hover:bg-slate-600/50'
+                    ? isLight ? 'w-6 bg-blue-500' : 'w-6 bg-blue-500'
+                    : isLight ? 'w-2 bg-slate-300 hover:bg-slate-400' : 'w-2 bg-slate-700/50 hover:bg-slate-600/50'
                 )}
                 aria-label={`Go to quote ${index + 1}`}
               />
@@ -559,7 +676,12 @@ function MotivationalCarousel() {
           <button
             type="button"
             onClick={goToNext}
-            className="flex items-center justify-center rounded-lg border border-slate-800/60 bg-slate-950/20 p-2 text-slate-400 transition-colors hover:bg-slate-950/30 hover:text-slate-200"
+            className={cn(
+              'flex items-center justify-center rounded-lg p-2 transition-colors',
+              isLight
+                ? 'border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'
+                : 'border border-slate-800/60 bg-slate-950/20 text-slate-400 hover:bg-slate-950/30 hover:text-slate-200'
+            )}
             aria-label="Next quote"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

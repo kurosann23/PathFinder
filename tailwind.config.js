@@ -5,5 +5,7 @@ export default {
     extend: {},
   },
   plugins: [],
+  // Use class-based dark mode with custom light-mode class
+  darkMode: ['class', '.dark-mode'],
 }
 

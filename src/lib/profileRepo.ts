@@ -210,11 +210,6 @@ export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'> & { 
     role = await fetchUserRole(profile.id) || 'student' // Default to student
   }
 
-  // Ensure role is set in profiles table
-  await supabase
-    .from('profiles')
-    .upsert({ id: profile.id, role }, { onConflict: 'id' })
-
   // Note: To update role in auth.users.raw_user_meta_data.role, use Supabase Admin API
   // This requires service role key and should be done server-side or via database trigger
 
@@ -239,7 +234,7 @@ export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'> & { 
       hobbies?: string[] | null
       class?: string | null
     }
-    const studentProfile: Omit<StudentProfileRow, 'created_at'> = {
+    const studentProfile: Omit<StudentProfileRow, 'created_at'> & { role?: UserRole } = {
       id: profile.id,
       full_name: profile.full_name,
       class: profileWithStudentFields.class ?? null,
@@ -249,8 +244,30 @@ export async function upsertProfile(profile: Omit<ProfileRow, 'created_at'> & { 
       skills: profileWithStudentFields.skills ?? null,
       interests: profileWithStudentFields.interests ?? null,
       hobbies: profileWithStudentFields.hobbies ?? null,
+      role: role, // Include role field for profiles table
     }
-    return await upsertStudentProfile(studentProfile)
+    // Upsert student profile with all fields including role
+    // This ensures role is set without overwriting other data
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({ ...studentProfile }, { onConflict: 'id' })
+      .select('*')
+      .maybeSingle()
+
+    if (error) {
+      const msg = error.message || 'Failed to save student profile.'
+      const lower = msg.toLowerCase()
+      const hint =
+        lower.includes('row-level security') || lower.includes('permission denied')
+          ? ' (RLS blocked write. Add INSERT/UPDATE policies for public.profiles.)'
+          : lower.includes('column') && lower.includes('does not exist')
+            ? ' (Missing columns. Check profiles table schema.)'
+          : lower.includes('relation') && lower.includes('does not exist')
+            ? ' (Table missing. Create profiles table.)'
+            : ''
+      throw new Error(`${msg}${hint}`)
+    }
+    return data as StudentProfileRow
   }
 }
 

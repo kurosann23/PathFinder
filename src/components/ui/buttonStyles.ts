@@ -32,15 +32,20 @@ export function buttonClasses(opts?: {
     primary:
       'border border-blue-500/30 bg-blue-500/12 text-slate-50 ' +
       'shadow-[0_0_20px_rgba(59,130,246,0.18)] ' +
-      'hover:bg-blue-500/16',
+      'hover:bg-blue-500/16 ' +
+      'light-mode:border-blue-500/50 light-mode:bg-blue-500/15 light-mode:text-blue-700 light-mode:shadow-sm light-mode:hover:bg-blue-500/25',
     secondary:
-      'border border-slate-800/60 bg-slate-950/25 text-slate-200 hover:bg-slate-950/35',
+      'border border-slate-800/60 bg-slate-950/25 text-slate-200 hover:bg-slate-950/35 ' +
+      'light-mode:border-slate-300/60 light-mode:bg-slate-100 light-mode:text-slate-800 light-mode:hover:bg-slate-200',
     ghost:
-      'border border-transparent bg-transparent text-slate-200 hover:border-slate-800/60 hover:bg-slate-950/20',
+      'border border-transparent bg-transparent text-slate-200 hover:border-slate-800/60 hover:bg-slate-950/20 ' +
+      'light-mode:text-slate-700 light-mode:hover:border-slate-300/60 light-mode:hover:bg-slate-100',
     danger:
-      'border border-rose-500/25 bg-rose-500/10 text-rose-100 hover:bg-rose-500/14',
+      'border border-rose-500/25 bg-rose-500/10 text-rose-100 hover:bg-rose-500/14 ' +
+      'light-mode:border-rose-500/40 light-mode:bg-rose-50 light-mode:text-rose-800 light-mode:hover:bg-rose-100',
     icon:
-      'rounded-xl border border-slate-800/60 bg-slate-950/25 p-2 text-slate-200 hover:bg-slate-950/35',
+      'rounded-xl border border-slate-800/60 bg-slate-950/25 p-2 text-slate-200 hover:bg-slate-950/35 ' +
+      'light-mode:border-slate-300/60 light-mode:bg-slate-100 light-mode:text-slate-700 light-mode:hover:bg-slate-200',
   }
 
   return cn(base, sizes[size], variants[variant], fullWidth && 'w-full', className)

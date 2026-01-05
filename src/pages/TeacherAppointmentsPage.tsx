@@ -10,18 +10,28 @@ import {
 } from '../lib/appointmentsRepo'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { cn } from '../lib/cn'
 import { IconX } from '../components/icons'
 
-const STATUS_COLORS = {
-  pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
-  approved: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  rejected: { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
-  cancelled: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' },
-}
-
 export function TeacherAppointmentsPage() {
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  
+  const STATUS_COLORS = isLight
+    ? {
+        pending: { bg: 'bg-yellow-100', text: 'text-yellow-900', border: 'border-yellow-300' },
+        approved: { bg: 'bg-emerald-100', text: 'text-emerald-900', border: 'border-emerald-300' },
+        rejected: { bg: 'bg-rose-100', text: 'text-rose-900', border: 'border-rose-300' },
+        cancelled: { bg: 'bg-orange-100', text: 'text-orange-900', border: 'border-orange-300' },
+      }
+    : {
+        pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
+        approved: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+        rejected: { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
+        cancelled: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' },
+      }
   const [appointments, setAppointments] = useState<AppointmentWithNames[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
@@ -421,8 +431,16 @@ export function TeacherAppointmentsPage() {
           {cancelledAppointments.length > 0 && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide">Cancelled Appointments</h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <h3 className={cn(
+                  "text-sm font-semibold uppercase tracking-wide",
+                  isLight ? "text-slate-900" : ""
+                )}>
+                  Cancelled Appointments
+                </h3>
+                <p className={cn(
+                  "mt-1 text-xs",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
                   {cancelledAppointments.length} cancelled appointment{cancelledAppointments.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -432,7 +450,10 @@ export function TeacherAppointmentsPage() {
                   return (
                     <div
                       key={appointment.id}
-                      className="rounded-lg border border-slate-800/50 bg-slate-950/20"
+                      className={cn(
+                        "rounded-lg border",
+                        isLight ? "border-slate-200 bg-white" : "border-slate-800/50 bg-slate-950/20"
+                      )}
                     >
                       <button
                         type="button"
@@ -445,7 +466,10 @@ export function TeacherAppointmentsPage() {
                           }
                           setExpandedRejected(newExpanded)
                         }}
-                        className="w-full p-3 flex items-center justify-between gap-3 text-left hover:bg-slate-950/30 transition"
+                        className={cn(
+                          "w-full p-3 flex items-center justify-between gap-3 text-left transition",
+                          isLight ? "hover:bg-slate-50" : "hover:bg-slate-950/30"
+                        )}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span
@@ -458,14 +482,23 @@ export function TeacherAppointmentsPage() {
                           >
                             Cancelled
                           </span>
-                          <span className="text-sm font-medium text-slate-300 truncate">
+                          <span className={cn(
+                            "text-sm font-medium truncate",
+                            isLight ? "text-slate-700" : "text-slate-300"
+                          )}>
                             {appointment.student_name || 'Student'}
                           </span>
-                          <span className="text-xs text-slate-400 shrink-0">{formatDate(appointment.date)}</span>
+                          <span className={cn(
+                            "text-xs shrink-0",
+                            isLight ? "text-slate-600" : "text-slate-400"
+                          )}>
+                            {formatDate(appointment.date)}
+                          </span>
                         </div>
                         <svg
                           className={cn(
-                            'w-4 h-4 text-slate-400 shrink-0 transition-transform',
+                            'w-4 h-4 shrink-0 transition-transform',
+                            isLight ? "text-slate-600" : "text-slate-400",
                             isExpanded && 'rotate-180',
                           )}
                           fill="none"
@@ -476,27 +509,66 @@ export function TeacherAppointmentsPage() {
                         </svg>
                       </button>
                       {isExpanded && (
-                        <div className="px-3 pb-3 pt-2 border-t border-slate-800/30 space-y-2">
+                        <div className={cn(
+                          "px-3 pb-3 pt-2 border-t space-y-2",
+                          isLight ? "border-slate-200" : "border-slate-800/30"
+                        )}>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div>
-                              <span className="text-slate-400">Time:</span>
-                              <span className="ml-2 text-slate-300">{formatTime(appointment.time)}</span>
+                              <span className={cn(isLight ? "text-slate-600" : "text-slate-400")}>Time:</span>
+                              <span className={cn(
+                                "ml-2",
+                                isLight ? "text-slate-700" : "text-slate-300"
+                              )}>
+                                {formatTime(appointment.time)}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-slate-400">Mode:</span>
-                              <span className="ml-2 text-slate-300 capitalize">{appointment.mode}</span>
+                              <span className={cn(isLight ? "text-slate-600" : "text-slate-400")}>Mode:</span>
+                              <span className={cn(
+                                "ml-2 capitalize",
+                                isLight ? "text-slate-700" : "text-slate-300"
+                              )}>
+                                {appointment.mode}
+                              </span>
                             </div>
                           </div>
                           {appointment.reason && (
-                            <div className="pt-2 border-t border-slate-800/30">
-                              <div className="text-xs text-slate-400 mb-1">Reason:</div>
-                              <div className="text-xs text-slate-300">{appointment.reason}</div>
+                            <div className={cn(
+                              "pt-2 border-t",
+                              isLight ? "border-slate-200" : "border-slate-800/30"
+                            )}>
+                              <div className={cn(
+                                "text-xs mb-1",
+                                isLight ? "text-slate-600" : "text-slate-400"
+                              )}>
+                                Reason:
+                              </div>
+                              <div className={cn(
+                                "text-xs",
+                                isLight ? "text-slate-700" : "text-slate-300"
+                              )}>
+                                {appointment.reason}
+                              </div>
                             </div>
                           )}
                           {appointment.cancellation_reason && (
-                            <div className="pt-2 border-t border-slate-800/30">
-                              <div className="text-xs text-slate-400 mb-1">Cancellation Reason:</div>
-                              <div className="text-xs text-slate-300">{appointment.cancellation_reason}</div>
+                            <div className={cn(
+                              "pt-2 border-t",
+                              isLight ? "border-slate-200" : "border-slate-800/30"
+                            )}>
+                              <div className={cn(
+                                "text-xs mb-1",
+                                isLight ? "text-slate-600" : "text-slate-400"
+                              )}>
+                                Cancellation Reason:
+                              </div>
+                              <div className={cn(
+                                "text-xs",
+                                isLight ? "text-slate-700" : "text-slate-300"
+                              )}>
+                                {appointment.cancellation_reason}
+                              </div>
                             </div>
                           )}
                         </div>

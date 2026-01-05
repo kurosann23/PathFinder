@@ -4,9 +4,12 @@ import { Card } from '../components/ui/Card'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
 import { Button } from '../components/ui/Button'
+import { useTheme } from '../context/ThemeContext'
 
 export function SignUpPage() {
   const nav = useNavigate()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   const [fullName, setFullName] = useState('')
   const [studentClass, setStudentClass] = useState('')
@@ -78,63 +81,111 @@ export function SignUpPage() {
     <Card
       title="Sign Up"
       right={
-        <span className="rounded-xl bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 ring-1 ring-slate-800/70">
+        <span className={cn(
+          'rounded-xl px-3 py-2 text-xs font-semibold ring-1',
+          isLight
+            ? 'bg-blue-50 text-blue-700 ring-blue-200'
+            : 'bg-slate-950/40 text-slate-200 ring-slate-800/70'
+        )}>
           Student
         </span>
       }
     >
       <div className="space-y-4">
         <div>
-          <div className="text-2xl font-semibold text-slate-100">Create your account</div>
-          <div className="mt-1 text-sm text-slate-400">
+          <div className={cn(
+            'text-2xl font-semibold',
+            isLight ? 'text-slate-900' : 'text-slate-100'
+          )}>Create your account</div>
+          <div className={cn(
+            'mt-1 text-sm',
+            isLight ? 'text-slate-600' : 'text-slate-400'
+          )}>
             Email + password authentication using Supabase.
           </div>
         </div>
 
         <label className="block">
-          <div className="text-xs font-semibold text-slate-400">Full Name</div>
+          <div className={cn(
+            'text-xs font-semibold',
+            isLight ? 'text-slate-700' : 'text-slate-400'
+          )}>Full Name</div>
           <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className={cn(
+              'mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2',
+              isLight
+                ? 'border-slate-200 bg-white text-slate-900 focus:ring-blue-500/30'
+                : 'border-slate-800/70 bg-slate-950/40 text-slate-100 focus:ring-blue-500/20'
+            )}
             placeholder="Your name"
           />
         </label>
 
         <label className="block">
-          <div className="text-xs font-semibold text-slate-400">Class</div>
+          <div className={cn(
+            'text-xs font-semibold',
+            isLight ? 'text-slate-700' : 'text-slate-400'
+          )}>Class</div>
           <input
             value={studentClass}
             onChange={(e) => setStudentClass(e.target.value)}
-            className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className={cn(
+              'mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2',
+              isLight
+                ? 'border-slate-200 bg-white text-slate-900 focus:ring-blue-500/30'
+                : 'border-slate-800/70 bg-slate-950/40 text-slate-100 focus:ring-blue-500/20'
+            )}
             placeholder="e.g., DIT 5A / CS 2025"
           />
         </label>
 
         <label className="block">
-          <div className="text-xs font-semibold text-slate-400">Email</div>
+          <div className={cn(
+            'text-xs font-semibold',
+            isLight ? 'text-slate-700' : 'text-slate-400'
+          )}>Email</div>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
-            className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className={cn(
+              'mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2',
+              isLight
+                ? 'border-slate-200 bg-white text-slate-900 focus:ring-blue-500/30'
+                : 'border-slate-800/70 bg-slate-950/40 text-slate-100 focus:ring-blue-500/20'
+            )}
             placeholder="student@email.com"
           />
         </label>
 
         <label className="block">
-          <div className="text-xs font-semibold text-slate-400">Password</div>
+          <div className={cn(
+            'text-xs font-semibold',
+            isLight ? 'text-slate-700' : 'text-slate-400'
+          )}>Password</div>
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className={cn(
+              'mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2',
+              isLight
+                ? 'border-slate-200 bg-white text-slate-900 focus:ring-blue-500/30'
+                : 'border-slate-800/70 bg-slate-950/40 text-slate-100 focus:ring-blue-500/20'
+            )}
             placeholder="Minimum 6 characters"
           />
         </label>
 
         {error && (
-          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100">
+          <div className={cn(
+            'rounded-2xl border px-4 py-3 text-sm font-semibold',
+            isLight
+              ? 'border-rose-300 bg-rose-50 text-rose-800'
+              : 'border-rose-500/20 bg-rose-500/10 text-rose-100'
+          )}>
             {error}
           </div>
         )}
@@ -151,9 +202,17 @@ export function SignUpPage() {
           {loading ? 'Creating account…' : 'Create Account'}
         </Button>
 
-        <div className="text-center text-sm text-slate-400">
+        <div className={cn(
+          'text-center text-sm',
+          isLight ? 'text-slate-600' : 'text-slate-400'
+        )}>
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-slate-200 hover:text-slate-50">
+          <Link to="/login" className={cn(
+            'font-semibold',
+            isLight
+              ? 'text-blue-600 hover:text-blue-700'
+              : 'text-slate-200 hover:text-slate-50'
+          )}>
             Login
           </Link>
         </div>

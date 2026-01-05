@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { Avatar } from '../components/ui/Avatar'
 import { useProfile } from '../context/ProfileContext'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { IconArrowRight, IconEdit } from '../components/icons'
 import { fetchAllQuestionsForTeachers, type QuestionRow } from '../lib/questionsRepo'
 import { fetchAllCoursesForTeachers, type CourseRow } from '../lib/coursesRepo'
@@ -33,6 +34,8 @@ function withCacheBust(url: string | null | undefined, revision: number): string
 export function TeacherDashboardPage() {
   const { profile } = useProfile()
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [questions, setQuestions] = useState<QuestionRow[]>([])
   const [courses, setCourses] = useState<CourseRow[]>([])
   const [loading, setLoading] = useState(true)

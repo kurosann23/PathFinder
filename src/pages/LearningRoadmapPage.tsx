@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { useUserProgress } from '../context/UserProgressContext'
+import { useTheme } from '../context/ThemeContext'
 import { cn } from '../lib/cn'
 import {
   IconBook,
@@ -42,12 +43,21 @@ type RoadmapNode = {
 
 function IconBadge(props: { accent: Accent; children: ReactNode }) {
   const { accent, children } = props
-  const styles: Record<Accent, string> = {
-    blue: 'bg-blue-600/20 text-blue-100 ring-blue-500/25',
-    emerald: 'bg-emerald-600/20 text-emerald-100 ring-emerald-500/25',
-    violet: 'bg-violet-600/20 text-violet-100 ring-violet-500/25',
-    orange: 'bg-orange-600/20 text-orange-100 ring-orange-500/25',
-  }
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  const styles: Record<Accent, string> = isLight
+    ? {
+        blue: 'bg-blue-100 text-blue-900 ring-blue-300',
+        emerald: 'bg-emerald-100 text-emerald-900 ring-emerald-300',
+        violet: 'bg-violet-100 text-violet-900 ring-violet-300',
+        orange: 'bg-orange-100 text-orange-900 ring-orange-300',
+      }
+    : {
+        blue: 'bg-blue-600/20 text-blue-100 ring-blue-500/25',
+        emerald: 'bg-emerald-600/20 text-emerald-100 ring-emerald-500/25',
+        violet: 'bg-violet-600/20 text-violet-100 ring-violet-500/25',
+        orange: 'bg-orange-600/20 text-orange-100 ring-orange-500/25',
+      }
   return (
     <span className={cn('grid size-11 place-items-center rounded-2xl ring-1', styles[accent])}>
       {children}
@@ -88,7 +98,35 @@ function ArrowDown() {
   )
 }
 
-function accentClasses(accent: Accent) {
+function accentClasses(accent: Accent, isLight: boolean) {
+  if (isLight) {
+    switch (accent) {
+      case 'emerald':
+        return {
+          node: 'bg-emerald-50 ring-emerald-300 text-emerald-900',
+          line: 'bg-emerald-400',
+          glow: 'shadow-[0_0_0_1px_rgba(16,185,129,0.15),0_0_15px_rgba(16,185,129,0.08)]',
+        }
+      case 'violet':
+        return {
+          node: 'bg-violet-50 ring-violet-300 text-violet-900',
+          line: 'bg-violet-400',
+          glow: 'shadow-[0_0_0_1px_rgba(167,139,250,0.15),0_0_15px_rgba(167,139,250,0.08)]',
+        }
+      case 'orange':
+        return {
+          node: 'bg-orange-50 ring-orange-300 text-orange-900',
+          line: 'bg-orange-400',
+          glow: 'shadow-[0_0_0_1px_rgba(251,146,60,0.15),0_0_15px_rgba(251,146,60,0.08)]',
+        }
+      default: // blue
+        return {
+          node: 'bg-blue-50 ring-blue-300 text-blue-900',
+          line: 'bg-blue-400',
+          glow: 'shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_15px_rgba(59,130,246,0.08)]',
+        }
+    }
+  }
   switch (accent) {
     case 'emerald':
       return {
@@ -119,6 +157,8 @@ function accentClasses(accent: Accent) {
 
 export function LearningRoadmapPage() {
   const { progress } = useUserProgress()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [selected, setSelected] = useState<RoadmapNodeKey>('psychometric')
 
   const stepStatus = useMemo(() => {
@@ -277,33 +317,52 @@ export function LearningRoadmapPage() {
 
   function RoadmapNodeCard(props: { node: RoadmapNode; active: boolean }) {
     const { node, active } = props
-    const accent = accentClasses(node.accent)
+    const accent = accentClasses(node.accent, isLight)
     const done = nodeStatus[node.key]
     return (
       <button
         type="button"
         onClick={() => setSelected(node.key)}
         className={cn(
-          'group w-full rounded-3xl border bg-slate-950/25 px-4 py-4 text-left transition hover:bg-slate-900/40',
-          active ? 'border-blue-500/35 ring-1 ring-blue-500/15' : 'border-slate-800/70',
+          'group w-full rounded-3xl border px-4 py-4 text-left transition',
+          isLight
+            ? active
+              ? 'border-blue-400 bg-blue-50/50 ring-1 ring-blue-300 hover:bg-blue-50'
+              : 'border-slate-200 bg-white hover:bg-slate-50'
+            : active
+              ? 'border-blue-500/35 bg-slate-950/25 ring-1 ring-blue-500/15 hover:bg-slate-900/40'
+              : 'border-slate-800/70 bg-slate-950/25 hover:bg-slate-900/40',
         )}
       >
         <div className="flex items-start gap-4">
           <div className={cn('shrink-0 rounded-3xl ring-1', accent.node, active && accent.glow)}>
             <div className="p-3">
               <IconBadge accent={node.accent}>
-                {done ? <IconCheck size={18} className="text-emerald-200" /> : node.icon({ className: 'text-current' })}
+                {done ? <IconCheck size={18} className={cn(isLight ? "text-emerald-700" : "text-emerald-200")} /> : node.icon({ className: 'text-current' })}
               </IconBadge>
             </div>
           </div>
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-xl bg-slate-950/40 px-3 py-1 text-[11px] font-semibold text-slate-200 ring-1 ring-slate-800/70">
+            <div className={cn(
+              "inline-flex items-center gap-2 rounded-xl px-3 py-1 text-[11px] font-semibold ring-1",
+              isLight
+                ? "bg-slate-100 text-slate-800 ring-slate-300"
+                : "bg-slate-950/40 text-slate-200 ring-slate-800/70"
+            )}>
               {node.badge}
             </div>
-            <div className={cn('mt-2 text-base font-semibold', active ? 'text-blue-100' : 'text-slate-100')}>
+            <div className={cn(
+              'mt-2 text-base font-semibold',
+              isLight
+                ? active ? 'text-blue-900' : 'text-slate-900'
+                : active ? 'text-blue-100' : 'text-slate-100'
+            )}>
               {node.title}
             </div>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-400">
+            <ul className={cn(
+              "mt-2 list-disc space-y-1 pl-5 text-xs",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
               {node.bullets.slice(0, 3).map((b) => (
                 <li key={b}>{b}</li>
               ))}
@@ -317,13 +376,19 @@ export function LearningRoadmapPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <div className="text-3xl font-semibold tracking-tight text-slate-100 md:text-4xl">
+        <div className={cn(
+          "text-3xl font-semibold tracking-tight md:text-4xl",
+          isLight ? "text-slate-900" : "text-slate-100"
+        )}>
           Roadmap To Learn{' '}
           <span className="bg-gradient-to-r from-amber-300 via-emerald-200 to-sky-300 bg-clip-text text-transparent">
             Technology
           </span>
         </div>
-        <div className="text-sm text-slate-400">
+        <div className={cn(
+          "text-sm",
+          isLight ? "text-slate-600" : "text-slate-400"
+        )}>
           Visual guidance only (not an LMS). Click each node to see what it means and what to do next.
         </div>
       </div>
@@ -332,31 +397,51 @@ export function LearningRoadmapPage() {
         <Card title="Roadmap Progress" className="xl:col-span-2">
           <div className="space-y-4">
             <ProgressBar label="Overall" value={overallPercent} barClass="bg-violet-400" />
-            <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-3">
+            <div className={cn(
+              "rounded-2xl border px-4 py-3",
+              isLight
+                ? "border-slate-200 bg-slate-50"
+                : "border-slate-800/70 bg-slate-950/30"
+            )}>
               <div className="flex items-center justify-between gap-4">
-                <div className="text-sm font-semibold text-slate-100">
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
                   {completedCount} / {nodes.length} steps completed
                 </div>
-                <div className="text-xs font-semibold text-slate-300">
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-700" : "text-slate-300"
+                )}>
                   {overallPercent}%
                 </div>
               </div>
               {nextRecommended && (
-                <div className="mt-2 text-xs text-slate-400">
+                <div className={cn(
+                  "mt-2 text-xs",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
                   Recommended next step:{' '}
-                  <span className="font-semibold text-slate-200">
+                  <span className={cn(
+                    "font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-200"
+                  )}>
                     {nextRecommended.detailTitle}
                   </span>
                 </div>
               )}
             </div>
-            <div className="text-sm text-slate-400">
+            <div className={cn(
+              "text-sm",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
               Tip: This roadmap is guidance-oriented. Focus on small, repeatable goals and improve week by week.
             </div>
           </div>
         </Card>
 
-        <Card title="Visual Roadmap (Infographic Style)" right={<span className="text-xs text-slate-400">Like your reference</span>} className="xl:col-span-3">
+        <Card title="Visual Roadmap (Infographic Style)" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>Like your reference</span>} className="xl:col-span-3">
           {/* Desktop infographic: 3x3 snake layout */}
           <div className="hidden lg:block">
             <div className="space-y-4">
@@ -426,31 +511,75 @@ export function LearningRoadmapPage() {
       <Card
         title="Node Details"
         right={
-          <span className="text-xs text-slate-400">
+          <span className={cn(
+            "text-xs",
+            isLight ? "text-slate-600" : "text-slate-400"
+          )}>
             {activeNode.key.toUpperCase()}
           </span>
         }
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-slate-400">Selected node</div>
-                <div className="mt-2 text-lg font-semibold text-slate-100">{activeNode.detailTitle}</div>
-                <div className="mt-1 text-sm text-slate-300/90">{activeNode.title}</div>
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Selected node
+                </div>
+                <div className={cn(
+                  "mt-2 text-lg font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
+                  {activeNode.detailTitle}
+                </div>
+                <div className={cn(
+                  "mt-1 text-sm",
+                  isLight ? "text-slate-700" : "text-slate-300/90"
+                )}>
+                  {activeNode.title}
+                </div>
               </div>
-              <div className="shrink-0 rounded-2xl bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 ring-1 ring-slate-800/70">
+              <div className={cn(
+                "shrink-0 rounded-2xl px-3 py-2 text-xs font-semibold ring-1",
+                isLight
+                  ? "bg-slate-100 text-slate-800 ring-slate-300"
+                  : "bg-slate-950/40 text-slate-200 ring-slate-800/70"
+              )}>
                 {nodeStatus[activeNode.key] ? 'Done' : 'Next'}
               </div>
             </div>
-            <div className="mt-4 text-sm text-slate-300/90">{activeNode.detailText}</div>
+            <div className={cn(
+              "mt-4 text-sm",
+              isLight ? "text-slate-700" : "text-slate-300/90"
+            )}>
+              {activeNode.detailText}
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">Quick actions</div>
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Quick actions
+            </div>
             <div className="mt-3 space-y-2">
               {activeNode.bullets.map((b) => (
-                <div key={b} className="flex items-start gap-3 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
+                <div key={b} className={cn(
+                  "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm",
+                  isLight
+                    ? "border-slate-200 bg-slate-50 text-slate-700"
+                    : "border-slate-800/70 bg-slate-950/40 text-slate-200"
+                )}>
                   <span className="mt-0.5 block size-2 rounded-full bg-blue-300/80" />
                   <span className="leading-snug">{b}</span>
                 </div>
@@ -458,21 +587,42 @@ export function LearningRoadmapPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">Action</div>
-            <div className="mt-2 text-sm text-slate-300/90">
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Action
+            </div>
+            <div className={cn(
+              "mt-2 text-sm",
+              isLight ? "text-slate-700" : "text-slate-300/90"
+            )}>
               Jump to the relevant page to complete this step.
             </div>
             <div className="mt-4">
               <Link
                 to={activeNode.cta.to}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-600/20 px-4 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25"
+                className={cn(
+                  "inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold ring-1 transition",
+                  isLight
+                    ? "bg-blue-500 text-white ring-blue-500/30 hover:bg-blue-600"
+                    : "bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25"
+                )}
               >
                 {activeNode.cta.label}
               </Link>
             </div>
-            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-xs text-slate-400">
-              <IconPin size={16} className="text-slate-300" />
+            <div className={cn(
+              "mt-4 flex items-center gap-2 rounded-2xl border px-4 py-3 text-xs",
+              isLight
+                ? "border-slate-200 bg-slate-50 text-slate-600"
+                : "border-slate-800/70 bg-slate-950/40 text-slate-400"
+            )}>
+              <IconPin size={16} className={cn(isLight ? "text-slate-600" : "text-slate-300")} />
               This roadmap is guidance-only (no grading, no syllabus).
             </div>
           </div>

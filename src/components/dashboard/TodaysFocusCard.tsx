@@ -3,6 +3,7 @@ import { Card } from '../ui/Card'
 import { buttonClasses } from '../ui/buttonStyles'
 import { cn } from '../../lib/cn'
 import { IconCheck } from '../icons'
+import { useTheme } from '../../context/ThemeContext'
 
 export type FocusTask = {
   id: string
@@ -68,54 +69,81 @@ export function TodaysFocusCard(props: {
   rewards?: RewardBadge[]
 }) {
   const { title = "Today's Focus", tasks, rewards = [] } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   return (
     <Card
       title={title}
       right={
-        <div className="rounded-full border border-slate-800/60 bg-slate-950/20 px-3 py-1 text-xs font-semibold text-slate-200">
+        <div className={cn(
+          'rounded-full border px-4 py-1.5 text-sm font-bold',
+          isLight 
+            ? 'border-blue-300 bg-blue-100 text-blue-700 shadow-sm' 
+            : 'border-slate-800/60 bg-slate-950/20 text-slate-200'
+        )}>
           + 50 XP
         </div>
       }
     >
-      <div className="space-y-3">
+      <div className={cn('space-y-3', isLight && 'space-y-4')}>
         {tasks.map((t) => (
           <Link
             key={t.id}
             to={t.to}
             className={cn(
-              'flex items-center justify-between gap-4 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3',
-              'hover:bg-slate-950/26',
+              'flex items-center justify-between gap-4 rounded-2xl border px-5 transition-all',
+              isLight 
+                ? 'border-blue-100/60 bg-white py-4 shadow-sm hover:shadow-md hover:border-blue-200/60' 
+                : 'border-slate-800/60 bg-slate-950/18 py-3 hover:bg-slate-950/26',
             )}
           >
-            <div className="flex min-w-0 items-center gap-3">
+            <div className="flex min-w-0 items-center gap-4">
               <div
                 className={cn(
-                  'grid size-8 place-items-center rounded-full border',
+                  'grid place-items-center rounded-full border-2',
                   t.done
-                    ? 'border-blue-500/30 bg-blue-500/12 text-blue-200'
-                    : 'border-slate-800/60 bg-slate-950/20 text-slate-200',
+                    ? isLight
+                      ? 'size-12 border-blue-400 bg-blue-50 text-blue-600 shadow-sm'
+                      : 'size-8 border-blue-500/30 bg-blue-500/12 text-blue-200'
+                    : isLight
+                      ? 'size-12 border-slate-300 bg-slate-50'
+                      : 'size-8 border-slate-800/60 bg-slate-950/20 text-slate-200',
                 )}
               >
                 {t.done ? (
-                  <IconCheck size={16} />
+                  <IconCheck size={isLight ? 20 : 16} />
                 ) : (
-                  <span className="block size-2 rounded-full bg-slate-200/70 opacity-70" />
+                  <span className={cn(
+                    'block rounded-full',
+                    isLight ? 'size-3 bg-slate-400' : 'size-2 bg-slate-200/70 opacity-70'
+                  )} />
                 )}
               </div>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-slate-100">
+              <div className="min-w-0 flex-1">
+                <div className={cn(
+                  'truncate font-semibold',
+                  isLight ? 'text-base text-slate-900' : 'text-sm text-slate-100'
+                )}>
                   {t.title}
                 </div>
                 {t.subtitle && (
-                  <div className="mt-0.5 text-xs text-slate-400">
+                  <div className={cn(
+                    'mt-1',
+                    isLight ? 'text-sm text-slate-600' : 'text-xs text-slate-400'
+                  )}>
                     {t.subtitle}
                   </div>
                 )}
               </div>
             </div>
             <div className="shrink-0">
-              <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1 text-xs font-semibold text-slate-200">
+              <span className={cn(
+                'rounded-full border px-4 py-1.5 font-bold',
+                isLight 
+                  ? 'border-blue-300 bg-blue-100 text-sm text-blue-700 shadow-sm' 
+                  : 'border-slate-800/60 bg-slate-950/18 text-xs text-slate-200'
+              )}>
                 + {t.xp} XP
               </span>
             </div>
@@ -124,14 +152,22 @@ export function TodaysFocusCard(props: {
 
         {rewards.length > 0 && (
           <div className="pt-3">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+            <div className={cn(
+              'mb-2 text-xs font-semibold uppercase tracking-[0.14em]',
+              isLight ? 'text-slate-600' : 'text-slate-300/70'
+            )}>
               Rewards
             </div>
             <div className="flex items-center gap-2">
               {rewards.slice(0, 6).map((r) => (
                 <div
                   key={r.id}
-                  className="grid size-10 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/18 text-xs font-semibold text-slate-200"
+                  className={cn(
+                    'grid size-10 place-items-center rounded-2xl border text-xs font-semibold',
+                    isLight 
+                      ? 'border-slate-200 bg-slate-50 text-slate-700' 
+                      : 'border-slate-800/60 bg-slate-950/18 text-slate-200'
+                  )}
                 >
                   {r.type === 'count' ? (
                     <span className="text-sm font-semibold tabular-nums">{r.value}</span>

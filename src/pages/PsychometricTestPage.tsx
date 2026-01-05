@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
+import { useTheme } from '../context/ThemeContext'
 import type { RiasecType } from '../constants/dashboard'
 import { cn } from '../lib/cn'
 import { riasecQuestions } from '../data/riasecQuestions.js'
@@ -184,6 +185,8 @@ export function PsychometricTestPage() {
   const { user } = useAuth()
   const { profile } = useProfile()
   const { hasPermission } = useRole()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
@@ -196,9 +199,11 @@ export function PsychometricTestPage() {
           subtitle="This feature is only available for students."
         />
         <Card title="Permission Denied">
-          <div className="space-y-3 text-sm text-slate-300">
+          <div className={cn('space-y-3 text-sm', isLight ? 'text-slate-700' : 'text-slate-300')}>
             <p>Teachers cannot take the psychometric test.</p>
-            <p className="text-xs text-slate-400">Please contact an administrator if you believe this is an error.</p>
+            <p className={cn('text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
+              Please contact an administrator if you believe this is an error.
+            </p>
           </div>
         </Card>
       </div>
@@ -535,7 +540,9 @@ export function PsychometricTestPage() {
 
               <div className="text-xs text-slate-400">
                 {t.answered}:{' '}
-                <span className="font-semibold text-slate-200">{answeredCount}</span> /{' '}
+                <span className={cn('font-semibold', isLight ? 'text-slate-800' : 'text-slate-200')}>
+                  {answeredCount}
+                </span> /{' '}
                 {translatedQuestions.length}
               </div>
 
@@ -586,8 +593,10 @@ export function PsychometricTestPage() {
 
         {/* What is this test section */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-100">{t.whatIsTest}</h2>
-          <p className="max-w-3xl text-base leading-relaxed text-slate-300/90">
+          <h2 className={cn('text-xl font-bold', isLight ? 'text-slate-900' : 'text-slate-100')}>
+            {t.whatIsTest}
+          </h2>
+          <p className={cn('max-w-3xl text-base leading-relaxed', isLight ? 'text-slate-700' : 'text-slate-300/90')}>
             {t.whatIsTestDesc}
           </p>
           
@@ -606,24 +615,50 @@ export function PsychometricTestPage() {
 
           {progress.psychometricCompleted && (
             <div className="space-y-4 pt-4">
-              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-6 py-4">
-                <div className="text-sm font-semibold text-emerald-200">
+              <div className={cn(
+                "rounded-2xl border px-6 py-4",
+                isLight
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-emerald-500/20 bg-emerald-500/10"
+              )}>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-emerald-900" : "text-emerald-200"
+                )}>
                   {t.testCompleted}
                 </div>
-                <div className="mt-2 text-sm text-slate-200">
-                  {t.yourHollandCode} <span className="font-semibold">{progress.psychometricResult}</span>
+                <div className={cn(
+                  "mt-2 text-sm",
+                  isLight ? "text-slate-700" : "text-slate-200"
+                )}>
+                  {t.yourHollandCode} <span className={cn(
+                    "font-semibold",
+                    isLight ? "text-slate-900" : ""
+                  )}>
+                    {progress.psychometricResult}
+                  </span>
                 </div>
                 <div className="mt-4 flex gap-3">
                   <button
                     type="button"
                     onClick={() => void handleRetest()}
-                    className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
+                    className={cn(
+                      "rounded-2xl border px-5 py-2.5 text-sm font-semibold",
+                      isLight
+                        ? "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                        : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                    )}
                   >
                     {t.retakeTest}
                   </button>
                   <Link
                     to="/course-recommendation"
-                    className="inline-flex items-center justify-center rounded-2xl bg-emerald-600/20 px-5 py-2.5 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-500/25 hover:bg-emerald-600/25"
+                    className={cn(
+                      "inline-flex items-center justify-center rounded-2xl px-5 py-2.5 text-sm font-semibold ring-1",
+                      isLight
+                        ? "bg-emerald-500 text-white ring-emerald-500/30 hover:bg-emerald-600"
+                        : "bg-emerald-600/20 text-emerald-100 ring-emerald-500/25 hover:bg-emerald-600/25"
+                    )}
                   >
                     {t.viewRecommendations}
                   </Link>
@@ -1057,21 +1092,36 @@ function CardExpandableSection(props: {
   tint: 'yellow' | 'gold' | 'cyan'
 }) {
   const { title, icon, bullets, isExpanded, onToggle, children, tint } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
-  const iconBgClass =
-    tint === 'yellow'
+  const iconBgClass = isLight
+    ? tint === 'yellow'
+      ? 'bg-yellow-100 border-yellow-300'
+      : tint === 'gold'
+        ? 'bg-amber-100 border-amber-300'
+        : 'bg-cyan-100 border-cyan-300'
+    : tint === 'yellow'
       ? 'bg-yellow-500/20 border-yellow-500/30'
       : tint === 'gold'
         ? 'bg-amber-500/20 border-amber-500/30'
         : 'bg-cyan-500/20 border-cyan-500/30'
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-950/18 shadow-[0_12px_44px_rgba(0,0,0,0.26)] ring-1 ring-white/5 transition-all duration-300 hover:shadow-[0_16px_48px_rgba(0,0,0,0.32)]">
+    <div className={cn(
+      "relative overflow-hidden rounded-3xl border transition-all duration-300",
+      isLight
+        ? "border-slate-200 bg-white shadow-md hover:shadow-lg"
+        : "border-slate-700/60 bg-slate-950/18 shadow-[0_12px_44px_rgba(0,0,0,0.26)] ring-1 ring-white/5 hover:shadow-[0_16px_48px_rgba(0,0,0,0.32)]"
+    )}>
       {/* Card header - always visible */}
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left transition-colors hover:bg-slate-950/25"
+        className={cn(
+          "w-full text-left transition-colors",
+          isLight ? "hover:bg-slate-50" : "hover:bg-slate-950/25"
+        )}
         aria-expanded={isExpanded}
       >
         <div className="p-6">
@@ -1081,13 +1131,24 @@ function CardExpandableSection(props: {
           </div>
 
           {/* Title */}
-          <h2 className="mb-4 text-2xl font-bold text-slate-50">{title}</h2>
+          <h2 className={cn(
+            "mb-4 text-2xl font-bold",
+            isLight ? "text-slate-900" : "text-slate-50"
+          )}>
+            {title}
+          </h2>
 
           {/* Bullet points */}
           <ul className="space-y-2">
             {bullets.map((bullet, idx) => (
-              <li key={idx} className="flex items-center gap-2 text-base text-slate-300/80">
-                <span className="size-1.5 rounded-full bg-slate-300/60" />
+              <li key={idx} className={cn(
+                "flex items-center gap-2 text-base",
+                isLight ? "text-slate-700" : "text-slate-300/80"
+              )}>
+                <span className={cn(
+                  "size-1.5 rounded-full",
+                  isLight ? "bg-slate-600" : "bg-slate-300/60"
+                )} />
                 <span>{bullet}</span>
               </li>
             ))}
@@ -1095,15 +1156,26 @@ function CardExpandableSection(props: {
 
           {/* Expand indicator */}
           <div className="mt-6 flex items-center justify-between">
-            <span className="inline-flex items-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-950/20 px-5 py-3 text-sm font-semibold text-slate-200 ring-1 ring-slate-800/40">
-              <span className="grid size-7 place-items-center rounded-xl border border-white/10 bg-white/5 text-xs">
+            <span className={cn(
+              "inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold",
+              isLight
+                ? "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                : "border-slate-800/60 bg-slate-950/20 text-slate-200 ring-1 ring-slate-800/40"
+            )}>
+              <span className={cn(
+                "grid size-7 place-items-center rounded-xl border text-xs",
+                isLight
+                  ? "border-slate-300 bg-white text-slate-700"
+                  : "border-white/10 bg-white/5"
+              )}>
                 ⌁
               </span>
               {isExpanded ? 'Show Less' : 'Explore More'}
               <IconChevronDown
                 size={16}
                 className={cn(
-                  'ml-1 text-slate-400 transition-transform duration-300',
+                  'ml-1 transition-transform duration-300',
+                  isLight ? "text-slate-600" : "text-slate-400",
                   isExpanded && 'rotate-180',
                 )}
               />
@@ -1119,7 +1191,12 @@ function CardExpandableSection(props: {
           isExpanded ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0',
         )}
       >
-        <div className="border-t border-slate-700/60 bg-slate-950/12 px-6 pb-6 pt-6">{children}</div>
+        <div className={cn(
+          "border-t px-6 pb-6 pt-6",
+          isLight ? "border-slate-200 bg-slate-50" : "border-slate-700/60 bg-slate-950/12"
+        )}>
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -1133,6 +1210,8 @@ function InteractiveCareerPathGuidance(props: {
   onToggleTraits: () => void
 }) {
   const { name, hollandCode, report, showAllTraits, onToggleTraits } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   // Progressive disclosure: Use local state to control expand/collapse of each section
   // This reduces cognitive overload by revealing information on demand
@@ -1156,17 +1235,29 @@ function InteractiveCareerPathGuidance(props: {
   const learningFocus = report.primaryPath.learningFocus
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-950/12 p-6 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.32)] md:p-8">
-      <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(1200px_circle_at_25%_20%,black,transparent_70%)]">
-        <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_15%,rgba(59,130,246,0.14),transparent_60%),radial-gradient(900px_circle_at_85%_70%,rgba(168,85,247,0.10),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_40%)]" />
-      </div>
-      <div className="pointer-events-none absolute inset-0 ring-1 ring-white/5" />
+    <section className={cn(
+      "relative overflow-hidden rounded-3xl border p-6 backdrop-blur-xl md:p-8",
+      isLight
+        ? "border-slate-200 bg-slate-50 shadow-lg"
+        : "border-slate-700/60 bg-slate-950/12 shadow-[0_18px_60px_rgba(0,0,0,0.32)]"
+    )}>
+      {!isLight && (
+        <>
+          <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(1200px_circle_at_25%_20%,black,transparent_70%)]">
+            <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_15%,rgba(59,130,246,0.14),transparent_60%),radial-gradient(900px_circle_at_85%_70%,rgba(168,85,247,0.10),transparent_62%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_40%)]" />
+          </div>
+          <div className="pointer-events-none absolute inset-0 ring-1 ring-white/5" />
+        </>
+      )}
 
       <div className="relative space-y-6">
         {/* Header: Identity-first approach - emphasizes who the user is */}
         <div className="space-y-4">
-          <div className="text-sm font-semibold text-slate-200/90">
-            Great job, <span className="text-slate-50">{name}</span>! 🎉
+          <div className={cn(
+            "text-sm font-semibold",
+            isLight ? "text-slate-700" : "text-slate-200/90"
+          )}>
+            Great job, <span className={cn(isLight ? "text-slate-900 font-bold" : "text-slate-50")}>{name}</span>! 🎉
           </div>
 
           {/* Primary heading with prominent RIASEC letter badge */}
@@ -1179,15 +1270,24 @@ function InteractiveCareerPathGuidance(props: {
 
             {/* Identity heading and description */}
             <div className="flex-1 space-y-3">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-50 md:text-4xl lg:text-5xl">
+              <h1 className={cn(
+                "text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl",
+                isLight ? "text-slate-900" : "text-slate-50"
+              )}>
                 You are a {identityHeading}
               </h1>
               {/* Secondary label: Technology path (reduced emphasis) */}
-              <div className="text-base font-medium text-slate-300/80 md:text-lg">
+              <div className={cn(
+                "text-base font-medium md:text-lg",
+                isLight ? "text-slate-600" : "text-slate-300/80"
+              )}>
                 {heroTitle}
               </div>
               {/* Explanation text: Readable and prominent - larger font for better readability */}
-              <p className="max-w-3xl text-base leading-relaxed text-slate-300/90 md:text-lg">
+              <p className={cn(
+                "max-w-3xl text-base leading-relaxed md:text-lg",
+                isLight ? "text-slate-700" : "text-slate-300/90"
+              )}>
                 {heroDesc}
               </p>
             </div>
@@ -1195,8 +1295,13 @@ function InteractiveCareerPathGuidance(props: {
 
           {/* Metadata badges */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/25 px-3 py-1 text-xs font-semibold text-slate-200">
-              Holland Code: <span className="text-slate-50">{hollandCode}</span>
+            <span className={cn(
+              "rounded-full border px-3 py-1 text-xs font-semibold",
+              isLight
+                ? "border-blue-200 bg-blue-50 text-slate-800"
+                : "border-slate-800/60 bg-slate-950/25 text-slate-200"
+            )}>
+              Holland Code: <span className={cn(isLight ? "text-slate-900 font-bold" : "text-slate-50")}>{hollandCode}</span>
             </span>
           </div>
         </div>
@@ -1219,12 +1324,28 @@ function InteractiveCareerPathGuidance(props: {
                 return (
                   <>
                     {/* How You Think */}
-                    <div className="rounded-xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5">
-                      <h3 className="mb-4 text-lg font-semibold text-slate-100">{insights.howYouThink.title}</h3>
+                    <div className={cn(
+                      "rounded-xl border p-5 shadow-sm",
+                      isLight
+                        ? "border-slate-200 bg-white"
+                        : "border-slate-700/60 bg-slate-950/18 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5"
+                    )}>
+                      <h3 className={cn(
+                        "mb-4 text-lg font-semibold",
+                        isLight ? "text-slate-900" : "text-slate-100"
+                      )}>
+                        {insights.howYouThink.title}
+                      </h3>
                       <ul className="space-y-2.5">
                         {insights.howYouThink.bullets.map((bullet, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-base leading-relaxed text-slate-300/90">
-                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300/60" />
+                          <li key={idx} className={cn(
+                            "flex items-start gap-3 text-base leading-relaxed",
+                            isLight ? "text-slate-700" : "text-slate-300/90"
+                          )}>
+                            <span className={cn(
+                              "mt-1.5 size-1.5 shrink-0 rounded-full",
+                              isLight ? "bg-slate-600" : "bg-slate-300/60"
+                            )} />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -1232,12 +1353,28 @@ function InteractiveCareerPathGuidance(props: {
                     </div>
 
                     {/* How You Learn Best */}
-                    <div className="rounded-xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5">
-                      <h3 className="mb-4 text-lg font-semibold text-slate-100">{insights.howYouLearnBest.title}</h3>
+                    <div className={cn(
+                      "rounded-xl border p-5 shadow-sm",
+                      isLight
+                        ? "border-slate-200 bg-white"
+                        : "border-slate-700/60 bg-slate-950/18 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5"
+                    )}>
+                      <h3 className={cn(
+                        "mb-4 text-lg font-semibold",
+                        isLight ? "text-slate-900" : "text-slate-100"
+                      )}>
+                        {insights.howYouLearnBest.title}
+                      </h3>
                       <ul className="space-y-2.5">
                         {insights.howYouLearnBest.bullets.map((bullet, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-base leading-relaxed text-slate-300/90">
-                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300/60" />
+                          <li key={idx} className={cn(
+                            "flex items-start gap-3 text-base leading-relaxed",
+                            isLight ? "text-slate-700" : "text-slate-300/90"
+                          )}>
+                            <span className={cn(
+                              "mt-1.5 size-1.5 shrink-0 rounded-full",
+                              isLight ? "bg-slate-600" : "bg-slate-300/60"
+                            )} />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -1245,12 +1382,28 @@ function InteractiveCareerPathGuidance(props: {
                     </div>
 
                     {/* What You're Naturally Good At */}
-                    <div className="rounded-xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5">
-                      <h3 className="mb-4 text-lg font-semibold text-slate-100">{insights.whatYoureGoodAt.title}</h3>
+                    <div className={cn(
+                      "rounded-xl border p-5 shadow-sm",
+                      isLight
+                        ? "border-slate-200 bg-white"
+                        : "border-slate-700/60 bg-slate-950/18 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5"
+                    )}>
+                      <h3 className={cn(
+                        "mb-4 text-lg font-semibold",
+                        isLight ? "text-slate-900" : "text-slate-100"
+                      )}>
+                        {insights.whatYoureGoodAt.title}
+                      </h3>
                       <ul className="space-y-2.5">
                         {insights.whatYoureGoodAt.bullets.map((bullet, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-base leading-relaxed text-slate-300/90">
-                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300/60" />
+                          <li key={idx} className={cn(
+                            "flex items-start gap-3 text-base leading-relaxed",
+                            isLight ? "text-slate-700" : "text-slate-300/90"
+                          )}>
+                            <span className={cn(
+                              "mt-1.5 size-1.5 shrink-0 rounded-full",
+                              isLight ? "bg-slate-600" : "bg-slate-300/60"
+                            )} />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -1258,12 +1411,28 @@ function InteractiveCareerPathGuidance(props: {
                     </div>
 
                     {/* Why This Matters in Technology */}
-                    <div className="rounded-xl border border-blue-500/25 bg-blue-600/10 p-5 shadow-[0_8px_24px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20">
-                      <h3 className="mb-4 text-lg font-semibold text-blue-100">{insights.whyThisMatters.title}</h3>
+                    <div className={cn(
+                      "rounded-xl border p-5 shadow-sm",
+                      isLight
+                        ? "border-blue-200 bg-blue-50"
+                        : "border-blue-500/25 bg-blue-600/10 shadow-[0_8px_24px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20"
+                    )}>
+                      <h3 className={cn(
+                        "mb-4 text-lg font-semibold",
+                        isLight ? "text-blue-900" : "text-blue-100"
+                      )}>
+                        {insights.whyThisMatters.title}
+                      </h3>
                       <ul className="space-y-2.5">
                         {insights.whyThisMatters.bullets.map((bullet, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-base leading-relaxed text-blue-50/90">
-                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-200/60" />
+                          <li key={idx} className={cn(
+                            "flex items-start gap-3 text-base leading-relaxed",
+                            isLight ? "text-blue-900" : "text-blue-50/90"
+                          )}>
+                            <span className={cn(
+                              "mt-1.5 size-1.5 shrink-0 rounded-full",
+                              isLight ? "bg-blue-700" : "bg-blue-200/60"
+                            )} />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -1288,16 +1457,32 @@ function InteractiveCareerPathGuidance(props: {
               {roles.map((role) => (
                 <div
                   key={role}
-                  className="rounded-xl border border-slate-700/60 bg-slate-950/18 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5"
+                  className={cn(
+                    "rounded-xl border p-5 shadow-sm",
+                    isLight
+                      ? "border-slate-200 bg-white"
+                      : "border-slate-700/60 bg-slate-950/18 shadow-[0_8px_24px_rgba(0,0,0,0.20)] ring-1 ring-white/5"
+                  )}
                 >
-                  <h3 className="text-lg font-semibold text-slate-100">{role}</h3>
-                  <p className="mt-3 text-base leading-relaxed text-slate-300/90">
+                  <h3 className={cn(
+                    "text-lg font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-100"
+                  )}>
+                    {role}
+                  </h3>
+                  <p className={cn(
+                    "mt-3 text-base leading-relaxed",
+                    isLight ? "text-slate-700" : "text-slate-300/90"
+                  )}>
                     {getCareerExplanation(role)}
                   </p>
                 </div>
               ))}
               {report.primaryPath.possibleRoles.length > roles.length && (
-                <div className="text-center text-base text-slate-400">
+                <div className={cn(
+                  "text-center text-base",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
                   And {report.primaryPath.possibleRoles.length - roles.length} more roles to explore!
                 </div>
               )}
@@ -1316,15 +1501,35 @@ function InteractiveCareerPathGuidance(props: {
             <div className="space-y-5">
               {/* Core skill areas */}
               <div>
-                <h3 className="mb-4 text-base font-semibold text-slate-200">Core Skill Areas</h3>
+                <h3 className={cn(
+                  "mb-4 text-base font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-200"
+                )}>
+                  Core Skill Areas
+                </h3>
                 <div className="space-y-3">
                   {learningFocus.map((focus, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start gap-3 rounded-lg border border-slate-800/60 bg-slate-950/18 px-4 py-3"
+                      className={cn(
+                        "flex items-start gap-3 rounded-lg border px-4 py-3",
+                        isLight
+                          ? "border-slate-200 bg-white"
+                          : "border-slate-800/60 bg-slate-950/18"
+                      )}
                     >
-                      <span className="mt-1 text-lg text-slate-400">•</span>
-                      <span className="text-base leading-relaxed text-slate-300/90">{focus}</span>
+                      <span className={cn(
+                        "mt-1 text-lg",
+                        isLight ? "text-slate-600" : "text-slate-400"
+                      )}>
+                        •
+                      </span>
+                      <span className={cn(
+                        "text-base leading-relaxed",
+                        isLight ? "text-slate-700" : "text-slate-300/90"
+                      )}>
+                        {focus}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1332,9 +1537,22 @@ function InteractiveCareerPathGuidance(props: {
 
               {/* Technology focus areas */}
               <div>
-                <h3 className="mb-3 text-base font-semibold text-slate-200">Technology Focus</h3>
-                <p className="text-base leading-relaxed text-slate-300/90">
-                  Your learning will center around <span className="font-semibold text-slate-200">{heroTitle.toLowerCase()}</span>, focusing on practical application
+                <h3 className={cn(
+                  "mb-3 text-base font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-200"
+                )}>
+                  Technology Focus
+                </h3>
+                <p className={cn(
+                  "text-base leading-relaxed",
+                  isLight ? "text-slate-700" : "text-slate-300/90"
+                )}>
+                  Your learning will center around <span className={cn(
+                    "font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-200"
+                  )}>
+                    {heroTitle.toLowerCase()}
+                  </span>, focusing on practical application
                   and real-world problem solving in technology contexts.
                 </p>
               </div>
@@ -1462,6 +1680,8 @@ function getCareerExplanation(role: string): string {
  */
 function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
   const { letter, hollandCode } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const typeInfo = getRiasecTypeInfo(letter)
   
   // Extract supporting letters (all letters except the primary)
@@ -1470,8 +1690,48 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
     .filter((l) => l !== letter)
     .slice(0, 2) // Show up to 2 supporting letters
 
-  // Color scheme based on RIASEC type
-  const colorScheme = {
+  // Color scheme based on RIASEC type - Light Mode
+  const colorSchemeLight = {
+    R: {
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      text: 'text-blue-900',
+      glow: 'rgba(59, 130, 246, 0.1)',
+    },
+    I: {
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      text: 'text-purple-900',
+      glow: 'rgba(168, 85, 247, 0.1)',
+    },
+    A: {
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      text: 'text-purple-900',
+      glow: 'rgba(168, 85, 247, 0.1)',
+    },
+    S: {
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      text: 'text-orange-900',
+      glow: 'rgba(251, 146, 60, 0.1)',
+    },
+    E: {
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      text: 'text-orange-900',
+      glow: 'rgba(251, 146, 60, 0.1)',
+    },
+    C: {
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      text: 'text-blue-900',
+      glow: 'rgba(59, 130, 246, 0.1)',
+    },
+  }
+
+  // Color scheme based on RIASEC type - Dark Mode
+  const colorSchemeDark = {
     R: {
       bg: 'bg-blue-600/20',
       border: 'border-blue-500/40',
@@ -1510,7 +1770,9 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
     },
   }
 
-  const colors = colorScheme[letter as keyof typeof colorScheme] || colorScheme.I
+  const colors = isLight
+    ? colorSchemeLight[letter as keyof typeof colorSchemeLight] || colorSchemeLight.I
+    : colorSchemeDark[letter as keyof typeof colorSchemeDark] || colorSchemeDark.I
 
   return (
     <div className="flex-shrink-0">
@@ -1521,7 +1783,7 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
           colors.bg,
           colors.border,
         )}
-        style={{ boxShadow: `0 0 40px ${colors.glow}` }}
+        style={{ boxShadow: isLight ? `0 4px 12px ${colors.glow}` : `0 0 40px ${colors.glow}` }}
       >
         {/* Large primary letter */}
         <div className={cn('mb-3 text-7xl font-bold md:text-8xl', colors.text)}>
@@ -1534,24 +1796,50 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
         </div>
         
         {/* Short description */}
-        <p className="max-w-[200px] text-center text-sm leading-relaxed text-slate-300/90">
+        <p className={cn(
+          "max-w-[200px] text-center text-sm leading-relaxed",
+          isLight ? "text-slate-700" : "text-slate-300/90"
+        )}>
           {typeInfo.description}
         </p>
 
         {/* Supporting letters - shown smaller and secondary */}
         {supportingLetters.length > 0 && (
-          <div className="mt-4 flex items-center gap-2 border-t border-slate-700/40 pt-4">
-            <span className="text-xs font-medium text-slate-400">Also:</span>
+          <div className={cn(
+            "mt-4 flex items-center gap-2 border-t pt-4",
+            isLight ? "border-slate-300" : "border-slate-700/40"
+          )}>
+            <span className={cn(
+              "text-xs font-medium",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Also:
+            </span>
             <div className="flex gap-1.5">
               {supportingLetters.map((l, idx) => {
                 const suppInfo = getRiasecTypeInfo(l)
                 return (
                   <div
                     key={idx}
-                    className="flex flex-col items-center rounded-lg border border-slate-700/40 bg-slate-950/30 px-2.5 py-1.5"
+                    className={cn(
+                      "flex flex-col items-center rounded-lg border px-2.5 py-1.5",
+                      isLight
+                        ? "border-slate-300 bg-white"
+                        : "border-slate-700/40 bg-slate-950/30"
+                    )}
                   >
-                    <span className="text-sm font-bold text-slate-300">{l}</span>
-                    <span className="text-[10px] font-medium text-slate-400">{suppInfo.name.slice(0, 4)}</span>
+                    <span className={cn(
+                      "text-sm font-bold",
+                      isLight ? "text-slate-800" : "text-slate-300"
+                    )}>
+                      {l}
+                    </span>
+                    <span className={cn(
+                      "text-[10px] font-medium",
+                      isLight ? "text-slate-600" : "text-slate-400"
+                    )}>
+                      {suppInfo.name.slice(0, 4)}
+                    </span>
                   </div>
                 )
               })}

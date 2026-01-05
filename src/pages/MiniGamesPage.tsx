@@ -3,6 +3,7 @@ import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { cn } from '../lib/cn'
 import { Button } from '../components/ui/Button'
+import { useTheme } from '../context/ThemeContext'
 import {
   IconBook,
   IconCheck,
@@ -103,6 +104,8 @@ function GameShell(props: {
 }
 
 export function MiniGamesPage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [activeGame, setActiveGame] = useState<GameKey | null>(null)
 
   // Breathing game state (30s total).
@@ -488,7 +491,12 @@ export function MiniGamesPage() {
             <button
               type="button"
               onClick={exitGameMode}
-              className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60"
+              className={cn(
+                "rounded-xl border px-3 py-2 text-xs font-semibold transition",
+                isLight
+                  ? "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                  : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+              )}
             >
               Exit
             </button>
@@ -501,18 +509,36 @@ export function MiniGamesPage() {
                   <IconTarget size={18} className="text-blue-200" />
                 </span>
                 <div>
-                  <div className="text-xs font-semibold text-slate-400">Current phase</div>
-                  <div className="text-sm font-semibold text-slate-100">{finished ? 'Complete' : phase}</div>
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
+                    Current phase
+                  </div>
+                  <div className={cn(
+                    "text-sm font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-100"
+                  )}>
+                    {finished ? 'Complete' : phase}
+                  </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-2 text-sm font-semibold text-slate-100">
+              <div className={cn(
+                "rounded-2xl border px-4 py-2 text-sm font-semibold",
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-900"
+                  : "border-slate-800/70 bg-slate-950/30 text-slate-100"
+              )}>
                 {secondsLeft}s
               </div>
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 w-full rounded-full bg-slate-800/70">
+            <div className={cn(
+              "h-2 w-full rounded-full",
+              isLight ? "bg-slate-200" : "bg-slate-800/70"
+            )}>
               <div
                 className="h-2 rounded-full bg-emerald-400/60"
                 style={{ width: `${Math.round(progress * 100)}%` }}
@@ -539,11 +565,22 @@ export function MiniGamesPage() {
                     }}
                   />
                   <div className="relative text-center">
-                    <div className="text-xs font-semibold text-slate-300">Breathe</div>
-                    <div className="mt-2 text-2xl font-semibold text-slate-100">
+                    <div className={cn(
+                      "text-xs font-semibold",
+                      isLight ? "text-slate-700" : "text-slate-300"
+                    )}>
+                      Breathe
+                    </div>
+                    <div className={cn(
+                      "mt-2 text-2xl font-semibold",
+                      isLight ? "text-slate-900" : "text-slate-100"
+                    )}>
                       {finished ? 'Well done' : phase}
                     </div>
-                    <div className="mt-2 text-sm text-slate-300/90">
+                    <div className={cn(
+                      "mt-2 text-sm",
+                      isLight ? "text-slate-700" : "text-slate-300/90"
+                    )}>
                       {finished ? 'You completed 30 seconds.' : 'Follow the rhythm.'}
                     </div>
                   </div>
@@ -556,7 +593,12 @@ export function MiniGamesPage() {
               <button
                 type="button"
                 onClick={resetBreathing}
-                className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
+                className={cn(
+                  "rounded-2xl border px-5 py-3 text-sm font-semibold transition",
+                  isLight
+                    ? "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                )}
               >
                 Restart
               </button>
@@ -590,7 +632,12 @@ export function MiniGamesPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-3 text-xs text-slate-400">
+            <div className={cn(
+              "rounded-2xl border px-4 py-3 text-xs",
+              isLight
+                ? "border-slate-200 bg-slate-50 text-slate-600"
+                : "border-slate-800/70 bg-slate-950/30 text-slate-400"
+            )}>
               Safety note: This is a simple breathing timer (no medical claims). Stop anytime if you feel uncomfortable.
             </div>
           </div>
@@ -617,8 +664,16 @@ export function MiniGamesPage() {
                 <IconBook size={18} className="text-blue-200" />
               </span>
               <div>
-                <div className="text-xs font-semibold text-slate-400">Score</div>
-                <div className="text-sm font-semibold text-slate-100">
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Score
+                </div>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
                   {quizScore} / {quizQuestions.length}
                 </div>
               </div>
@@ -632,11 +687,22 @@ export function MiniGamesPage() {
             <div className="h-2 rounded-full bg-blue-500/60" style={{ width: `${Math.round(quizProgress * 100)}%` }} />
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
               Question {Math.min(quizIndex + 1, quizQuestions.length)} / {quizQuestions.length}
             </div>
-            <div className="mt-2 text-base font-semibold text-slate-100">{q?.q}</div>
+            <div className={cn(
+              "mt-2 text-base font-semibold",
+              isLight ? "text-slate-900" : "text-slate-100"
+            )}>
+              {q?.q}
+            </div>
             <div className="mt-4 grid grid-cols-1 gap-2">
               {(q?.choices ?? []).map((c, idx) => {
                 const selected = quizSelected === idx
@@ -649,8 +715,12 @@ export function MiniGamesPage() {
                     className={cn(
                       'rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition',
                       selected
-                        ? 'border-blue-500/35 bg-blue-600/15 text-blue-100'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60',
+                        ? isLight
+                          ? 'border-blue-400 bg-blue-100 text-blue-900'
+                          : 'border-blue-500/35 bg-blue-600/15 text-blue-100'
+                        : isLight
+                          ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60',
                       quizFinished && 'opacity-60',
                     )}
                   >
@@ -659,7 +729,12 @@ export function MiniGamesPage() {
                 )
               })}
             </div>
-            {q?.tip && <div className="mt-3 text-xs text-slate-400">Tip: {q.tip}</div>}
+            {q?.tip && <div className={cn(
+              "mt-3 text-xs",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Tip: {q.tip}
+            </div>}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -717,8 +792,16 @@ export function MiniGamesPage() {
                 <IconMap size={18} className="text-violet-200" />
               </span>
               <div>
-                <div className="text-xs font-semibold text-slate-400">Progress</div>
-                <div className="text-sm font-semibold text-slate-100">
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Progress
+                </div>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
                   {doneCount} / {total} matched
                 </div>
               </div>
@@ -746,8 +829,16 @@ export function MiniGamesPage() {
           )}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-              <div className="text-xs font-semibold text-slate-400">Roles</div>
+            <div className={cn(
+              "rounded-2xl border px-4 py-4",
+              isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+            )}>
+              <div className={cn(
+                "text-xs font-semibold",
+                isLight ? "text-slate-600" : "text-slate-400"
+              )}>
+                Roles
+              </div>
               <div className="mt-3 space-y-2">
                 {roles.map((r) => {
                   const isDone = Boolean(matched[r])
@@ -782,8 +873,16 @@ export function MiniGamesPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-              <div className="text-xs font-semibold text-slate-400">Skills</div>
+            <div className={cn(
+              "rounded-2xl border px-4 py-4",
+              isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+            )}>
+              <div className={cn(
+                "text-xs font-semibold",
+                isLight ? "text-slate-600" : "text-slate-400"
+              )}>
+                Skills
+              </div>
               <div className="mt-3 space-y-2">
                 {skills.map((s) => {
                   const used = Object.values(matched).includes(s)
@@ -801,10 +900,16 @@ export function MiniGamesPage() {
                       className={cn(
                         'w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition',
                         used
-                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100'
+                          ? isLight
+                            ? 'border-emerald-300 bg-emerald-100 text-emerald-900'
+                            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100'
                           : selected
-                            ? 'border-blue-500/35 bg-blue-600/15 text-blue-100'
-                            : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60',
+                            ? isLight
+                              ? 'border-blue-400 bg-blue-100 text-blue-900'
+                              : 'border-blue-500/35 bg-blue-600/15 text-blue-100'
+                            : isLight
+                              ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                              : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60',
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -819,7 +924,12 @@ export function MiniGamesPage() {
           </div>
 
           {completed && (
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+            <div className={cn(
+              "rounded-2xl border px-4 py-3 text-sm font-semibold",
+              isLight
+                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+            )}>
               Completed! You matched all roles and skills.
             </div>
           )}
@@ -846,8 +956,18 @@ export function MiniGamesPage() {
                 <IconGamepad size={18} className="text-orange-200" />
               </span>
               <div>
-                <div className="text-xs font-semibold text-slate-400">Streak</div>
-                <div className="text-sm font-semibold text-slate-100">{runnerStreak}</div>
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Streak
+                </div>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
+                  {runnerStreak}
+                </div>
               </div>
             </div>
             <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-2 text-sm font-semibold text-slate-100">
@@ -859,15 +979,33 @@ export function MiniGamesPage() {
             <div className="h-2 rounded-full bg-orange-400/60" style={{ width: `${Math.round(runnerProgress * 100)}%` }} />
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">Situation</div>
-            <div className="mt-2 text-base font-semibold text-slate-100">{prompt?.text}</div>
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Situation
+            </div>
+            <div className={cn(
+              "mt-2 text-base font-semibold",
+              isLight ? "text-slate-900" : "text-slate-100"
+            )}>
+              {prompt?.text}
+            </div>
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => answerRunner('a')}
                 disabled={!runnerRunning || runnerFinished}
-                className="rounded-2xl bg-blue-600/20 px-4 py-3 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
+                className={cn(
+                  "rounded-2xl px-4 py-3 text-sm font-semibold ring-1 disabled:opacity-50",
+                  isLight
+                    ? "bg-blue-500 text-white ring-blue-500/30 hover:bg-blue-600"
+                    : "bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25"
+                )}
               >
                 {prompt?.a}
               </button>
@@ -875,7 +1013,12 @@ export function MiniGamesPage() {
                 type="button"
                 onClick={() => answerRunner('b')}
                 disabled={!runnerRunning || runnerFinished}
-                className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900/60 disabled:opacity-50"
+                className={cn(
+                  "rounded-2xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
+                  isLight
+                    ? "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                )}
               >
                 {prompt?.b}
               </button>
@@ -918,8 +1061,11 @@ export function MiniGamesPage() {
             )}
           </div>
 
-          <div className="text-xs text-slate-500">
-            This is a motivation game (not grading). The “best” choice is the one that keeps you consistent.
+          <div className={cn(
+            "text-xs",
+            isLight ? "text-slate-600" : "text-slate-500"
+          )}>
+            This is a motivation game (not grading). The "best" choice is the one that keeps you consistent.
           </div>
         </div>
       </GameShell>
@@ -941,8 +1087,16 @@ export function MiniGamesPage() {
                 <IconUser size={18} className="text-slate-200" />
               </span>
               <div>
-                <div className="text-xs font-semibold text-slate-400">Prompt</div>
-                <div className="text-sm font-semibold text-slate-100">
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Prompt
+                </div>
+                <div className={cn(
+                  "text-sm font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-100"
+                )}>
                   {interviewIndex + 1} / {interviewPrompts.length}
                 </div>
               </div>
@@ -956,20 +1110,49 @@ export function MiniGamesPage() {
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">Question</div>
-            <div className="mt-2 text-base font-semibold text-slate-100">{p?.q}</div>
-            <div className="mt-3 rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-300/90">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-                <IconClipboard size={16} className="text-slate-300" />
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Question
+            </div>
+            <div className={cn(
+              "mt-2 text-base font-semibold",
+              isLight ? "text-slate-900" : "text-slate-100"
+            )}>
+              {p?.q}
+            </div>
+            <div className={cn(
+              "mt-3 rounded-2xl border px-4 py-3 text-sm",
+              isLight
+                ? "border-slate-200 bg-slate-50 text-slate-700"
+                : "border-slate-800/70 bg-slate-950/40 text-slate-300/90"
+            )}>
+              <div className={cn(
+                "flex items-center gap-2 text-xs font-semibold",
+                isLight ? "text-slate-700" : "text-slate-300"
+              )}>
+                <IconClipboard size={16} className={isLight ? "text-slate-700" : "text-slate-300"} />
                 Tip
               </div>
               <div className="mt-2">{p?.tip}</div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800/70 bg-slate-950/30 px-4 py-4">
-            <div className="text-xs font-semibold text-slate-400">Your practice answer (optional)</div>
+          <div className={cn(
+            "rounded-2xl border px-4 py-4",
+            isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+          )}>
+            <div className={cn(
+              "text-xs font-semibold",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              Your practice answer (optional)
+            </div>
             <textarea
               value={interviewNotes}
               onChange={(e) => {
@@ -977,7 +1160,12 @@ export function MiniGamesPage() {
                 setInterviewSaved(false)
               }}
               rows={6}
-              className="mt-3 w-full resize-none rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className={cn(
+                "mt-3 w-full resize-none rounded-2xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20",
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-500"
+                  : "border-slate-800/70 bg-slate-950/40 text-slate-200 placeholder:text-slate-500"
+              )}
               placeholder="Write a short answer here. This stays in frontend state (no database)."
             />
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -994,14 +1182,22 @@ export function MiniGamesPage() {
               <button
                 type="button"
                 onClick={nextInterview}
-                className="rounded-2xl border border-slate-800/70 bg-slate-950/40 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
+                className={cn(
+                  "rounded-2xl border px-5 py-3 text-sm font-semibold transition",
+                  isLight
+                    ? "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                )}
               >
                 Next prompt
               </button>
             </div>
           </div>
 
-          <div className="text-xs text-slate-500">
+          <div className={cn(
+            "text-xs",
+            isLight ? "text-slate-600" : "text-slate-500"
+          )}>
             Guidance note: this simulator does not grade you. It helps you structure answers clearly.
           </div>
         </div>
@@ -1017,28 +1213,53 @@ export function MiniGamesPage() {
         subtitle="Light activities for engagement and motivation (frontend-only)"
       />
 
-      <Card title="Available Games" right={<span className="text-xs text-slate-400">Prototype</span>}>
+      <Card title="Available Games" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>Prototype</span>}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {games.map((g) => (
             <div
               key={g.key}
-              className="rounded-2xl border border-slate-800/70 bg-slate-950/30 p-4"
+              className={cn(
+                "rounded-2xl border p-4",
+                isLight ? "border-slate-200 bg-white" : "border-slate-800/70 bg-slate-950/30"
+              )}
             >
-              <div className="text-sm font-semibold text-slate-100">{g.name}</div>
-              <div className="mt-1 text-xs text-slate-400">{g.description}</div>
+              <div className={cn(
+                "text-sm font-semibold",
+                isLight ? "text-slate-900" : "text-slate-100"
+              )}>
+                {g.name}
+              </div>
+              <div className={cn(
+                "mt-1 text-xs",
+                isLight ? "text-slate-600" : "text-slate-400"
+              )}>
+                {g.description}
+              </div>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-xl bg-orange-500/10 px-3 py-2 text-xs font-semibold text-orange-200 ring-1 ring-orange-500/25">
+                  <div className={cn(
+                    "rounded-xl px-3 py-2 text-xs font-semibold ring-1",
+                    isLight
+                      ? "bg-orange-100 text-orange-900 ring-orange-300"
+                      : "bg-orange-500/10 text-orange-200 ring-orange-500/25"
+                  )}>
                     {g.xp} XP
                   </div>
-                  <div className="text-xs font-semibold text-slate-400">{g.difficulty}</div>
+                  <div className={cn(
+                    "text-xs font-semibold",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
+                    {g.difficulty}
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => openGame(g.key)}
                   className={cn(
                     'rounded-xl px-3 py-2 text-xs font-semibold ring-1 transition',
-                    'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+                    isLight
+                      ? 'bg-blue-500 text-white ring-blue-500/30 hover:bg-blue-600'
+                      : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
                   )}
                 >
                   Play

@@ -6,9 +6,190 @@
   html,
   body {
     height: 100%;
+  }
+
+  body {
+    @apply bg-[#060817] text-slate-100 antialiased;
+  }
+
+  /* Light Mode Styles */
+  html.light-mode body {
+    @apply bg-white text-slate-900;
+    font-size: 16px; /* Slightly larger for elder-friendly */
+  }
+
+  /* Light mode base text colors */
+  html.light-mode {
+    color-scheme: light;
+  }
+
+  html.light-mode h1,
+  html.light-mode h2,
+  html.light-mode h3,
+  html.light-mode h4,
+  html.light-mode h5,
+  html.light-mode h6 {
+    @apply text-slate-900;
+  }
 }
 
-body {
-    @apply bg-[#060817] text-slate-100 antialiased;
+/* Light mode utility classes - using CSS selectors */
+@layer utilities {
+  /* Text colors */
+  html.light-mode .light-mode\:text-slate-900 {
+    @apply text-slate-900;
+  }
+  
+  html.light-mode .light-mode\:text-slate-800 {
+    @apply text-slate-800;
+  }
+  
+  html.light-mode .light-mode\:text-slate-700 {
+    @apply text-slate-700;
+  }
+  
+  html.light-mode .light-mode\:text-slate-600 {
+    @apply text-slate-600;
+  }
+
+  /* Background colors */
+  html.light-mode .light-mode\:bg-white {
+    @apply bg-white;
+  }
+  
+  html.light-mode .light-mode\:bg-slate-50 {
+    @apply bg-slate-50;
+  }
+  
+  html.light-mode .light-mode\:bg-slate-100 {
+    @apply bg-slate-100;
+  }
+  
+  html.light-mode .light-mode\:bg-slate-200 {
+    @apply bg-slate-200;
+  }
+
+  /* Border colors */
+  html.light-mode .light-mode\:border-slate-300\/60 {
+    border-color: rgb(203 213 225 / 0.6);
+  }
+
+  /* Shadows */
+  html.light-mode .light-mode\:shadow-md {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+  
+  html.light-mode .light-mode\:shadow-sm {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+  
+  html.light-mode .light-mode\:shadow-lg {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  /* Hover states */
+  html.light-mode .light-mode\:hover\:bg-slate-50:hover {
+    @apply bg-slate-50;
+  }
+  
+  html.light-mode .light-mode\:hover\:bg-slate-100:hover {
+    @apply bg-slate-100;
+  }
+  
+  html.light-mode .light-mode\:hover\:bg-slate-200:hover {
+    @apply bg-slate-200;
+  }
+
+  /* Opacity */
+  html.light-mode .light-mode\:before\:opacity-0::before {
+    opacity: 0;
+  }
+
+  /* Ring colors */
+  html.light-mode .light-mode\:after\:ring-slate-200\/50::after {
+    --tw-ring-color: rgb(226 232 240 / 0.5);
+  }
+
+  /* Button styles in light mode */
+  html.light-mode button {
+    /* Primary button */
+    &.border-blue-500\/30 {
+      @apply border-blue-500/40 bg-blue-500/20 text-blue-900 shadow-sm;
+    }
+    html.light-mode button.border-blue-500\/30:hover {
+      @apply bg-blue-500/30;
+    }
+  }
+
+  /* Common text color overrides for light mode */
+  html.light-mode .text-slate-100 {
+    @apply text-slate-900;
+  }
+  
+  html.light-mode .text-slate-200 {
+    @apply text-slate-800;
+  }
+  
+  html.light-mode .text-slate-300 {
+    @apply text-slate-700;
+  }
+  
+  html.light-mode .text-slate-400 {
+    @apply text-slate-600;
+  }
+
+  /* Common background overrides for light mode */
+  html.light-mode .bg-slate-950\/40,
+  html.light-mode .bg-slate-950\/50,
+  html.light-mode .bg-slate-950\/60 {
+    @apply bg-white;
+  }
+
+  html.light-mode .bg-slate-950\/25,
+  html.light-mode .bg-slate-950\/18 {
+    @apply bg-slate-50;
+  }
+
+  /* Common border overrides for light mode */
+  html.light-mode .border-slate-800\/60,
+  html.light-mode .border-slate-800\/70 {
+    @apply border-slate-200;
+  }
+
+  /* Input field styles for light mode */
+  html.light-mode input[type="text"],
+  html.light-mode input[type="email"],
+  html.light-mode input[type="password"],
+  html.light-mode input[type="number"],
+  html.light-mode textarea,
+  html.light-mode select {
+    @apply border-slate-200 bg-white text-slate-900;
+  }
+
+  html.light-mode input[type="text"]:focus,
+  html.light-mode input[type="email"]:focus,
+  html.light-mode input[type="password"]:focus,
+  html.light-mode input[type="number"]:focus,
+  html.light-mode textarea:focus,
+  html.light-mode select:focus {
+    @apply border-blue-300 ring-blue-500/30;
+  }
+
+  /* Error and success message styles for light mode */
+  html.light-mode .border-rose-500\/20.bg-rose-500\/10 {
+    @apply border-rose-300 bg-rose-50 text-rose-800;
+  }
+
+  html.light-mode .border-emerald-500\/20.bg-emerald-500\/10 {
+    @apply border-emerald-300 bg-emerald-50 text-emerald-800;
+  }
+
+  html.light-mode .text-rose-100,
+  html.light-mode .text-rose-200 {
+    @apply text-rose-800;
+  }
+
+  html.light-mode .text-emerald-100 {
+    @apply text-emerald-800;
   }
 }

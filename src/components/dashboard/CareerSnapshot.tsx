@@ -9,14 +9,16 @@ import {
 import type { CareerTraitKey } from '../../constants/dashboard'
 import { Card } from '../ui/Card'
 import { buttonClasses } from '../ui/buttonStyles'
+import { useTheme } from '../../context/ThemeContext'
+import { cn } from '../../lib/cn'
 
 // Custom tick component to show full labels
-function CustomTick({ payload, x, y }: any) {
+function CustomTick({ payload, x, y, isLight }: any) {
   return (
     <text
       x={x}
       y={y}
-      fill="rgba(203,213,225,0.9)"
+      fill={isLight ? 'rgba(71,85,105,0.9)' : 'rgba(203,213,225,0.9)'}
       fontSize={12}
       fontWeight={600}
       textAnchor="middle"
@@ -45,6 +47,8 @@ export function CareerSnapshot(props: {
   topCareerTypeLabel: string
 }) {
   const { title = 'Career Snapshot', viewReportTo, traits, topCareerTypeLabel } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   const data = traits.map((t) => ({
     trait: t.label,
@@ -67,17 +71,36 @@ export function CareerSnapshot(props: {
           {traits.map((t) => (
             <div
               key={t.key}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-3 py-2.5"
+              className={cn(
+                'flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5',
+                isLight 
+                  ? 'border-slate-200 bg-slate-50' 
+                  : 'border-slate-800/60 bg-slate-950/18'
+              )}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="grid size-5 shrink-0 place-items-center rounded-md border border-slate-800/60 bg-slate-950/20">
-                  <span className="block size-2 rounded-sm bg-blue-200/80" />
+                <span className={cn(
+                  'grid size-5 shrink-0 place-items-center rounded-md border',
+                  isLight 
+                    ? 'border-slate-300 bg-white' 
+                    : 'border-slate-800/60 bg-slate-950/20'
+                )}>
+                  <span className={cn(
+                    'block size-2 rounded-sm',
+                    isLight ? 'bg-blue-500' : 'bg-blue-200/80'
+                  )} />
                 </span>
-                <span className="text-xs font-semibold text-slate-200 whitespace-nowrap">
+                <span className={cn(
+                  'text-xs font-semibold whitespace-nowrap',
+                  isLight ? 'text-slate-800' : 'text-slate-200'
+                )}>
                   {t.label}
                 </span>
               </div>
-              <span className="shrink-0 text-xs font-semibold tabular-nums text-slate-300">
+              <span className={cn(
+                'shrink-0 text-xs font-semibold tabular-nums',
+                isLight ? 'text-slate-700' : 'text-slate-300'
+              )}>
                 {Math.round(clamp100(t.value))}
               </span>
             </div>
@@ -91,15 +114,15 @@ export function CareerSnapshot(props: {
               outerRadius="75%"
               margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
             >
-              <PolarGrid stroke="rgba(148,163,184,0.14)" />
+              <PolarGrid stroke={isLight ? 'rgba(148,163,184,0.25)' : 'rgba(148,163,184,0.14)'} />
               <PolarAngleAxis
                 dataKey="trait"
-                tick={<CustomTick />}
+                tick={<CustomTick isLight={isLight} />}
               />
               <Radar
                 dataKey="value"
-                stroke="rgba(59,130,246,0.9)"
-                fill="rgba(59,130,246,0.20)"
+                stroke={isLight ? 'rgba(59,130,246,0.8)' : 'rgba(59,130,246,0.9)'}
+                fill={isLight ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.20)'}
                 strokeWidth={2}
               />
             </RadarChart>
@@ -108,15 +131,29 @@ export function CareerSnapshot(props: {
 
         <div className="min-w-0 space-y-3">
           <div>
-            <div className="text-sm font-semibold text-slate-100 leading-tight">{meaning.title}</div>
-            <div className="mt-2 text-sm leading-relaxed text-slate-300">{meaning.body}</div>
+            <div className={cn('text-sm font-semibold leading-tight', isLight ? 'text-slate-900' : 'text-slate-100')}>
+              {meaning.title}
+            </div>
+            <div className={cn('mt-2 text-sm leading-relaxed', isLight ? 'text-slate-700' : 'text-slate-300')}>
+              {meaning.body}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
+            <span className={cn(
+              'rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap',
+              isLight 
+                ? 'border-blue-200 bg-blue-50 text-blue-700' 
+                : 'border-slate-800/60 bg-slate-950/18 text-slate-200'
+            )}>
               Top: {topCareerTypeLabel}
             </span>
-            <span className="rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200 whitespace-nowrap">
+            <span className={cn(
+              'rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap',
+              isLight 
+                ? 'border-slate-200 bg-slate-50 text-slate-700' 
+                : 'border-slate-800/60 bg-slate-950/18 text-slate-200'
+            )}>
               RIASEC Radar
             </span>
           </div>

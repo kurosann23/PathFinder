@@ -4,8 +4,10 @@ import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { useRole } from '../context/RoleContext'
+import { useTheme } from '../context/ThemeContext'
 import { Button } from './ui/Button'
 import { Avatar } from './ui/Avatar'
+import { ThemeToggle } from './ThemeToggle'
 import {
   IconBook,
   IconClipboard,
@@ -13,14 +15,21 @@ import {
   IconHome,
   IconLogout,
   IconMap,
-  IconMoon,
   IconUser,
   IconSettings,
 } from './icons'
 
-function NavIcon(props: { navKey: NavKey; className?: string }) {
-  const { navKey, className } = props
-  const common = { className: cn('text-slate-400', className), size: 20 }
+function NavIcon(props: { navKey: NavKey; className?: string; isActive?: boolean; isLight?: boolean }) {
+  const { navKey, className, isActive, isLight } = props
+  const common = { 
+    className: cn(
+      isLight 
+        ? isActive ? 'text-blue-700' : 'text-slate-700' 
+        : 'text-slate-400',
+      className
+    ), 
+    size: 20 
+  }
 
   switch (navKey) {
     case 'dashboard':
@@ -61,6 +70,8 @@ export function Sidebar(props: SidebarProps) {
   const { user, signOut } = useAuth()
   const { profile, loading: profileLoading } = useProfile()
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   
   // Get role - hook must be called unconditionally
   // RoleProvider wraps the app, so this should always be available
@@ -78,30 +89,48 @@ export function Sidebar(props: SidebarProps) {
   return (
     <aside
       className={cn(
-        // Neon-glass HUD sidebar
-        'relative h-screen flex-col border-r border-slate-800/50 bg-slate-950/45 px-4 py-6 backdrop-blur-xl',
-        'shadow-[0_18px_60px_rgba(0,0,0,0.40)]',
+        // Neon-glass HUD sidebar (dark mode)
+        'relative h-screen flex-col border-r px-4 py-6 backdrop-blur-xl',
+        isLight
+          ? 'border-slate-200 bg-slate-50 shadow-lg'
+          : 'border-slate-800/50 bg-slate-950/45 shadow-[0_18px_60px_rgba(0,0,0,0.40)]',
         isCollapsed ? 'w-20' : 'w-72',
         isMobile ? 'flex md:hidden' : 'hidden md:flex',
       )}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(900px_circle_at_20%_10%,black,transparent_70%)]">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_35%),radial-gradient(700px_circle_at_15%_15%,rgba(59,130,246,0.16),transparent_62%),radial-gradient(800px_circle_at_90%_80%,rgba(168,85,247,0.12),transparent_68%)]" />
-      </div>
+      {!isLight && (
+        <div className="pointer-events-none absolute inset-0 opacity-70 [mask-image:radial-gradient(900px_circle_at_20%_10%,black,transparent_70%)]">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_35%),radial-gradient(700px_circle_at_15%_15%,rgba(59,130,246,0.16),transparent_62%),radial-gradient(800px_circle_at_90%_80%,rgba(168,85,247,0.12),transparent_68%)]" />
+        </div>
+      )}
 
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-2xl border border-slate-800/60 bg-slate-950/35 shadow-[0_0_30px_rgba(59,130,246,0.18)]">
-            <span className="text-base font-bold tracking-wide text-slate-100">
+          <div className={cn(
+            'grid size-11 place-items-center rounded-2xl border shadow-lg',
+            isLight
+              ? 'border-blue-200 bg-blue-50'
+              : 'border-slate-800/60 bg-slate-950/35 shadow-[0_0_30px_rgba(59,130,246,0.18)]'
+          )}>
+            <span className={cn(
+              'text-base font-bold tracking-wide',
+              isLight ? 'text-blue-700' : 'text-slate-100'
+            )}>
               P
             </span>
           </div>
           {!isCollapsed && (
             <div className="leading-tight">
-              <div className="text-base font-semibold tracking-tight text-slate-100">
+              <div className={cn(
+                'text-base font-semibold tracking-tight',
+                isLight ? 'text-slate-900' : 'text-slate-100'
+              )}>
                 PathFinder
               </div>
-              <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400/90">
+              <div className={cn(
+                'text-xs font-medium uppercase tracking-[0.16em]',
+                isLight ? 'text-slate-600' : 'text-slate-400/90'
+              )}>
                 {profileLoading ? 'Loading...' : (isTeacher ? 'Teacher Dashboard' : 'Student Dashboard')}
               </div>
             </div>
@@ -110,7 +139,12 @@ export function Sidebar(props: SidebarProps) {
         <button
           type="button"
           onClick={isMobile ? onMenuClick : onToggleCollapse}
-          className="rounded-xl border border-transparent p-2 text-slate-300/80 hover:border-slate-800/60 hover:bg-slate-950/30 hover:text-slate-100"
+          className={cn(
+            'rounded-xl border p-2 transition-colors',
+            isLight
+              ? 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900'
+              : 'border-transparent text-slate-300/80 hover:border-slate-800/60 hover:bg-slate-950/30 hover:text-slate-100'
+          )}
           aria-label={
             isMobile
               ? 'Close menu'
@@ -136,10 +170,15 @@ export function Sidebar(props: SidebarProps) {
 
       {/* Nav: top-aligned like the reference sidebar (space fills between nav and footer). */}
       <div className="mt-6 px-2">
-        <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
+        <div className={cn(
+          'h-px bg-gradient-to-r',
+          isLight
+            ? 'from-transparent via-slate-200 to-transparent'
+            : 'from-transparent via-slate-700/60 to-transparent'
+        )} />
       </div>
 
-      <nav className="relative mt-5 flex flex-1 flex-col gap-2 px-1">
+      <nav className={cn('relative mt-5 flex flex-1 flex-col px-1', isLight ? 'gap-3' : 'gap-2')}>
         {profileLoading ? (
           // Show loading skeleton while profile loads to prevent wrong navigation from showing
           <div className="space-y-2">
@@ -160,10 +199,14 @@ export function Sidebar(props: SidebarProps) {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-semibold transition',
-                  isActive
-                    ? 'border border-blue-500/25 bg-blue-600/15 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
-                    : 'border border-transparent text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
+                  'group relative flex items-center gap-3 rounded-xl px-3 text-sm font-semibold transition',
+                  isLight
+                    ? isActive
+                      ? 'border-2 border-blue-300 bg-blue-50 py-3.5 text-blue-700 shadow-sm'
+                      : 'border border-transparent py-3.5 text-slate-700 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                    : isActive
+                      ? 'border border-blue-500/25 bg-blue-600/15 py-3.5 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
+                      : 'border border-transparent py-3.5 text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
                   isCollapsed && 'justify-center px-2',
                 )
               }
@@ -171,13 +214,14 @@ export function Sidebar(props: SidebarProps) {
               {({ isActive }) => (
                 <>
                   <NavIcon
-                  navKey={item.key}
-                  className={cn(
-                    isActive
-                      ? 'text-blue-200 drop-shadow-[0_0_12px_rgba(59,130,246,0.22)]'
-                      : 'group-hover:text-slate-200',
-                  )}
-                />
+                    navKey={item.key}
+                    isActive={isActive}
+                    isLight={isLight}
+                    className={cn(
+                      !isLight && isActive && 'text-blue-200 drop-shadow-[0_0_12px_rgba(59,130,246,0.22)]',
+                      !isLight && !isActive && 'group-hover:text-slate-200',
+                    )}
+                  />
                   {!isCollapsed && (
                     <span
                       className={cn(
@@ -199,13 +243,21 @@ export function Sidebar(props: SidebarProps) {
 
       <div className="mt-auto px-1">
         <div className="px-2">
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
+          <div className={cn(
+            'h-px bg-gradient-to-r',
+            isLight
+              ? 'from-transparent via-slate-200 to-transparent'
+              : 'from-transparent via-slate-700/60 to-transparent'
+          )} />
         </div>
 
         <div
           className={cn(
-            'mt-5 rounded-2xl border border-slate-800/60 bg-slate-950/25 backdrop-blur-xl shadow-[0_0_25px_rgba(59,130,246,0.10)]',
-            isCollapsed ? 'p-3' : 'p-4',
+            'mt-5 rounded-2xl border backdrop-blur-xl',
+            isLight
+              ? 'border-slate-200 bg-white p-4 shadow-md'
+              : 'border-slate-800/60 bg-slate-950/25 shadow-[0_0_25px_rgba(59,130,246,0.10)]',
+            isCollapsed && 'p-3',
           )}
         >
           <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
@@ -214,15 +266,25 @@ export function Sidebar(props: SidebarProps) {
               alt="Avatar"
               fallback={(profile?.full_name?.slice(0, 1) ?? user?.email?.slice(0, 1) ?? 'U').toUpperCase()}
               sizeClassName="size-11"
-              className="shadow-[0_0_18px_rgba(59,130,246,0.15)]"
+              className={cn(
+                isLight
+                  ? 'border-blue-200 bg-blue-50 shadow-sm'
+                  : 'shadow-[0_0_18px_rgba(59,130,246,0.15)]'
+              )}
               loading="eager"
             />
             {!isCollapsed && (
               <div className="min-w-0">
-                <div className="truncate text-base font-semibold text-slate-100">
+                <div className={cn(
+                  'truncate text-base font-semibold',
+                  isLight ? 'text-slate-900' : 'text-slate-100'
+                )}>
                   {profile?.full_name ?? user?.email?.split('@')[0] ?? 'Student'}
                 </div>
-                <div className="truncate text-sm text-slate-400">
+                <div className={cn(
+                  'truncate text-sm',
+                  isLight ? 'text-slate-600' : 'text-slate-400'
+                )}>
                   {profile?.class ? `${profile.class} • ` : ''}
                   {user?.email ?? '—'}
                 </div>
@@ -232,26 +294,21 @@ export function Sidebar(props: SidebarProps) {
         </div>
 
         <div className="mt-6 space-y-2 px-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="md"
-            className={cn('flex w-full justify-between px-2', isCollapsed && 'justify-center')}
-            aria-label="Theme (UI only)"
-          >
-            {!isCollapsed && <span>Theme</span>}
-            <IconMoon size={20} className="text-slate-300" />
-          </Button>
+          <ThemeToggle variant="sidebar" showLabel={!isCollapsed} className={cn(isCollapsed && 'justify-center')} />
           <Button
             type="button"
             onClick={handleLogout}
             variant="ghost"
             size="md"
-            className={cn('flex w-full justify-between px-2', isCollapsed && 'justify-center')}
+            className={cn(
+              'flex w-full justify-between px-2',
+              isCollapsed && 'justify-center',
+              isLight && 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+            )}
             aria-label="Sign out"
           >
             {!isCollapsed && <span>Sign Out</span>}
-            <IconLogout size={20} className="text-slate-300" />
+            <IconLogout size={20} className={cn(isLight ? 'text-slate-600' : 'text-slate-300')} />
           </Button>
         </div>
       </div>

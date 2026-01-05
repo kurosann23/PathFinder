@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useRole } from '../context/RoleContext'
+import { useTheme } from '../context/ThemeContext'
 import { Button } from '../components/ui/Button'
 import { IconBell, IconChevronDown, IconX, IconEdit, IconUser, IconMail, IconPhone } from '../components/icons'
 import { Avatar } from '../components/ui/Avatar'
@@ -184,6 +185,8 @@ function TeacherProfileView(props: {
   const [passwordSuccess, setPasswordSuccess] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const teacherName = profile?.full_name || user?.email?.split('@')[0] || 'Teacher'
   const teacherEmail = user?.email || profile?.email || ''
   const teacherPhone = form.phone || '+60 12 345 6789' // Default placeholder
@@ -287,18 +290,33 @@ function TeacherProfileView(props: {
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-sm font-medium',
+          isLight
+            ? 'border-rose-300 bg-rose-50 text-rose-800'
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-200'
+        )}>
           {error}
         </div>
       )}
       {success && (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-sm font-semibold',
+          isLight
+            ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100'
+        )}>
           {success}
         </div>
       )}
 
       {/* Primary Profile Summary Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800/70 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-slate-950/50 p-8 backdrop-blur-xl">
+      <div className={cn(
+        'relative overflow-hidden rounded-2xl border p-8 backdrop-blur-xl',
+        isLight
+          ? 'border-blue-100/60 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/50 shadow-lg'
+          : 'border-slate-800/70 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-slate-950/50'
+      )}>
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-6 items-center">
           {/* Avatar Section */}
           <div className="relative">
@@ -321,16 +339,18 @@ function TeacherProfileView(props: {
           {/* Name and Contact Info */}
           <div className="space-y-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-100">{teacherName}</h1>
-              <p className="mt-1 text-lg text-slate-400">Teacher</p>
+              <h1 className={cn('text-3xl font-bold', isLight ? 'text-slate-900' : 'text-slate-100')}>
+                {teacherName}
+              </h1>
+              <p className={cn('mt-1 text-lg', isLight ? 'text-slate-600' : 'text-slate-400')}>Teacher</p>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-slate-300">
-                <IconMail size={18} className="text-slate-400" />
+              <div className={cn('flex items-center gap-3', isLight ? 'text-slate-700' : 'text-slate-300')}>
+                <IconMail size={18} className={cn(isLight ? 'text-slate-600' : 'text-slate-400')} />
                 <span className="text-sm">{teacherEmail}</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <IconPhone size={18} className="text-slate-400" />
+              <div className={cn('flex items-center gap-3', isLight ? 'text-slate-700' : 'text-slate-300')}>
+                <IconPhone size={18} className={cn(isLight ? 'text-slate-600' : 'text-slate-400')} />
                 <span className="text-sm">{teacherPhone}</span>
               </div>
             </div>
@@ -681,6 +701,8 @@ function TeacherProfileView(props: {
 }
 
 export function ProfilePage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const { user } = useAuth()
   const { profile, loading: profileLoading, refresh } = useProfile()
   const { progress } = useUserProgress()
@@ -1031,8 +1053,16 @@ export function ProfilePage() {
                   loading="eager"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-slate-100">Upload photo</div>
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className={cn(
+                    "text-sm font-semibold",
+                    isLight ? "text-slate-900" : "text-slate-100"
+                  )}>
+                    Upload photo
+                  </div>
+                  <div className={cn(
+                    "mt-1 text-xs",
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  )}>
                     JPG/PNG recommended.
                   </div>
                   <div className="mt-3 flex items-center gap-2">
@@ -1041,7 +1071,10 @@ export function ProfilePage() {
                       id="fit-photo"
                       className="h-4 w-4 rounded border-slate-700/50 bg-slate-950/40 text-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
-                    <label htmlFor="fit-photo" className="text-xs text-slate-300">
+                    <label htmlFor="fit-photo" className={cn(
+                      "text-xs",
+                      isLight ? "text-slate-700" : "text-slate-300"
+                    )}>
                       Fit the chosen
                     </label>
                   </div>
@@ -1053,12 +1086,25 @@ export function ProfilePage() {
                       setAvatarFile(e.target.files?.[0] ?? null)
                       setIsDirty(true)
                     }}
-                    className="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600/20 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-100 file:ring-1 file:ring-blue-500/25 hover:file:bg-blue-600/25 disabled:opacity-60"
+                    className={cn(
+                      "mt-3 block w-full text-xs file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2 file:text-xs file:font-semibold file:ring-1 disabled:opacity-60",
+                      isLight
+                        ? "text-slate-700 file:bg-blue-500 file:text-white file:ring-blue-500/30 hover:file:bg-blue-600"
+                        : "text-slate-300 file:bg-blue-600/20 file:text-blue-100 file:ring-blue-500/25 hover:file:bg-blue-600/25"
+                    )}
                   />
                 </div>
               </div>
-              <div className="text-xs text-slate-500">
-                Tip: Select and click <span className="font-semibold text-slate-300">Save Changes</span> (bottom-right).
+              <div className={cn(
+                "text-xs",
+                isLight ? "text-slate-600" : "text-slate-500"
+              )}>
+                Tip: Select and click <span className={cn(
+                  "font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-300"
+                )}>
+                  Save Changes
+                </span> (bottom-right).
               </div>
             </div>
           </Card>
@@ -1261,7 +1307,12 @@ export function ProfilePage() {
           <Card title="STUDENT INFORMATION">
             <div className="space-y-4">
               <label className="block">
-                <div className="text-xs font-semibold text-slate-400">Full Name</div>
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Full Name
+                </div>
                 <input
                   value={form.full_name}
                   onChange={(e) => {
@@ -1269,21 +1320,63 @@ export function ProfilePage() {
                     setIsDirty(true)
                   }}
                   disabled={saving || showSkeleton}
-                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  className={cn(
+                    "mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60",
+                    isLight
+                      ? "border-slate-200 bg-white text-slate-900"
+                      : "border-slate-800/70 bg-slate-950/40 text-slate-100"
+                  )}
                   placeholder="Your full name"
                 />
               </label>
 
               <label className="block">
-                <div className="text-xs font-semibold text-slate-400">Email</div>
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Class
+                </div>
                 <input
-                  value={user?.email ?? form.email}
-                  disabled
-                  className="mt-2 w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 opacity-80"
+                  value={form.class}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, class: e.target.value }))
+                    setIsDirty(true)
+                  }}
+                  disabled={saving || showSkeleton}
+                  className={cn(
+                    "mt-2 w-full rounded-2xl border px-4 py-3 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60",
+                    isLight
+                      ? "border-slate-200 bg-white text-slate-900"
+                      : "border-slate-800/70 bg-slate-950/40 text-slate-100"
+                  )}
+                  placeholder="e.g., Form 5A, Year 1, etc."
                 />
               </label>
 
-              <div className="text-xs text-slate-500">
+              <label className="block">
+                <div className={cn(
+                  "text-xs font-semibold",
+                  isLight ? "text-slate-600" : "text-slate-400"
+                )}>
+                  Email
+                </div>
+                <input
+                  value={user?.email ?? form.email}
+                  disabled
+                  className={cn(
+                    "mt-2 w-full rounded-2xl border px-4 py-3 text-sm opacity-80",
+                    isLight
+                      ? "border-slate-200 bg-slate-50 text-slate-700"
+                      : "border-slate-800/70 bg-slate-950/40 text-slate-100"
+                  )}
+                />
+              </label>
+
+              <div className={cn(
+                "text-xs",
+                isLight ? "text-slate-600" : "text-slate-500"
+              )}>
                 {showSkeleton ? 'Loading…' : 'Tip: Keep your name and class updated for reports and guidance.'}
               </div>
             </div>
