@@ -134,26 +134,53 @@ export function TeacherDashboardPage() {
       )}
 
       {/* Welcome Banner - Always show immediately */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800/70 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-slate-950/50 p-8 backdrop-blur-xl">
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-2xl border p-8 backdrop-blur-xl',
+          isLight
+            ? 'border-slate-200 bg-[linear-gradient(135deg,#e0e7ff_0%,#ede9fe_50%,#f1f5f9_100%)]'
+            : 'border-slate-800/70 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-slate-950/50',
+        )}
+      >
+        <div className="relative z-10 grid grid-cols-1 gap-6 items-center lg:grid-cols-2">
           <div>
-            <h1 className="text-3xl font-bold text-slate-100 mb-2">
+            <h1
+              className={cn(
+                'mb-2 font-bold tracking-tight',
+                isLight ? 'text-3xl md:text-4xl text-slate-900' : 'text-3xl text-slate-100',
+              )}
+            >
               SELAMAT KEMBALI, {teacherName}
             </h1>
-            <p className="text-slate-300/90 mb-6">
+            <p
+              className={cn(
+                'mb-6',
+                isLight ? 'text-base md:text-lg leading-relaxed text-slate-700' : 'text-sm md:text-base text-slate-300/90',
+              )}
+            >
               Anda kini boleh mengurus soalan psikometrik RIASEC dan cadangan kursus dengan mudah.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/teacher/questions"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold transition',
+                  isLight
+                    ? 'bg-blue-600 text-white text-sm md:text-base hover:bg-blue-700'
+                    : 'bg-blue-600 text-white text-sm hover:bg-blue-700',
+                )}
               >
                 Manage Questions
                 <IconArrowRight size={16} />
               </Link>
               <Link
                 to="/teacher/courses"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition backdrop-blur-sm"
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold transition',
+                  isLight
+                    ? 'border border-slate-300 bg-white text-slate-900 text-sm md:text-base hover:bg-slate-100'
+                    : 'border-2 border-white/20 bg-white/10 text-white text-sm hover:bg-white/20 backdrop-blur-sm',
+                )}
               >
                 Manage Courses
                 <IconArrowRight size={16} />

@@ -10,8 +10,11 @@ import {
   type QuestionRow,
 } from '../lib/questionsRepo'
 import { cn } from '../lib/cn'
+import { useTheme } from '../context/ThemeContext'
 
 export function TeacherQuestionsPage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [questions, setQuestions] = useState<QuestionRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
@@ -164,7 +167,12 @@ export function TeacherQuestionsPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-base font-medium',
+          isLight 
+            ? 'border-rose-300 bg-rose-50 text-rose-800' 
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-200'
+        )}>
           {error}
         </div>
       )}
@@ -172,7 +180,7 @@ export function TeacherQuestionsPage() {
       {/* Loading State */}
       {loading && (
         <Card>
-          <div className="py-8 text-center text-sm text-slate-400">Loading questions...</div>
+          <div className={cn('py-8 text-center text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>Loading questions...</div>
         </Card>
       )}
 
@@ -181,7 +189,7 @@ export function TeacherQuestionsPage() {
         <Card>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-100">
+              <h3 className={cn('text-xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
                 {editingId ? 'Edit Question' : 'Add New Question'}
               </h3>
               <button
@@ -194,11 +202,16 @@ export function TeacherQuestionsPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">RIASEC Type</label>
+                <label className={cn('mb-1 block text-base font-medium', isLight ? 'text-slate-700' : 'text-slate-300')}>RIASEC Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as 'R' | 'I' | 'A' | 'S' | 'E' | 'C' })}
-                  className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm text-slate-200"
+                  className={cn(
+                    'w-full rounded-xl border px-4 py-2.5 text-base',
+                    isLight
+                      ? 'border-slate-300 bg-white text-slate-900'
+                      : 'border-slate-800/70 bg-slate-950/40 text-slate-200'
+                  )}
                 >
                   <option value="R">Realistic (R)</option>
                   <option value="I">Investigative (I)</option>
@@ -209,12 +222,17 @@ export function TeacherQuestionsPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Question Text</label>
+                <label className={cn('mb-1 block text-base font-medium', isLight ? 'text-slate-700' : 'text-slate-300')}>Question Text</label>
                 <textarea
                   value={formData.text}
                   onChange={(e) => setFormData({ ...formData, text: e.target.value })}
                   rows={3}
-                  className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm text-slate-200"
+                  className={cn(
+                    'w-full rounded-xl border px-4 py-2.5 text-base',
+                    isLight
+                      ? 'border-slate-300 bg-white text-slate-900'
+                      : 'border-slate-800/70 bg-slate-950/40 text-slate-200'
+                  )}
                   placeholder="Enter question text..."
                 />
               </div>
@@ -253,7 +271,7 @@ export function TeacherQuestionsPage() {
         <Card key={type}>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-100">
+              <h3 className={cn('text-xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
                 {typeLabels[type]} ({type}) - {questionsByType[type].length} questions
               </h3>
             </div>
@@ -266,11 +284,16 @@ export function TeacherQuestionsPage() {
                   return (
                     <div
                       key={question.id}
-                      className="rounded-xl border border-blue-500/30 bg-slate-950/40 p-4"
+                      className={cn(
+                        'rounded-xl border p-4',
+                        isLight
+                          ? 'border-blue-300 bg-white shadow-md'
+                          : 'border-blue-500/30 bg-slate-950/40'
+                      )}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold text-blue-400">Editing Question</h4>
+                          <h4 className={cn('text-base font-semibold', isLight ? 'text-blue-700' : 'text-blue-400')}>Editing Question</h4>
                           <button
                             type="button"
                             onClick={handleCancelEdit}
@@ -280,7 +303,7 @@ export function TeacherQuestionsPage() {
                           </button>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-300">RIASEC Type</label>
+                          <label className={cn('mb-1 block text-sm font-medium', isLight ? 'text-slate-700' : 'text-slate-300')}>RIASEC Type</label>
                           <select
                             value={editingFormData.type}
                             onChange={(e) => setEditingFormData({ 
@@ -299,7 +322,7 @@ export function TeacherQuestionsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-300">Question Text</label>
+                          <label className={cn('mb-1 block text-sm font-medium', isLight ? 'text-slate-700' : 'text-slate-300')}>Question Text</label>
                           <textarea
                             value={editingFormData.text}
                             onChange={(e) => setEditingFormData({ ...editingFormData, text: e.target.value })}
@@ -344,23 +367,32 @@ export function TeacherQuestionsPage() {
                 return (
                   <div
                     key={question.id}
-                    className="flex items-start justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 p-4"
+                    className={cn(
+                      'flex items-start justify-between rounded-xl border p-4',
+                      isLight
+                        ? 'border-slate-200 bg-white shadow-md'
+                        : 'border-slate-800/70 bg-slate-950/30'
+                    )}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="text-sm font-medium text-slate-200">{question.text}</div>
+                        <div className={cn('text-base font-medium leading-relaxed', isLight ? 'text-[#0f172a]' : 'text-slate-200')}>{question.text}</div>
                         <span
                           className={cn(
-                            'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                            'inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold',
                             question.is_active
-                              ? 'bg-emerald-500/20 text-emerald-400'
-                              : 'bg-amber-500/20 text-amber-400',
+                              ? isLight
+                                ? 'bg-emerald-100 border border-emerald-300 text-emerald-800'
+                                : 'bg-emerald-500/20 text-emerald-400'
+                              : isLight
+                                ? 'bg-amber-100 border border-amber-300 text-amber-800'
+                                : 'bg-amber-500/20 text-amber-400',
                           )}
                         >
                           {question.is_active ? 'Active' : 'Draft'}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-slate-400">ID: {question.id}</div>
+                      <div className={cn('mt-1 text-sm', isLight ? 'text-slate-500' : 'text-slate-400')}>ID: {question.id}</div>
                     </div>
                     <div className="ml-4 flex gap-2">
                       <button

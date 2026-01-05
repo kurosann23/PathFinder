@@ -35,8 +35,8 @@ export function Card(props: CardProps) {
           <div className="min-w-0">
             {title && (
               <h3 className={themeCn(
-                'truncate text-xs font-semibold uppercase tracking-[0.16em] text-slate-200/90',
-                'truncate text-xs font-semibold uppercase tracking-[0.16em] text-slate-700',
+                'truncate text-sm font-semibold uppercase tracking-[0.14em] text-slate-200/90',
+                'truncate text-sm font-semibold uppercase tracking-[0.14em] text-slate-700',
                 theme,
               )}>
                 {title}

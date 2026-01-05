@@ -3,6 +3,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/ui/Card'
 import { IconPlus, IconEdit, IconTrash, IconX, IconChevronUp, IconChevronDown } from '../components/icons'
 import { cn } from '../lib/cn'
+import { useTheme } from '../context/ThemeContext'
 import {
   fetchCoursesByTypeForTeachers,
   createCourse,
@@ -24,6 +25,8 @@ type UICourse = {
 }
 
 export function TeacherCoursesPage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [selectedRiasecType, setSelectedRiasecType] = useState<'R' | 'I' | 'A' | 'S' | 'E' | 'C'>('R')
   const [courses, setCourses] = useState<CourseRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -515,7 +518,12 @@ export function TeacherCoursesPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-base font-medium',
+          isLight 
+            ? 'border-rose-300 bg-rose-50 text-rose-800' 
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-200'
+        )}>
           {error}
         </div>
       )}
@@ -523,7 +531,7 @@ export function TeacherCoursesPage() {
       {/* RIASEC Type Selector */}
       <Card>
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-slate-300">Select RIASEC Type</label>
+          <label className={cn('block text-base font-medium', isLight ? 'text-slate-700' : 'text-slate-300')}>Select RIASEC Type</label>
           <div className="flex flex-wrap gap-2">
             {riasecTypes.map((type) => (
               <button
@@ -532,10 +540,14 @@ export function TeacherCoursesPage() {
                 onClick={() => handleRiasecTypeChange(type.value)}
                 disabled={loading}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                  'rounded-xl px-4 py-2 text-base font-semibold transition',
                   selectedRiasecType === type.value
-                    ? 'bg-blue-600/20 text-blue-100 ring-1 ring-blue-500/25'
-                    : 'bg-slate-950/40 text-slate-300 ring-1 ring-slate-800/70 hover:bg-slate-900/60',
+                    ? isLight
+                      ? 'bg-blue-100 text-blue-900 ring-1 ring-blue-300'
+                      : 'bg-blue-600/20 text-blue-100 ring-1 ring-blue-500/25'
+                    : isLight
+                      ? 'bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50'
+                      : 'bg-slate-950/40 text-slate-300 ring-1 ring-slate-800/70 hover:bg-slate-900/60',
                   loading && 'opacity-50 cursor-not-allowed',
                 )}
               >
@@ -549,7 +561,7 @@ export function TeacherCoursesPage() {
       {/* Loading State */}
       {loading && (
         <Card>
-          <div className="py-8 text-center text-sm text-slate-400">Loading courses...</div>
+          <div className={cn('py-8 text-center text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>Loading courses...</div>
         </Card>
       )}
 
@@ -560,10 +572,10 @@ export function TeacherCoursesPage() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-800/70 pb-4">
               <div>
-                <h3 className="text-xl font-semibold text-slate-100">
+                <h3 className={cn('text-2xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
                   {editingId !== null ? 'Edit Course' : 'Add New Course'}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className={cn('mt-1 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
                   {editingId !== null ? 'Update course information below' : 'Fill in the course details below'}
                 </p>
               </div>
@@ -582,13 +594,18 @@ export function TeacherCoursesPage() {
                 {/* RIASEC Type - Only show when adding new course */}
                 {editingId === null && (
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-200">
+                    <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
                       RIASEC Type <span className="text-rose-400">*</span>
                     </label>
                     <select
                       value={formRiasecType || ''}
                       onChange={(e) => setFormRiasecType(e.target.value as 'R' | 'I' | 'A' | 'S' | 'E' | 'C')}
-                      className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                      className={cn(
+                        'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition',
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                          : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                      )}
                     >
                       <option value="">Select RIASEC type...</option>
                       {riasecTypes.map((type) => (
@@ -602,14 +619,19 @@ export function TeacherCoursesPage() {
 
                 {/* Course Name */}
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-200">
-                    Course Name <span className="text-rose-400">*</span>
-                  </label>
+                    <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                      Course Name <span className="text-rose-400">*</span>
+                    </label>
                   <input
                     type="text"
                     value={formData.courseName}
                     onChange={(e) => setFormData({ ...formData, courseName: e.target.value })}
-                    className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
                     placeholder="e.g., Data Science & Analytics"
                   />
                 </div>
@@ -654,14 +676,19 @@ export function TeacherCoursesPage() {
 
                 {/* Focus Description */}
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-200">
-                    Focus Description <span className="text-rose-400">*</span>
-                  </label>
+                    <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                      Focus Description <span className="text-rose-400">*</span>
+                    </label>
                   <textarea
                     value={formData.focusDescription}
                     onChange={(e) => setFormData({ ...formData, focusDescription: e.target.value })}
                     rows={5}
-                    className="w-full rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition resize-none"
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
                     placeholder="Describe what this course focuses on..."
                   />
                 </div>
@@ -670,8 +697,13 @@ export function TeacherCoursesPage() {
               {/* Right Column - Lists */}
               <div className="space-y-6">
                 {/* What You'll Learn */}
-                <div className="rounded-xl border border-slate-800/70 bg-slate-950/30 p-4">
-                  <label className="mb-3 block text-sm font-semibold text-slate-200">
+                <div
+                  className={cn(
+                    'rounded-xl border p-4',
+                    isLight ? 'border-slate-200 bg-white' : 'border-slate-800/70 bg-slate-950/30',
+                  )}
+                >
+                  <label className={cn('mb-3 block text-lg font-semibold', isLight ? 'text-slate-800' : 'text-slate-200')}>
                     What You'll Learn ({formData.whatYouLearn.length})
                   </label>
                   <div className="mb-3 flex gap-2">
@@ -680,13 +712,23 @@ export function TeacherCoursesPage() {
                       value={newLearnItem}
                       onChange={(e) => setNewLearnItem(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && addLearnItem()}
-                      className="flex-1 rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                      className={cn(
+                        'flex-1 rounded-lg border px-3 py-2 text-base focus:ring-2 transition',
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                          : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                      )}
                       placeholder="Add learning outcome..."
                     />
                     <button
                       type="button"
                       onClick={addLearnItem}
-                      className="rounded-lg bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 transition"
+                      className={cn(
+                        'rounded-lg px-4 py-2 text-base font-semibold ring-1 transition',
+                        isLight
+                          ? 'bg-blue-100 text-blue-900 ring-blue-300 hover:bg-blue-200'
+                          : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+                      )}
                     >
                       Add
                     </button>
@@ -696,10 +738,20 @@ export function TeacherCoursesPage() {
                       {formData.whatYouLearn.map((item, idx) => (
                         <div
                           key={idx}
-                          className="group flex items-center gap-2 rounded-lg border border-slate-800/70 bg-slate-950/40 p-3 hover:bg-slate-900/40 transition"
+                          className={cn(
+                            'group flex items-center gap-2 rounded-lg border p-3 transition',
+                            isLight
+                              ? 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                              : 'border-slate-800/70 bg-slate-950/40 hover:bg-slate-900/40',
+                          )}
                         >
                           <div className="flex shrink-0 items-center gap-1">
-                            <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-600/20 text-xs font-semibold text-blue-200">
+                            <span
+                              className={cn(
+                                'flex h-7 w-7 items-center justify-center rounded text-sm font-semibold',
+                                isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-600/20 text-blue-200',
+                              )}
+                            >
                               {idx + 1}
                             </span>
                             <div className="flex flex-col">
@@ -727,7 +779,14 @@ export function TeacherCoursesPage() {
                               </button>
                             </div>
                           </div>
-                          <span className="flex-1 text-sm text-slate-300">{item}</span>
+                          <span
+                            className={cn(
+                              'flex-1 text-base',
+                              isLight ? 'text-slate-800' : 'text-slate-300',
+                            )}
+                          >
+                            {item}
+                          </span>
                           <button
                             type="button"
                             onClick={() => removeLearnItem(idx)}
@@ -742,8 +801,18 @@ export function TeacherCoursesPage() {
                 </div>
 
                 {/* Tools & Skills */}
-                <div className="rounded-xl border border-slate-800/70 bg-slate-950/30 p-4">
-                  <label className="mb-3 block text-sm font-semibold text-slate-200">
+                <div
+                  className={cn(
+                    'rounded-xl border p-4',
+                    isLight ? 'border-slate-200 bg-white' : 'border-slate-800/70 bg-slate-950/30',
+                  )}
+                >
+                  <label
+                    className={cn(
+                      'mb-3 block text-lg font-semibold',
+                      isLight ? 'text-slate-800' : 'text-slate-200',
+                    )}
+                  >
                     Tools & Skills ({formData.toolsAndSkills.length})
                   </label>
                   <div className="mb-3 flex gap-2">
@@ -752,13 +821,23 @@ export function TeacherCoursesPage() {
                       value={newToolItem}
                       onChange={(e) => setNewToolItem(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && addToolItem()}
-                      className="flex-1 rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                      className={cn(
+                        'flex-1 rounded-lg border px-3 py-2 text-base focus:ring-2 transition',
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                          : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                      )}
                       placeholder="Add tool or skill..."
                     />
                     <button
                       type="button"
                       onClick={addToolItem}
-                      className="rounded-lg bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 transition"
+                      className={cn(
+                        'rounded-lg px-4 py-2 text-base font-semibold ring-1 transition',
+                        isLight
+                          ? 'bg-blue-100 text-blue-900 ring-blue-300 hover:bg-blue-200'
+                          : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+                      )}
                     >
                       Add
                     </button>
@@ -768,10 +847,20 @@ export function TeacherCoursesPage() {
                       {formData.toolsAndSkills.map((tool, idx) => (
                         <div
                           key={idx}
-                          className="group flex items-center gap-2 rounded-lg border border-slate-800/70 bg-slate-950/40 p-3 hover:bg-slate-900/40 transition"
+                          className={cn(
+                            'group flex items-center gap-2 rounded-lg border p-3 transition',
+                            isLight
+                              ? 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                              : 'border-slate-800/70 bg-slate-950/40 hover:bg-slate-900/40',
+                          )}
                         >
                           <div className="flex shrink-0 items-center gap-1">
-                            <span className="flex h-6 w-6 items-center justify-center rounded bg-purple-600/20 text-xs font-semibold text-purple-200">
+                            <span
+                              className={cn(
+                                'flex h-7 w-7 items-center justify-center rounded text-sm font-semibold',
+                                isLight ? 'bg-purple-100 text-purple-800' : 'bg-purple-600/20 text-purple-200',
+                              )}
+                            >
                               {idx + 1}
                             </span>
                             <div className="flex flex-col">
@@ -799,7 +888,14 @@ export function TeacherCoursesPage() {
                               </button>
                             </div>
                           </div>
-                          <span className="flex-1 text-sm text-slate-300">{tool}</span>
+                          <span
+                            className={cn(
+                              'flex-1 text-base',
+                              isLight ? 'text-slate-800' : 'text-slate-300',
+                            )}
+                          >
+                            {tool}
+                          </span>
                           <button
                             type="button"
                             onClick={() => removeToolItem(idx)}
@@ -816,8 +912,18 @@ export function TeacherCoursesPage() {
             </div>
 
             {/* Example Job Roles - Full Width */}
-            <div className="rounded-xl border border-slate-800/70 bg-slate-950/30 p-4">
-              <label className="mb-3 block text-sm font-semibold text-slate-200">
+            <div
+              className={cn(
+                'rounded-xl border p-4',
+                isLight ? 'border-slate-200 bg-white' : 'border-slate-800/70 bg-slate-950/30',
+              )}
+            >
+              <label
+                className={cn(
+                  'mb-3 block text-lg font-semibold',
+                  isLight ? 'text-slate-800' : 'text-slate-200',
+                )}
+              >
                 Example Job Roles ({formData.exampleJobRoles.length})
               </label>
               <div className="mb-4 space-y-3">
@@ -826,20 +932,35 @@ export function TeacherCoursesPage() {
                     type="text"
                     value={newJobTitle}
                     onChange={(e) => setNewJobTitle(e.target.value)}
-                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition"
+                    className={cn(
+                      'rounded-lg border px-3 py-2 text-base focus:ring-2 transition',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                    )}
                     placeholder="Job title..."
                   />
                   <textarea
                     value={newJobDescription}
                     onChange={(e) => setNewJobDescription(e.target.value)}
                     rows={2}
-                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition resize-none"
+                    className={cn(
+                      'rounded-lg border px-3 py-2 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                    )}
                     placeholder="Job description..."
                   />
                 </div>
                 {/* Job Role Image Upload */}
                 <div>
-                  <label className="mb-2 block text-xs font-medium text-slate-400">
+                  <label
+                    className={cn(
+                      'mb-2 block text-sm font-medium',
+                      isLight ? 'text-slate-700' : 'text-slate-400',
+                    )}
+                  >
                     Job Image (Optional)
                   </label>
                   {newJobImagePreview ? (
@@ -868,7 +989,9 @@ export function TeacherCoursesPage() {
                         className="hidden"
                       />
                       <div className="text-center">
-                        <div className="text-xs text-slate-400">Click to upload job image</div>
+                        <div className={cn('text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                          Click to upload job image
+                        </div>
                       </div>
                     </label>
                   )}
@@ -878,7 +1001,12 @@ export function TeacherCoursesPage() {
                 type="button"
                 onClick={addJobRole}
                 disabled={!newJobTitle.trim() || !newJobDescription.trim()}
-                className="mb-4 w-full rounded-lg bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className={cn(
+                  'mb-4 w-full rounded-lg px-4 py-2 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
+                  isLight
+                    ? 'bg-blue-100 text-blue-900 ring-blue-300 hover:bg-blue-200'
+                    : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+                )}
               >
                 Add Job Role
               </button>

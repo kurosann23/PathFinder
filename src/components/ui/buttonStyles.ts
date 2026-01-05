@@ -22,9 +22,9 @@ export function buttonClasses(opts?: {
     'select-none'
 
   const sizes: Record<ButtonSize, string> = {
-    sm: 'rounded-xl px-3 py-2 text-xs',
-    md: 'rounded-2xl px-4 py-2.5 text-sm',
-    lg: 'rounded-2xl px-5 py-3 text-sm',
+    sm: 'rounded-xl px-3 py-2 text-sm',
+    md: 'rounded-2xl px-4 py-2.5 text-base',
+    lg: 'rounded-2xl px-5 py-3 text-base',
   }
 
   // Neon-blue only (no rainbow)

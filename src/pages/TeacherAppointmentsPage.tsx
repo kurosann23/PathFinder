@@ -250,13 +250,23 @@ export function TeacherAppointmentsPage() {
       <PageHeader title="APPOINTMENTS" subtitle="Manage appointment requests from students" />
 
       {error && (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-base font-medium',
+          isLight 
+            ? 'border-rose-300 bg-rose-50 text-rose-800' 
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-200'
+        )}>
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-base font-semibold',
+          isLight 
+            ? 'border-emerald-300 bg-emerald-50 text-emerald-800' 
+            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100'
+        )}>
           {success}
         </div>
       )}
@@ -266,8 +276,8 @@ export function TeacherAppointmentsPage() {
         <Card>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="mb-2 text-sm text-slate-400">Loading appointments...</div>
-              <div className="text-xs text-slate-500">Please wait</div>
+              <div className={cn('mb-2 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>Loading appointments...</div>
+              <div className={cn('text-sm', isLight ? 'text-slate-500' : 'text-slate-500')}>Please wait</div>
             </div>
           </div>
         </Card>
@@ -277,8 +287,8 @@ export function TeacherAppointmentsPage() {
           {approvedAppointments.length > 0 && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide">Approved Appointments</h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <h3 className={cn('text-xl font-semibold uppercase tracking-wide', isLight ? 'text-slate-900' : 'text-slate-100')}>Approved Appointments</h3>
+                <p className={cn('mt-1 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
                   {approvedAppointments.length} confirmed appointment{approvedAppointments.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -293,7 +303,7 @@ export function TeacherAppointmentsPage() {
                         <div className="flex items-center gap-3 mb-2">
                           <span
                             className={cn(
-                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              'inline-flex items-center rounded-full border px-3 py-1.5 text-base font-semibold shrink-0',
                               STATUS_COLORS.approved.bg,
                               STATUS_COLORS.approved.border,
                               STATUS_COLORS.approved.text,
@@ -301,28 +311,28 @@ export function TeacherAppointmentsPage() {
                           >
                             Approved
                           </span>
-                          <span className="text-sm font-medium text-slate-100">
+                          <span className={cn('text-base font-medium', isLight ? 'text-slate-900' : 'text-slate-100')}>
                             {formatTime(appointment.time)}
                           </span>
-                          <span className="text-sm text-slate-300">{formatDate(appointment.date)}</span>
-                          <span className="text-xs text-slate-400 capitalize">{appointment.mode}</span>
+                          <span className={cn('text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>{formatDate(appointment.date)}</span>
+                          <span className={cn('text-base capitalize', isLight ? 'text-slate-700' : 'text-slate-400')}>{appointment.mode}</span>
                         </div>
-                        <div className="text-sm font-medium text-slate-200 mb-1">
+                        <div className={cn('text-base font-medium mb-1', isLight ? 'text-slate-900' : 'text-slate-200')}>
                           {appointment.student_name || 'Student'}
                         </div>
                         {appointment.reason && (
-                          <div className="text-xs text-slate-400 mt-2 line-clamp-2">{appointment.reason}</div>
+                          <div className={cn('text-base mt-2 line-clamp-2 leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-400')}>{appointment.reason}</div>
                         )}
                         {(appointment.meeting_link || appointment.meeting_place || appointment.meeting_note) && (
                           <div className="mt-3 pt-3 border-t border-slate-800/50 space-y-1">
                             {appointment.meeting_link && (
                               <div>
-                                <div className="text-xs text-slate-400 mb-1">Meeting Link:</div>
+                                <div className={cn('text-base mb-1 font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Meeting Link:</div>
                                 <a
                                   href={appointment.meeting_link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-blue-400 hover:text-blue-300 underline break-all"
+                                  className={cn('text-base underline break-all', isLight ? 'text-blue-700 hover:text-blue-800' : 'text-blue-400 hover:text-blue-300')}
                                 >
                                   {appointment.meeting_link}
                                 </a>
@@ -330,14 +340,14 @@ export function TeacherAppointmentsPage() {
                             )}
                             {appointment.meeting_place && (
                               <div>
-                                <div className="text-xs text-slate-400 mb-1">Place:</div>
-                                <div className="text-xs text-slate-200">{appointment.meeting_place}</div>
+                                <div className={cn('text-base mb-1 font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Place:</div>
+                                <div className={cn('text-base', isLight ? 'text-slate-900' : 'text-slate-200')}>{appointment.meeting_place}</div>
                               </div>
                             )}
                             {appointment.meeting_note && (
                               <div>
-                                <div className="text-xs text-slate-400 mb-1">Notes:</div>
-                                <div className="text-xs text-slate-200 whitespace-pre-wrap">{appointment.meeting_note}</div>
+                                <div className={cn('text-base mb-1 font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Notes:</div>
+                                <div className={cn('text-base whitespace-pre-wrap leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-200')}>{appointment.meeting_note}</div>
                               </div>
                             )}
                           </div>
@@ -346,10 +356,10 @@ export function TeacherAppointmentsPage() {
                       <div className="flex-shrink-0">
                         <Button
                           variant="secondary"
-                          size="sm"
+                          size="md"
                           onClick={() => handleCancelClick(appointment.id)}
                           disabled={updating === appointment.id}
-                          className="text-xs"
+                          className="text-base"
                         >
                           Request Cancellation
                         </Button>
@@ -380,25 +390,25 @@ export function TeacherAppointmentsPage() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="text-lg font-semibold text-slate-100 mb-1">
+                        <div className={cn('text-xl font-semibold mb-1', isLight ? 'text-slate-900' : 'text-slate-100')}>
                           {appointment.student_name || 'Student'}
                         </div>
-                        <div className="space-y-2 text-sm text-slate-300">
+                        <div className={cn('space-y-2 text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Mode:</span>
+                            <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>Mode:</span>
                             <span className="font-medium capitalize">{appointment.mode}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Date:</span>
+                            <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>Date:</span>
                             <span className="font-medium">{formatDate(appointment.date)}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Time:</span>
+                            <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>Time:</span>
                             <span className="font-medium">{formatTime(appointment.time)}</span>
                           </div>
-                          <div className="mt-3 pt-3 border-t border-slate-800/70">
-                            <div className="text-slate-400 mb-1">Reason:</div>
-                            <div className="text-slate-200">{appointment.reason}</div>
+                          <div className={cn('mt-3 pt-3 border-t', isLight ? 'border-slate-300' : 'border-slate-800/70')}>
+                            <div className={cn('mb-1 font-medium', isLight ? 'text-slate-700' : 'text-slate-400')}>Reason:</div>
+                            <div className={cn('leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-200')}>{appointment.reason}</div>
                           </div>
                         </div>
                       </div>
@@ -432,13 +442,13 @@ export function TeacherAppointmentsPage() {
             <Card>
               <div className="mb-4">
                 <h3 className={cn(
-                  "text-sm font-semibold uppercase tracking-wide",
-                  isLight ? "text-slate-900" : ""
+                  "text-xl font-semibold uppercase tracking-wide",
+                  isLight ? "text-slate-900" : "text-slate-100"
                 )}>
                   Cancelled Appointments
                 </h3>
                 <p className={cn(
-                  "mt-1 text-xs",
+                  "mt-1 text-base",
                   isLight ? "text-slate-600" : "text-slate-400"
                 )}>
                   {cancelledAppointments.length} cancelled appointment{cancelledAppointments.length !== 1 ? 's' : ''}
@@ -474,7 +484,7 @@ export function TeacherAppointmentsPage() {
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span
                             className={cn(
-                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              'inline-flex items-center rounded-full border px-3 py-1.5 text-base font-semibold shrink-0',
                               STATUS_COLORS.cancelled.bg,
                               STATUS_COLORS.cancelled.border,
                               STATUS_COLORS.cancelled.text,
@@ -483,14 +493,14 @@ export function TeacherAppointmentsPage() {
                             Cancelled
                           </span>
                           <span className={cn(
-                            "text-sm font-medium truncate",
-                            isLight ? "text-slate-700" : "text-slate-300"
+                            "text-base font-medium truncate",
+                            isLight ? "text-slate-900" : "text-slate-300"
                           )}>
                             {appointment.student_name || 'Student'}
                           </span>
                           <span className={cn(
-                            "text-xs shrink-0",
-                            isLight ? "text-slate-600" : "text-slate-400"
+                            "text-base shrink-0",
+                            isLight ? "text-slate-700" : "text-slate-400"
                           )}>
                             {formatDate(appointment.date)}
                           </span>
@@ -513,21 +523,21 @@ export function TeacherAppointmentsPage() {
                           "px-3 pb-3 pt-2 border-t space-y-2",
                           isLight ? "border-slate-200" : "border-slate-800/30"
                         )}>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="grid grid-cols-2 gap-2 text-base">
                             <div>
-                              <span className={cn(isLight ? "text-slate-600" : "text-slate-400")}>Time:</span>
+                              <span className={cn('font-medium', isLight ? "text-slate-800" : "text-slate-400")}>Time:</span>
                               <span className={cn(
                                 "ml-2",
-                                isLight ? "text-slate-700" : "text-slate-300"
+                                isLight ? "text-slate-900" : "text-slate-300"
                               )}>
                                 {formatTime(appointment.time)}
                               </span>
                             </div>
                             <div>
-                              <span className={cn(isLight ? "text-slate-600" : "text-slate-400")}>Mode:</span>
+                              <span className={cn('font-medium', isLight ? "text-slate-800" : "text-slate-400")}>Mode:</span>
                               <span className={cn(
                                 "ml-2 capitalize",
-                                isLight ? "text-slate-700" : "text-slate-300"
+                                isLight ? "text-slate-900" : "text-slate-300"
                               )}>
                                 {appointment.mode}
                               </span>
@@ -539,14 +549,14 @@ export function TeacherAppointmentsPage() {
                               isLight ? "border-slate-200" : "border-slate-800/30"
                             )}>
                               <div className={cn(
-                                "text-xs mb-1",
-                                isLight ? "text-slate-600" : "text-slate-400"
+                                "text-base mb-1 font-medium",
+                                isLight ? "text-slate-800" : "text-slate-400"
                               )}>
                                 Reason:
                               </div>
                               <div className={cn(
-                                "text-xs",
-                                isLight ? "text-slate-700" : "text-slate-300"
+                                "text-base leading-relaxed",
+                                isLight ? "text-slate-900" : "text-slate-300"
                               )}>
                                 {appointment.reason}
                               </div>
@@ -558,14 +568,14 @@ export function TeacherAppointmentsPage() {
                               isLight ? "border-slate-200" : "border-slate-800/30"
                             )}>
                               <div className={cn(
-                                "text-xs mb-1",
-                                isLight ? "text-slate-600" : "text-slate-400"
+                                "text-base mb-1 font-medium",
+                                isLight ? "text-slate-800" : "text-slate-400"
                               )}>
                                 Cancellation Reason:
                               </div>
                               <div className={cn(
-                                "text-xs",
-                                isLight ? "text-slate-700" : "text-slate-300"
+                                "text-base leading-relaxed",
+                                isLight ? "text-slate-900" : "text-slate-300"
                               )}>
                                 {appointment.cancellation_reason}
                               </div>
@@ -584,8 +594,8 @@ export function TeacherAppointmentsPage() {
           {rejectedAppointments.length > 0 && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide">Rejected / Cancelled</h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <h3 className={cn('text-xl font-semibold uppercase tracking-wide', isLight ? 'text-slate-900' : 'text-slate-100')}>Rejected / Cancelled</h3>
+                <p className={cn('mt-1 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
                   {rejectedAppointments.length} appointment{rejectedAppointments.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -608,12 +618,15 @@ export function TeacherAppointmentsPage() {
                           }
                           setExpandedRejected(newExpanded)
                         }}
-                        className="w-full p-3 flex items-center justify-between gap-3 text-left hover:bg-slate-950/30 transition"
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                      className={cn(
+                        'w-full p-3 flex items-center justify-between gap-3 text-left transition',
+                        isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-950/30'
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span
                             className={cn(
-                              'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shrink-0',
+                              'inline-flex items-center rounded-full border px-3 py-1.5 text-base font-semibold shrink-0',
                               STATUS_COLORS.rejected.bg,
                               STATUS_COLORS.rejected.border,
                               STATUS_COLORS.rejected.text,
@@ -621,10 +634,10 @@ export function TeacherAppointmentsPage() {
                           >
                             Rejected
                           </span>
-                          <span className="text-sm font-medium text-slate-300 truncate">
+                          <span className={cn('text-base font-medium truncate', isLight ? 'text-slate-900' : 'text-slate-300')}>
                             {appointment.student_name || 'Student'}
                           </span>
-                          <span className="text-xs text-slate-400 shrink-0">{formatDate(appointment.date)}</span>
+                          <span className={cn('text-base shrink-0', isLight ? 'text-slate-700' : 'text-slate-400')}>{formatDate(appointment.date)}</span>
                         </div>
                         <svg
                           className={cn(
@@ -639,27 +652,27 @@ export function TeacherAppointmentsPage() {
                         </svg>
                       </button>
                       {isExpanded && (
-                        <div className="px-3 pb-3 pt-2 border-t border-slate-800/30 space-y-2">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className={cn('px-3 pb-3 pt-2 border-t space-y-2', isLight ? 'border-slate-200' : 'border-slate-800/30')}>
+                          <div className="grid grid-cols-2 gap-2 text-base">
                             <div>
-                              <span className="text-slate-400">Time:</span>
-                              <span className="ml-2 text-slate-300">{formatTime(appointment.time)}</span>
+                              <span className={cn('font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Time:</span>
+                              <span className={cn('ml-2', isLight ? 'text-slate-900' : 'text-slate-300')}>{formatTime(appointment.time)}</span>
                             </div>
                             <div>
-                              <span className="text-slate-400">Mode:</span>
-                              <span className="ml-2 text-slate-300 capitalize">{appointment.mode}</span>
+                              <span className={cn('font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Mode:</span>
+                              <span className={cn('ml-2 capitalize', isLight ? 'text-slate-900' : 'text-slate-300')}>{appointment.mode}</span>
                             </div>
                           </div>
                           {appointment.reason && (
-                            <div className="pt-2 border-t border-slate-800/30">
-                              <div className="text-xs text-slate-400 mb-1">Reason:</div>
-                              <div className="text-xs text-slate-300">{appointment.reason}</div>
+                            <div className={cn('pt-2 border-t', isLight ? 'border-slate-200' : 'border-slate-800/30')}>
+                              <div className={cn('text-base mb-1 font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Reason:</div>
+                              <div className={cn('text-base leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-300')}>{appointment.reason}</div>
                             </div>
                           )}
                           {appointment.rejection_reason && (
-                            <div className="pt-2 border-t border-slate-800/30">
-                              <div className="text-xs text-slate-400 mb-1">Rejection Reason:</div>
-                              <div className="text-xs text-slate-300">{appointment.rejection_reason}</div>
+                            <div className={cn('pt-2 border-t', isLight ? 'border-slate-200' : 'border-slate-800/30')}>
+                              <div className={cn('text-base mb-1 font-medium', isLight ? 'text-slate-800' : 'text-slate-400')}>Rejection Reason:</div>
+                              <div className={cn('text-base leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-300')}>{appointment.rejection_reason}</div>
                             </div>
                           )}
                         </div>
@@ -675,8 +688,8 @@ export function TeacherAppointmentsPage() {
             <Card>
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="mb-2 text-sm text-slate-400">No appointments yet</div>
-                  <div className="text-xs text-slate-500">Appointment requests will appear here</div>
+                  <div className={cn('mb-2 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>No appointments yet</div>
+                  <div className={cn('text-base', isLight ? 'text-slate-600' : 'text-slate-500')}>Appointment requests will appear here</div>
                 </div>
               </div>
             </Card>

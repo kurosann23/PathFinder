@@ -24,8 +24,8 @@ export function PageHeader(props: PageHeaderProps) {
             Pathfinder
           </div>
           <h1 className={themeCn(
-            'mt-1 truncate text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl',
-            'mt-1 truncate text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl',
+            'mt-1 truncate text-3xl font-bold tracking-tight text-slate-50 md:text-4xl',
+            'mt-1 truncate text-3xl font-bold tracking-tight text-slate-900 md:text-4xl',
             theme,
           )}>
             {title}
@@ -42,8 +42,8 @@ export function PageHeader(props: PageHeaderProps) {
 
       {subtitle && (
         <p className={themeCn(
-          'text-sm leading-relaxed text-slate-300/80',
-          'text-sm leading-relaxed text-slate-700',
+          'text-base leading-relaxed text-slate-300/90',
+          'text-base leading-relaxed text-slate-700',
           theme,
         )}>
           {subtitle}

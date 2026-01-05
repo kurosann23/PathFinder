@@ -4,6 +4,7 @@ import { PageHeader } from '../components/PageHeader'
 import { fetchAllClasses, fetchStudentsByClass, fetchRiasecResultsForStudents, type StudentProfileRow } from '../lib/profileRepo'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
+import { useTheme } from '../context/ThemeContext'
 
 type StudentWithRiasec = StudentProfileRow & {
   dominantRiasecCode: string | null
@@ -28,16 +29,60 @@ const RIASEC_LABELS: Record<string, string> = {
   C: 'Conventional',
 }
 
-const RIASEC_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  R: { bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
-  I: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' },
-  A: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400' },
-  S: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400' },
-  E: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400' },
-  C: { bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' },
+const RIASEC_COLORS: Record<string, { bg: string; border: string; text: string; bgLight: string; borderLight: string; textLight: string }> = {
+  R: { 
+    bg: 'bg-blue-500/10', 
+    border: 'border-blue-500/30', 
+    text: 'text-blue-400',
+    bgLight: 'bg-[#e8f1ff]',
+    borderLight: 'border-blue-300',
+    textLight: 'text-[#1e293b]',
+  },
+  I: { 
+    bg: 'bg-blue-500/10', 
+    border: 'border-blue-500/30', 
+    text: 'text-blue-400',
+    bgLight: 'bg-blue-50',
+    borderLight: 'border-blue-300',
+    textLight: 'text-blue-700',
+  },
+  A: { 
+    bg: 'bg-purple-500/10', 
+    border: 'border-purple-500/30', 
+    text: 'text-purple-400',
+    bgLight: 'bg-purple-50',
+    borderLight: 'border-purple-300',
+    textLight: 'text-purple-700',
+  },
+  S: { 
+    bg: 'bg-cyan-500/10', 
+    border: 'border-cyan-500/30', 
+    text: 'text-cyan-400',
+    bgLight: 'bg-cyan-50',
+    borderLight: 'border-cyan-300',
+    textLight: 'text-cyan-700',
+  },
+  E: { 
+    bg: 'bg-emerald-500/10', 
+    border: 'border-emerald-500/30', 
+    text: 'text-emerald-400',
+    bgLight: 'bg-emerald-50',
+    borderLight: 'border-emerald-300',
+    textLight: 'text-emerald-700',
+  },
+  C: { 
+    bg: 'bg-green-500/10', 
+    border: 'border-green-500/30', 
+    text: 'text-green-400',
+    bgLight: 'bg-green-50',
+    borderLight: 'border-green-300',
+    textLight: 'text-green-700',
+  },
 }
 
 export function TeacherStudentOverviewPage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [classes, setClasses] = useState<string[]>([])
   const [selectedClass, setSelectedClass] = useState<string>('')
   const [students, setStudents] = useState<StudentWithRiasec[]>([])
@@ -157,7 +202,12 @@ export function TeacherStudentOverviewPage() {
       />
 
       {error && (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+        <div className={cn(
+          'rounded-xl border px-4 py-3 text-base font-medium',
+          isLight 
+            ? 'border-rose-300 bg-rose-50 text-rose-800' 
+            : 'border-rose-500/20 bg-rose-500/10 text-rose-200'
+        )}>
           {error}
         </div>
       )}
@@ -166,7 +216,7 @@ export function TeacherStudentOverviewPage() {
       <Card>
         <div className="space-y-4">
           <div>
-            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-400 mb-2">
+            <label htmlFor="class-select" className={cn('block text-base font-semibold mb-2', isLight ? 'text-slate-700' : 'text-slate-400')}>
               Select Class
             </label>
             <select
@@ -174,7 +224,12 @@ export function TeacherStudentOverviewPage() {
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
               disabled={loading || classes.length === 0}
-              className="w-full rounded-2xl border border-slate-800/70 bg-slate-950/40 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+              className={cn(
+                'w-full rounded-2xl border px-4 py-3 text-base focus:outline-none focus:ring-2 disabled:opacity-60',
+                isLight
+                  ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30'
+                  : 'border-slate-800/70 bg-slate-950/40 text-slate-100 focus:ring-blue-500/20'
+              )}
             >
               {loading ? (
                 <option>Loading classes...</option>
@@ -189,7 +244,12 @@ export function TeacherStudentOverviewPage() {
               )}
             </select>
           </div>
-          <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-xs text-blue-200">
+          <div className={cn(
+            'rounded-xl border px-4 py-3 text-sm',
+            isLight 
+              ? 'border-blue-200 bg-blue-50 text-blue-800' 
+              : 'border-blue-500/20 bg-blue-500/10 text-blue-200'
+          )}>
             <strong>Note:</strong> This overview is for counselling reference only. It provides a high-level view of
             student RIASEC tendencies to support guidance decisions.
           </div>
@@ -200,7 +260,7 @@ export function TeacherStudentOverviewPage() {
       {selectedClass && (
         <Card title="Summary Statistics">
           <div className="space-y-4">
-            <div className="text-sm text-slate-400">
+            <div className={cn('text-base', isLight ? 'text-slate-700' : 'text-slate-400')}>
               {students.length} student{students.length !== 1 ? 's' : ''} in {selectedClass}
               {totalStudentsWithResults > 0 && (
                 <span className="ml-2">
@@ -211,7 +271,7 @@ export function TeacherStudentOverviewPage() {
 
             {totalStudentsWithResults > 0 && (
               <div>
-                <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wide">
+                <div className={cn('text-sm font-semibold mb-3 uppercase tracking-wide', isLight ? 'text-slate-700' : 'text-slate-400')}>
                   Students per RIASEC Category
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -223,13 +283,13 @@ export function TeacherStudentOverviewPage() {
                         key={code}
                         className={cn(
                           'rounded-xl border p-3 text-center',
-                          colors.bg,
-                          colors.border,
+                          isLight ? colors.bgLight : colors.bg,
+                          isLight ? colors.borderLight : colors.border,
                         )}
                       >
-                        <div className={cn('text-2xl font-bold mb-1', colors.text)}>{count}</div>
-                        <div className="text-xs font-semibold text-slate-300">{code}</div>
-                        <div className="text-[10px] text-slate-500 mt-1">{RIASEC_LABELS[code]}</div>
+                        <div className={cn('text-2xl font-bold mb-1', isLight ? colors.textLight : colors.text)}>{count}</div>
+                        <div className={cn('text-sm font-semibold', isLight ? 'text-slate-700' : 'text-slate-300')}>{code}</div>
+                        <div className={cn('text-xs mt-1', isLight ? 'text-slate-600' : 'text-slate-500')}>{RIASEC_LABELS[code]}</div>
                       </div>
                     )
                   })}
@@ -246,15 +306,15 @@ export function TeacherStudentOverviewPage() {
           {loadingStudents ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="mb-2 text-sm text-slate-400">Loading students...</div>
-                <div className="text-xs text-slate-500">Please wait</div>
+                <div className={cn('mb-2 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>Loading students...</div>
+                <div className={cn('text-sm', isLight ? 'text-slate-500' : 'text-slate-500')}>Please wait</div>
               </div>
             </div>
           ) : students.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="mb-2 text-sm text-slate-400">No students found</div>
-                <div className="text-xs text-slate-500">This class may be empty</div>
+                <div className={cn('mb-2 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>No students found</div>
+                <div className={cn('text-sm', isLight ? 'text-slate-500' : 'text-slate-500')}>This class may be empty</div>
               </div>
             </div>
           ) : (
@@ -263,13 +323,13 @@ export function TeacherStudentOverviewPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-800/70">
-                      <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                      <th className={cn('text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide', isLight ? 'text-slate-700' : 'text-slate-400')}>
                         Name
                       </th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                      <th className={cn('text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide', isLight ? 'text-slate-700' : 'text-slate-400')}>
                         Class
                       </th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                      <th className={cn('text-left py-3 px-4 text-sm font-semibold uppercase tracking-wide', isLight ? 'text-slate-700' : 'text-slate-400')}>
                         Dominant RIASEC
                       </th>
                     </tr>
@@ -289,29 +349,29 @@ export function TeacherStudentOverviewPage() {
                           className="border-b border-slate-800/50 hover:bg-slate-950/30 transition"
                         >
                           <td className="py-3 px-4">
-                            <div className="text-sm font-medium text-slate-100">
+                            <div className={cn('text-base font-medium', isLight ? 'text-slate-900' : 'text-slate-100')}>
                               {student.full_name || 'Unnamed Student'}
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="text-sm text-slate-300">{student.class || '—'}</div>
+                            <div className={cn('text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>{student.class || '—'}</div>
                           </td>
                           <td className="py-3 px-4">
                             {student.hasTestResult && student.dominantRiasecCode ? (
                               <div className="flex items-center gap-2">
                                 <span
                                   className={cn(
-                                    'inline-flex items-center justify-center rounded-lg border px-2.5 py-1 text-xs font-semibold',
-                                    colors.bg,
-                                    colors.border,
-                                    colors.text,
+                                    'inline-flex items-center justify-center rounded-lg border px-2.5 py-1 text-sm font-semibold',
+                                    isLight ? colors.bgLight : colors.bg,
+                                    isLight ? colors.borderLight : colors.border,
+                                    isLight ? colors.textLight : colors.text,
                                   )}
                                 >
                                   {student.dominantRiasecCode}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-500 italic">No test result</span>
+                              <span className={cn('text-sm italic', isLight ? 'text-slate-500' : 'text-slate-500')}>No test result</span>
                             )}
                           </td>
                         </tr>

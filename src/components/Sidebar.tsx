@@ -199,7 +199,7 @@ export function Sidebar(props: SidebarProps) {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex items-center gap-3 rounded-xl px-3 text-sm font-semibold transition',
+                  'group relative flex items-center gap-3 rounded-xl px-3 text-base font-medium transition',
                   isLight
                     ? isActive
                       ? 'border-2 border-blue-300 bg-blue-50 py-3.5 text-blue-700 shadow-sm'
@@ -282,7 +282,7 @@ export function Sidebar(props: SidebarProps) {
                   {profile?.full_name ?? user?.email?.split('@')[0] ?? 'Student'}
                 </div>
                 <div className={cn(
-                  'truncate text-sm',
+                  'truncate text-base',
                   isLight ? 'text-slate-600' : 'text-slate-400'
                 )}>
                   {profile?.class ? `${profile.class} • ` : ''}
