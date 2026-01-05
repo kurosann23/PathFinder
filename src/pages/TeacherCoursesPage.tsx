@@ -638,7 +638,7 @@ export function TeacherCoursesPage() {
 
                 {/* Course Image */}
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-200">
+                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
                     Course Image (Optional)
                   </label>
                   {courseImagePreview || courseImageUrl ? (
@@ -646,19 +646,49 @@ export function TeacherCoursesPage() {
                       <img
                         src={courseImagePreview || courseImageUrl || ''}
                         alt="Course preview"
-                        className="h-48 w-full rounded-xl border border-slate-800/70 object-cover"
+                        className={cn(
+                          'h-48 w-full rounded-xl border object-cover',
+                          isLight ? 'border-slate-300' : 'border-slate-800/70'
+                        )}
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        disabled={uploadingImage || saving}
-                        className="absolute right-2 top-2 rounded-lg bg-slate-900/80 p-2 text-slate-300 hover:bg-slate-800/90 disabled:opacity-50 transition"
-                      >
-                        <IconX size={16} />
-                      </button>
+                      <div className="absolute right-2 top-2 flex gap-2">
+                        <label className={cn(
+                          'cursor-pointer rounded-lg p-2 transition disabled:opacity-50',
+                          isLight
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                        )}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            disabled={uploadingImage || saving}
+                            className="hidden"
+                          />
+                          <IconEdit size={16} />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          disabled={uploadingImage || saving}
+                          className={cn(
+                            'rounded-lg p-2 transition disabled:opacity-50',
+                            isLight
+                              ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                              : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
+                          )}
+                        >
+                          <IconX size={16} />
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-800/70 bg-slate-950/40 p-6 transition hover:border-slate-700/70 hover:bg-slate-950/60">
+                    <label className={cn(
+                      'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition',
+                      isLight
+                        ? 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+                        : 'border-slate-800/70 bg-slate-950/40 hover:border-slate-700/70 hover:bg-slate-950/60'
+                    )}>
                       <input
                         type="file"
                         accept="image/*"
@@ -667,8 +697,8 @@ export function TeacherCoursesPage() {
                         className="hidden"
                       />
                       <div className="text-center">
-                        <div className="mb-2 text-sm text-slate-400">Click to upload image</div>
-                        <div className="text-xs text-slate-500">PNG, JPG up to 5MB</div>
+                        <div className={cn('mb-2 text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>Click to upload image</div>
+                        <div className={cn('text-sm', isLight ? 'text-slate-500' : 'text-slate-500')}>PNG, JPG up to 5MB</div>
                       </div>
                     </label>
                   )}
@@ -957,7 +987,7 @@ export function TeacherCoursesPage() {
                 <div>
                   <label
                     className={cn(
-                      'mb-2 block text-sm font-medium',
+                      'mb-2 block text-base font-medium',
                       isLight ? 'text-slate-700' : 'text-slate-400',
                     )}
                   >
@@ -968,19 +998,49 @@ export function TeacherCoursesPage() {
                       <img
                         src={newJobImagePreview}
                         alt="Job preview"
-                        className="h-32 w-full rounded-lg border border-slate-800/70 object-cover"
+                        className={cn(
+                          'h-32 w-full rounded-lg border object-cover',
+                          isLight ? 'border-slate-300' : 'border-slate-800/70'
+                        )}
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemoveNewJobImage}
-                        disabled={uploadingImage || saving}
-                        className="absolute right-2 top-2 rounded-lg bg-slate-900/80 p-1.5 text-slate-300 hover:bg-slate-800/90 disabled:opacity-50 transition"
-                      >
-                        <IconX size={14} />
-                      </button>
+                      <div className="absolute right-2 top-2 flex gap-2">
+                        <label className={cn(
+                          'cursor-pointer rounded-lg p-1.5 transition disabled:opacity-50',
+                          isLight
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                        )}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleJobImageChange}
+                            disabled={uploadingImage || saving}
+                            className="hidden"
+                          />
+                          <IconEdit size={14} />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleRemoveNewJobImage}
+                          disabled={uploadingImage || saving}
+                          className={cn(
+                            'rounded-lg p-1.5 transition disabled:opacity-50',
+                            isLight
+                              ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                              : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
+                          )}
+                        >
+                          <IconX size={14} />
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-800/70 bg-slate-950/40 p-3 transition hover:border-slate-700/70 hover:bg-slate-950/60">
+                    <label className={cn(
+                      'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-3 transition',
+                      isLight
+                        ? 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+                        : 'border-slate-800/70 bg-slate-950/40 hover:border-slate-700/70 hover:bg-slate-950/60'
+                    )}>
                       <input
                         type="file"
                         accept="image/*"
@@ -989,7 +1049,7 @@ export function TeacherCoursesPage() {
                         className="hidden"
                       />
                       <div className="text-center">
-                        <div className={cn('text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                        <div className={cn('text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
                           Click to upload job image
                         </div>
                       </div>
@@ -1015,7 +1075,12 @@ export function TeacherCoursesPage() {
                   {formData.exampleJobRoles.map((role, idx) => (
                     <div
                       key={idx}
-                      className="group flex items-start gap-3 rounded-lg border border-slate-800/70 bg-slate-950/40 p-4 hover:bg-slate-900/40 transition"
+                      className={cn(
+                        'group flex items-start gap-3 rounded-lg border p-4 transition',
+                        isLight
+                          ? 'border-slate-200 bg-white hover:bg-slate-50'
+                          : 'border-slate-800/70 bg-slate-950/40 hover:bg-slate-900/40'
+                      )}
                     >
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded bg-emerald-600/20 text-xs font-semibold text-emerald-200">
@@ -1052,27 +1117,57 @@ export function TeacherCoursesPage() {
                             <img
                               src={role.image_url}
                               alt={role.title}
-                              className="h-16 w-16 shrink-0 rounded-lg border border-slate-800/70 object-cover"
+                              className={cn(
+                                'h-16 w-16 shrink-0 rounded-lg border object-cover',
+                                isLight ? 'border-slate-300' : 'border-slate-800/70'
+                              )}
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-slate-200">{role.title}</div>
-                            <div className="mt-1 text-sm text-slate-300">{role.description}</div>
+                            <div className={cn('font-semibold', isLight ? 'text-slate-900' : 'text-slate-200')}>{role.title}</div>
+                            <div className={cn('mt-1 text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>{role.description}</div>
                           </div>
                         </div>
                         {/* Image Upload/Edit for Existing Job Role */}
-                        <div className="mt-2">
+                        <div className="mt-2 flex gap-2">
                           {role.image_url ? (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveJobRoleImage(idx)}
-                              disabled={uploadingImage || saving}
-                              className="text-xs text-slate-400 hover:text-rose-400 transition disabled:opacity-50"
-                            >
-                              Remove image
-                            </button>
+                            <>
+                              <label className={cn(
+                                'cursor-pointer rounded px-2 py-1 text-sm font-medium transition disabled:opacity-50',
+                                isLight
+                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                  : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                              )}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleJobImageChangeExisting(e, idx)}
+                                  disabled={uploadingImage || saving}
+                                  className="hidden"
+                                />
+                                Change
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveJobRoleImage(idx)}
+                                disabled={uploadingImage || saving}
+                                className={cn(
+                                  'rounded px-2 py-1 text-sm font-medium transition disabled:opacity-50',
+                                  isLight
+                                    ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                                    : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
+                                )}
+                              >
+                                Remove
+                              </button>
+                            </>
                           ) : (
-                            <label className="cursor-pointer text-xs text-slate-400 hover:text-blue-400 transition">
+                            <label className={cn(
+                              'cursor-pointer rounded px-2 py-1 text-sm font-medium transition',
+                              isLight
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                            )}>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -1103,7 +1198,12 @@ export function TeacherCoursesPage() {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-6 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900/60 transition"
+                className={cn(
+                  'rounded-xl border px-6 py-2.5 text-base font-semibold transition',
+                  isLight
+                    ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60'
+                )}
               >
                 Cancel
               </button>
@@ -1111,7 +1211,12 @@ export function TeacherCoursesPage() {
                 type="button"
                 onClick={() => editingId !== null ? handleUpdate(true) : handleAdd(true)}
                 disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim() || (editingId === null && !formRiasecType)}
-                className="rounded-xl bg-purple-600/20 px-6 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className={cn(
+                  'rounded-xl px-6 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
+                  isLight
+                    ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700 shadow-md'
+                    : 'bg-purple-600/20 text-purple-100 ring-purple-500/25 hover:bg-purple-600/25'
+                )}
               >
                 {saving ? 'Saving...' : editingId !== null ? 'Update as Active' : 'Save as Active'}
               </button>
@@ -1119,7 +1224,12 @@ export function TeacherCoursesPage() {
                 type="button"
                 onClick={() => editingId !== null ? handleUpdate(false) : handleAdd(false)}
                 disabled={saving || !formData.courseName.trim() || !formData.focusDescription.trim() || (editingId === null && !formRiasecType)}
-                className="rounded-xl bg-amber-600/20 px-6 py-2.5 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className={cn(
+                  'rounded-xl px-6 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
+                  isLight
+                    ? 'bg-amber-500 text-white ring-amber-600 hover:bg-amber-600 shadow-md'
+                    : 'bg-amber-600/20 text-amber-100 ring-amber-500/25 hover:bg-amber-600/25'
+                )}
               >
                 {saving ? 'Saving...' : editingId !== null ? 'Update as Draft' : 'Save as Draft'}
               </button>
@@ -1128,8 +1238,8 @@ export function TeacherCoursesPage() {
         </Card>
       )}
 
-      {/* Courses List */}
-      {!loading && (
+      {/* Courses List - hidden while adding or editing a course */}
+      {!loading && !showAddForm && editingId === null && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-slate-300">
@@ -1142,7 +1252,12 @@ export function TeacherCoursesPage() {
                 setShowAddForm(true)
               }}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-purple-600/20 px-4 py-2.5 text-sm font-semibold text-purple-100 ring-1 ring-purple-500/25 hover:bg-purple-600/25 disabled:opacity-50 transition"
+              className={cn(
+                'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50',
+                isLight
+                  ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700 shadow-md'
+                  : 'bg-purple-600/20 text-purple-100 ring-purple-500/25 hover:bg-purple-600/25'
+              )}
             >
               <IconPlus size={18} />
               Add Course

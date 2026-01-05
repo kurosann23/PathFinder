@@ -158,7 +158,12 @@ export function TeacherQuestionsPage() {
           type="button"
           onClick={() => setShowAddForm(true)}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600/20 px-4 py-2.5 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
+          className={cn(
+            'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50',
+            isLight
+              ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700 shadow-md'
+              : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25'
+          )}
         >
           <IconPlus size={18} />
           Add Question
@@ -241,7 +246,12 @@ export function TeacherQuestionsPage() {
                   type="button"
                   onClick={() => editingId ? handleUpdate(true) : handleAdd(true)}
                   disabled={saving || !formData.text.trim()}
-                  className="flex-1 rounded-xl bg-blue-600/20 px-4 py-2.5 text-sm font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
+                  className={cn(
+                    'flex-1 rounded-xl px-4 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50',
+                    isLight
+                      ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700 shadow-md'
+                      : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25'
+                  )}
                 >
                   {saving ? 'Saving...' : editingId ? 'Update as Active' : 'Save as Active'}
                 </button>
@@ -249,14 +259,24 @@ export function TeacherQuestionsPage() {
                   type="button"
                   onClick={() => editingId ? handleUpdate(false) : handleAdd(false)}
                   disabled={saving || !formData.text.trim()}
-                  className="flex-1 rounded-xl bg-amber-600/20 px-4 py-2.5 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50"
+                  className={cn(
+                    'flex-1 rounded-xl px-4 py-2.5 text-base font-semibold ring-1 transition disabled:opacity-50',
+                    isLight
+                      ? 'bg-amber-500 text-white ring-amber-600 hover:bg-amber-600 shadow-md'
+                      : 'bg-amber-600/20 text-amber-100 ring-amber-500/25 hover:bg-amber-600/25'
+                  )}
                 >
                   {saving ? 'Saving...' : editingId ? 'Update as Draft' : 'Save as Draft'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900/60"
+                  className={cn(
+                    'rounded-xl border px-4 py-2.5 text-base font-semibold transition',
+                    isLight
+                      ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60'
+                  )}
                 >
                   Cancel
                 </button>
@@ -337,7 +357,12 @@ export function TeacherQuestionsPage() {
                             type="button"
                             onClick={() => handleUpdate(true)}
                             disabled={saving || !editingFormData.text.trim()}
-                            className="flex-1 rounded-xl bg-blue-600/20 px-3 py-2 text-xs font-semibold text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/25 disabled:opacity-50"
+                            className={cn(
+                              'flex-1 rounded-xl px-3 py-2 text-sm font-semibold ring-1 transition disabled:opacity-50',
+                              isLight
+                                ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700 shadow-md'
+                                : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25'
+                            )}
                           >
                             {saving ? 'Saving...' : 'Update as Active'}
                           </button>
@@ -345,7 +370,12 @@ export function TeacherQuestionsPage() {
                             type="button"
                             onClick={() => handleUpdate(false)}
                             disabled={saving || !editingFormData.text.trim()}
-                            className="flex-1 rounded-xl bg-amber-600/20 px-3 py-2 text-xs font-semibold text-amber-100 ring-1 ring-amber-500/25 hover:bg-amber-600/25 disabled:opacity-50"
+                            className={cn(
+                              'flex-1 rounded-xl px-3 py-2 text-sm font-semibold ring-1 transition disabled:opacity-50',
+                              isLight
+                                ? 'bg-amber-500 text-white ring-amber-600 hover:bg-amber-600 shadow-md'
+                                : 'bg-amber-600/20 text-amber-100 ring-amber-500/25 hover:bg-amber-600/25'
+                            )}
                           >
                             {saving ? 'Saving...' : 'Update as Draft'}
                           </button>
@@ -353,7 +383,12 @@ export function TeacherQuestionsPage() {
                             type="button"
                             onClick={handleCancelEdit}
                             disabled={saving}
-                            className="rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900/60 disabled:opacity-50"
+                            className={cn(
+                              'rounded-xl border px-3 py-2 text-sm font-semibold transition disabled:opacity-50',
+                              isLight
+                                ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                                : 'border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60'
+                            )}
                           >
                             Cancel
                           </button>
