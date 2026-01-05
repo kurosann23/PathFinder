@@ -260,18 +260,6 @@ export function LearningRoadmapPage() {
         icon: ({ className }) => <IconCheck size={20} className={className} />,
       },
       {
-        key: 'minigame',
-        title: 'Mini Activity',
-        badge: 'Motivate',
-        bullets: ['Short break', 'Stay engaged', 'Come back'],
-        detailTitle: 'Mini Activities',
-        detailText:
-          'Small activities help motivation. Use them as a break between learning sessions.',
-        cta: { label: 'Go to Mini Games', to: '/mini-games' },
-        accent: 'blue',
-        icon: ({ className }) => <IconGamepad size={20} className={className} />,
-      },
-      {
         key: 'futureRole',
         title: 'Future Role',
         badge: 'Outcome',
@@ -295,7 +283,6 @@ export function LearningRoadmapPage() {
       skills: stepStatus.course,
       tools: stepStatus.roadmap,
       projects: stepStatus.roadmap,
-      minigame: stepStatus.minigame,
       futureRole: stepStatus.roadmap,
     } as const
   }, [stepStatus])

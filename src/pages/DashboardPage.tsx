@@ -91,9 +91,7 @@ export function DashboardPage() {
               ? '/psychometric-test'
               : j.key === 'course'
                 ? '/course-recommendation'
-                : j.key === 'roadmap'
-                  ? '/learning-roadmap'
-                  : '/mini-games'
+                : '/learning-roadmap'
 
         const subtitle =
           progress.journey[j.key as JourneyKey]
@@ -126,9 +124,7 @@ export function DashboardPage() {
             ? '/psychometric-test'
             : j.key === 'course'
               ? '/course-recommendation'
-              : j.key === 'roadmap'
-                ? '/learning-roadmap'
-                : '/mini-games'
+              : '/learning-roadmap'
 
       const icon =
         j.key === 'profile'
@@ -137,9 +133,7 @@ export function DashboardPage() {
             ? 'psychometric'
             : j.key === 'course'
               ? 'course'
-              : j.key === 'roadmap'
-                ? 'roadmap'
-                : 'games'
+              : 'roadmap'
 
       const locked =
         idx === 0

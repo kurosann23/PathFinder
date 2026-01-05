@@ -1242,7 +1242,12 @@ export function TeacherCoursesPage() {
       {!loading && !showAddForm && editingId === null && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-300">
+            <h3
+              className={cn(
+                'text-base font-semibold',
+                isLight ? 'text-slate-800' : 'text-slate-300',
+              )}
+            >
               {riasecTypes.find((t) => t.value === selectedRiasecType)?.label} Courses ({courses.length})
             </h3>
             <button
@@ -1278,7 +1283,14 @@ export function TeacherCoursesPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold text-slate-100">{uiCourse.courseName}</h3>
+                          <h3
+                            className={cn(
+                              'text-xl font-semibold',
+                              isLight ? 'text-slate-900' : 'text-slate-100',
+                            )}
+                          >
+                            {uiCourse.courseName}
+                          </h3>
                           <span
                             className={cn(
                               'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
@@ -1290,7 +1302,14 @@ export function TeacherCoursesPage() {
                             {course.is_active ? 'Active' : 'Draft'}
                           </span>
                         </div>
-                        <p className="mt-2 text-sm text-slate-300/90">{uiCourse.focusDescription}</p>
+                        <p
+                          className={cn(
+                            'mt-2 text-base leading-relaxed',
+                            isLight ? 'text-slate-700' : 'text-slate-300/90',
+                          )}
+                        >
+                          {uiCourse.focusDescription}
+                        </p>
                       </div>
                       <div className="ml-4 flex gap-2">
                         <button
@@ -1311,47 +1330,93 @@ export function TeacherCoursesPage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <div className="mb-2 text-xs font-semibold text-slate-400">
+                        <div
+                          className={cn(
+                            'mb-2 text-sm font-semibold uppercase tracking-wide',
+                            isLight ? 'text-slate-600' : 'text-slate-400',
+                          )}
+                        >
                           Learning Outcomes ({uiCourse.whatYouLearn.length})
                         </div>
                         <ul className="space-y-1">
                           {uiCourse.whatYouLearn.slice(0, 3).map((item, idx) => (
-                            <li key={idx} className="text-sm text-slate-300">
+                            <li
+                              key={idx}
+                              className={cn(
+                                'text-base leading-relaxed',
+                                isLight ? 'text-slate-700' : 'text-slate-300',
+                              )}
+                            >
                               • {item}
                             </li>
                           ))}
                           {uiCourse.whatYouLearn.length > 3 && (
-                            <li className="text-xs text-slate-500">+{uiCourse.whatYouLearn.length - 3} more</li>
+                            <li
+                              className={cn(
+                                'text-sm',
+                                isLight ? 'text-slate-500' : 'text-slate-500',
+                              )}
+                            >
+                              +{uiCourse.whatYouLearn.length - 3} more
+                            </li>
                           )}
                         </ul>
                       </div>
                       <div>
-                        <div className="mb-2 text-xs font-semibold text-slate-400">
+                        <div
+                          className={cn(
+                            'mb-2 text-sm font-semibold uppercase tracking-wide',
+                            isLight ? 'text-slate-600' : 'text-slate-400',
+                          )}
+                        >
                           Tools & Skills ({uiCourse.toolsAndSkills.length})
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {uiCourse.toolsAndSkills.slice(0, 4).map((tool, idx) => (
                             <span
                               key={idx}
-                              className="rounded-lg border border-slate-800/70 bg-slate-950/40 px-2 py-1 text-xs text-slate-300"
+                              className={cn(
+                                'rounded-lg border px-2 py-1 text-sm',
+                                isLight
+                                  ? 'border-slate-300 bg-slate-50 text-slate-800'
+                                  : 'border-slate-800/70 bg-slate-950/40 text-slate-300',
+                              )}
                             >
                               {tool}
                             </span>
                           ))}
                           {uiCourse.toolsAndSkills.length > 4 && (
-                            <span className="text-xs text-slate-500">+{uiCourse.toolsAndSkills.length - 4} more</span>
+                            <span
+                              className={cn(
+                                'text-sm',
+                                isLight ? 'text-slate-500' : 'text-slate-500',
+                              )}
+                            >
+                              +{uiCourse.toolsAndSkills.length - 4} more
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
                     <div>
-                      <div className="mb-2 text-xs font-semibold text-slate-400">
+                      <div
+                        className={cn(
+                          'mb-2 text-sm font-semibold uppercase tracking-wide',
+                          isLight ? 'text-slate-600' : 'text-slate-400',
+                        )}
+                      >
                         Example Job Roles ({uiCourse.exampleJobRoles.length})
                       </div>
                       <div className="space-y-1">
                         {uiCourse.exampleJobRoles.map((role, idx) => (
-                          <div key={idx} className="text-sm text-slate-300">
-                            <span className="font-medium">{role.title}:</span> {role.description}
+                          <div
+                            key={idx}
+                            className={cn(
+                              'text-base leading-relaxed',
+                              isLight ? 'text-slate-700' : 'text-slate-300',
+                            )}
+                          >
+                            <span className="font-semibold">{role.title}:</span> {role.description}
                           </div>
                         ))}
                       </div>

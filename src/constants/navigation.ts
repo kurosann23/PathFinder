@@ -4,7 +4,6 @@ export type NavKey =
   | 'psychometric'
   | 'course'
   | 'roadmap'
-  | 'games'
   | 'appointment'
   | 'teacher'
   | 'teacher-questions'
@@ -23,7 +22,6 @@ export const studentNavigation: Array<{
   { key: 'course', label: 'Course Recommendation', to: '/course-recommendation' },
   { key: 'roadmap', label: 'Learning Roadmap', to: '/learning-roadmap' },
   { key: 'appointment', label: 'Appointment', to: '/appointment' },
-  { key: 'games', label: 'Mini Games', to: '/mini-games' },
 ] as const
 
 export const teacherNavigation: Array<{

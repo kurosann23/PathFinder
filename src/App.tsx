@@ -11,7 +11,6 @@ import { CourseRecommendationPage } from './pages/CourseRecommendationPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LearningRoadmapPage } from './pages/LearningRoadmapPage'
 import { LoginPage } from './pages/LoginPage'
-import { MiniGamesPage } from './pages/MiniGamesPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PsychometricTestPage } from './pages/PsychometricTestPage'
 import { SignUpPage } from './pages/SignUpPage'
@@ -56,9 +55,6 @@ export default function App() {
               <Route path="/learning-roadmap" element={<LearningRoadmapPage />} />
             </Route>
             <Route path="/appointment" element={<StudentAppointmentPage />} />
-            <Route element={<RequirePermission permission="play_mini_games" />}>
-              <Route path="/mini-games" element={<MiniGamesPage />} />
-            </Route>
           </Route>
 
           {/* Teacher-only routes - block students from accessing */}
