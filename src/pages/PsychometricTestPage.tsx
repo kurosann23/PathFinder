@@ -27,6 +27,7 @@ import {
   IconArrowRight,
   IconChevronDown,
 } from '../components/icons'
+import { useLanguage } from '../context/LanguageContext'
 
 // Translation object
 const translations = {
@@ -103,7 +104,7 @@ const translations = {
       },
     },
   },
-  ms: {
+  my: {
     // Page headers
     pageTitle: 'Ujian Psikometrik',
     pageSubtitle: 'Jawab satu kenyataan pada satu masa. Respons anda digunakan untuk menjana panduan anda.',
@@ -178,8 +179,6 @@ const translations = {
   },
 }
 
-type Language = 'en' | 'ms'
-
 export function PsychometricTestPage() {
   const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
   const { user } = useAuth()
@@ -210,8 +209,8 @@ export function PsychometricTestPage() {
     )
   }
 
-  // Language state
-  const [language, setLanguage] = useState<Language>('en')
+  // Use global language from context
+  const { language, toggleLanguage } = useLanguage()
   const t = translations[language]
 
   // Questions state - load from database
@@ -240,7 +239,7 @@ export function PsychometricTestPage() {
     // Use database questions if available, otherwise fallback to static
     const baseQuestions = questions.length > 0 ? questions : riasecQuestions.map((q) => ({ id: q.id, text: q.text, type: q.type }))
 
-    if (language === 'ms') {
+    if (language === 'my') {
       // Malay translations for questions
       // Note: For now, we'll use English questions. You can add Malay translations to the database later
       return baseQuestions.map((q) => ({
@@ -268,10 +267,7 @@ export function PsychometricTestPage() {
   const canSubmit = !progress.psychometricCompleted
   const isTakingTest = hasStarted && canSubmit
 
-  // Toggle language function
-  const toggleLanguage = () => {
-    setLanguage((prev) => (prev === 'en' ? 'ms' : 'en'))
-  }
+  // toggleLanguage is provided by LanguageContext
 
   const answeredCount = useMemo(
     () => Object.keys(answers).length,

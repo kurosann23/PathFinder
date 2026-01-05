@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProfileProvider } from './context/ProfileContext'
 import { RoleProvider } from './context/RoleContext'
@@ -12,17 +13,19 @@ import App from './App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <AuthProvider>
-        <ProfileProvider>
-          <RoleProvider>
-            <UserProgressProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </UserProgressProvider>
-          </RoleProvider>
-        </ProfileProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ProfileProvider>
+            <RoleProvider>
+              <UserProgressProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </UserProgressProvider>
+            </RoleProvider>
+          </ProfileProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </StrictMode>,
 )

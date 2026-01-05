@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useTheme } from '../context/ThemeContext'
+import { useTranslation } from '../context/LanguageContext'
 import { cn } from '../lib/cn'
 import {
   IconBook,
@@ -39,6 +40,7 @@ type RoadmapNode = {
 export function LearningRoadmapPage() {
   const { progress } = useUserProgress()
   const { theme } = useTheme()
+  const { t } = useTranslation()
   const isLight = theme === 'light'
   
   const [selected, setSelected] = useState<RoadmapNodeKey | null>(null)
@@ -57,13 +59,12 @@ export function LearningRoadmapPage() {
     return [
       {
         key: 'profile',
-        title: 'Profile',
+        title: t('roadmap.profile'),
         badge: 'Start',
         bullets: ['Your interests', 'Your goal', 'Your context'],
-        detailTitle: 'Complete Profile',
-        detailText:
-          'This step gives basic context so the system can explain guidance in a way that fits you.',
-        cta: { label: 'Go to Profile', to: '/profile' },
+        detailTitle: t('roadmap.profileTitle'),
+        detailText: t('roadmap.profileDesc'),
+        cta: { label: t('roadmap.profileCta'), to: '/profile' },
         accent: 'blue',
         icon: ({ className }) => <IconUser size={20} className={className} />,
         color: '#ef4444', // Red
@@ -71,13 +72,12 @@ export function LearningRoadmapPage() {
       },
       {
         key: 'psychometric',
-        title: 'Test',
+        title: t('roadmap.test'),
         badge: 'RIASEC',
         bullets: ['Test Mode', '24 statements', 'Retake anytime'],
-        detailTitle: 'Take Psychometric Test',
-        detailText:
-          'Answer one question at a time. The system uses your responses to calculate RIASEC and generate guidance.',
-        cta: { label: 'Go to Psychometric Test', to: '/psychometric-test' },
+        detailTitle: t('roadmap.testTitle'),
+        detailText: t('roadmap.testDesc'),
+        cta: { label: t('roadmap.testCta'), to: '/psychometric-test' },
         accent: 'emerald',
         icon: ({ className }) => <IconClipboard size={20} className={className} />,
         color: '#f97316', // Orange
@@ -85,13 +85,12 @@ export function LearningRoadmapPage() {
       },
       {
         key: 'course',
-        title: 'Career',
+        title: t('roadmap.career'),
         badge: 'Explore',
         bullets: ['Course recommendations', 'Learning paths', 'Skills to build'],
-        detailTitle: 'Explore Course Recommendations',
-        detailText:
-          'Discover courses and learning paths tailored to your RIASEC profile and career interests.',
-        cta: { label: 'Go to Course Recommendations', to: '/course-recommendation' },
+        detailTitle: t('roadmap.careerTitle'),
+        detailText: t('roadmap.careerDesc'),
+        cta: { label: t('roadmap.careerCta'), to: '/course-recommendation' },
         accent: 'blue',
         icon: ({ className }) => <IconBook size={20} className={className} />,
         color: '#22c55e', // Green
@@ -99,20 +98,19 @@ export function LearningRoadmapPage() {
       },
       {
         key: 'futureRole',
-        title: 'Future Roles',
+        title: t('roadmap.futureRoles'),
         badge: 'Outcome',
         bullets: ['A role target', 'A portfolio', 'A direction'],
-        detailTitle: `Your Direction: ${pathTitle}`,
-        detailText:
-          'This is your long-term direction. You can retake the test or switch tracks as your interests grow.',
-        cta: { label: 'Review Career Path', to: '/psychometric-test' },
+        detailTitle: `${t('roadmap.futureRolesTitle')}: ${pathTitle}`,
+        detailText: t('roadmap.futureRolesDesc'),
+        cta: { label: t('roadmap.futureRolesCta'), to: '/psychometric-test' },
         accent: 'emerald',
         icon: ({ className }) => <IconTarget size={20} className={className} />,
         color: '#3b82f6', // Blue
         stepNumber: 4,
       },
     ]
-  }, [progress.careerPathReport?.primaryPath?.title])
+  }, [progress.careerPathReport?.primaryPath?.title, t])
 
   const nodeStatus = useMemo(() => {
     return {
@@ -151,21 +149,18 @@ export function LearningRoadmapPage() {
           "text-3xl font-semibold tracking-tight md:text-4xl",
           isLight ? "text-slate-900" : "text-slate-100"
         )}>
-          Roadmap To Learn{' '}
-          <span className="bg-gradient-to-r from-amber-300 via-emerald-200 to-sky-300 bg-clip-text text-transparent">
-            Technology
-          </span>
+          {t('roadmap.title')}
         </div>
         <div className={cn(
           "text-base",
           isLight ? "text-slate-600" : "text-slate-400"
         )}>
-          Visual guidance only (not an LMS). Click each step to see what it means and what to do next.
+          {t('roadmap.subtitle')}
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <Card title="Roadmap Progress" className="lg:col-span-2">
+        <Card title={t('roadmap.progress')} className="lg:col-span-2">
           <div className="space-y-4">
             <ProgressBar label="Overall" value={overallPercent} barClass="bg-violet-400" />
             <div className={cn(
@@ -179,7 +174,7 @@ export function LearningRoadmapPage() {
                   "text-base font-semibold",
                   isLight ? "text-slate-900" : "text-slate-100"
                 )}>
-                  {completedCount} / {nodes.length} steps completed
+                  {completedCount} / {nodes.length} {t('roadmap.stepsCompleted')}
                 </div>
                 <div className={cn(
                   "text-sm font-semibold",
@@ -193,7 +188,7 @@ export function LearningRoadmapPage() {
                   "mt-2 text-sm",
                   isLight ? "text-slate-600" : "text-slate-400"
                 )}>
-                  Recommended next step:{' '}
+                  {t('roadmap.recommendedNext')}{' '}
                   <span className={cn(
                     "font-semibold",
                     isLight ? "text-slate-900" : "text-slate-200"
@@ -207,12 +202,12 @@ export function LearningRoadmapPage() {
               "text-sm",
               isLight ? "text-slate-600" : "text-slate-400"
             )}>
-              Tip: This roadmap is guidance-oriented. Focus on small, repeatable goals and improve week by week.
+              {t('roadmap.tip')}
             </div>
           </div>
         </Card>
 
-        <Card title="Visual Roadmap (Infographic Style)" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>4 Steps</span>} className="lg:col-span-3">
+        <Card title="Visual Roadmap (Infographic Style)" right={<span className={cn("text-xs", isLight ? "text-slate-600" : "text-slate-400")}>4 {t('roadmap.stepsCompleted').split(' ')[0]}</span>} className="lg:col-span-3">
           {/* Infographic-style horizontal flow */}
           <div className="relative py-8 px-2">
             {/* Connecting line */}
@@ -390,7 +385,7 @@ export function LearningRoadmapPage() {
                       ? isLight ? "text-emerald-700" : "text-emerald-300"
                       : isLight ? "text-slate-700" : "text-slate-300"
                   )}>
-                    {nodeStatus[activeNode.key] ? 'Completed' : 'In Progress'}
+                    {nodeStatus[activeNode.key] ? t('common.completed') : t('common.inProgress')}
                   </div>
                 </div>
                 <Link

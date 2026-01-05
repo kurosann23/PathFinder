@@ -8,6 +8,7 @@ import { useTheme } from '../context/ThemeContext'
 import { Button } from './ui/Button'
 import { Avatar } from './ui/Avatar'
 import { ThemeToggle } from './ThemeToggle'
+import { LanguageToggle } from './LanguageToggle'
 import {
   IconBook,
   IconClipboard,
@@ -295,6 +296,7 @@ export function Sidebar(props: SidebarProps) {
 
         <div className="mt-6 space-y-2 px-2">
           <ThemeToggle variant="sidebar" showLabel={!isCollapsed} className={cn(isCollapsed && 'justify-center')} />
+          <LanguageToggle variant="sidebar" showLabel={!isCollapsed} className={cn(isCollapsed && 'justify-center')} />
           <Button
             type="button"
             onClick={handleLogout}

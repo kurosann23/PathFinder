@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useTheme } from '../context/ThemeContext'
+import { useTranslation } from '../context/LanguageContext'
 import { cn } from '../lib/cn'
 import { IconX, IconChevronDown, IconArrowRight, IconBook, IconWrench, IconSettings, IconBriefcase } from '../components/icons'
 import { fetchCoursesByType, courseRowToUI } from '../lib/coursesRepo'
@@ -56,6 +57,7 @@ const ALL_RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const
 export function CourseRecommendationPage() {
   const { progress } = useUserProgress()
   const { theme } = useTheme()
+  const { t } = useTranslation()
   const isLight = theme === 'light'
 
   const isReady = progress.psychometricCompleted
@@ -153,7 +155,7 @@ export function CourseRecommendationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Course Recommendations"
+        title={t('course.title')}
         subtitle="Based on your RIASEC profile, here are recommended learning paths to explore."
       />
 
@@ -221,7 +223,7 @@ export function CourseRecommendationPage() {
           {loading && (
             <Card>
               <div className={cn('py-8 text-center text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                Loading course recommendations...
+                {t('course.loading')}
               </div>
             </Card>
           )}
@@ -231,7 +233,7 @@ export function CourseRecommendationPage() {
             <div className="space-y-4">
               <div>
                 <h2 className={cn('text-xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
-                  Recommended Courses for You
+                  {t('course.recommendations')}
                 </h2>
                 <p className={cn('mt-1 text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
                   These courses align with your primary interests and learning style.
@@ -266,7 +268,7 @@ export function CourseRecommendationPage() {
                           ? 'bg-blue-50 text-blue-700 ring-blue-200 group-hover:bg-blue-100'
                           : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 group-hover:bg-blue-600/25'
                       )}>
-                        View Details <IconArrowRight size={16} />
+                        {t('course.viewDetails')} <IconArrowRight size={16} />
                       </div>
                     </div>
                   </button>
@@ -279,7 +281,7 @@ export function CourseRecommendationPage() {
           {!loading && primaryCourses.length === 0 && !error && (
             <Card>
               <div className={cn('py-8 text-center text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                No course recommendations available at this time. Please check back later.
+                {t('course.noRecommendations')}
               </div>
             </Card>
           )}
@@ -526,7 +528,7 @@ export function CourseRecommendationPage() {
                             "text-sm font-semibold",
                             isLight ? "text-[#1e293b]" : "text-slate-200"
                           )}>
-                            Tools & skills
+                            {t('course.toolsAndSkills')}
                           </span>
                         </div>
                         <IconChevronDown
@@ -578,7 +580,7 @@ export function CourseRecommendationPage() {
                             "text-sm font-semibold",
                             isLight ? "text-[#1e293b]" : "text-slate-200"
                           )}>
-                            Example Job Roles
+                            {t('course.exampleJobRoles')}
                           </span>
                           <span className={cn(
                             "ml-2 rounded-lg px-2 py-0.5 text-[10px] font-medium ring-1",
@@ -586,7 +588,7 @@ export function CourseRecommendationPage() {
                               ? "bg-blue-100 text-blue-800 ring-blue-200"
                               : "bg-slate-950/40 text-slate-400 ring-slate-800/70"
                           )}>
-                            Informational
+                            {t('course.informational')}
                           </span>
                         </div>
                       </div>
@@ -653,7 +655,7 @@ export function CourseRecommendationPage() {
                         : "bg-purple-600/20 border-purple-500/30 text-slate-100 hover:bg-purple-600/30"
                     )}
                   >
-                    Close
+                    {t('common.close')}
                   </button>
                 </div>
               </div>
