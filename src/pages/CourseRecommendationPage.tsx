@@ -319,8 +319,15 @@ export function CourseRecommendationPage() {
                       <p className="mb-3 text-xs text-slate-400 leading-relaxed line-clamp-2">
                         {course.focusDescription}
                       </p>
-                      <div className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600/20 px-2.5 py-1 text-[10px] font-semibold text-blue-100 ring-1 ring-blue-500/25 group-hover:bg-blue-600/25">
-                        View Details <IconArrowRight size={11} />
+                      <div
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[10px] font-semibold ring-1 transition',
+                          isLight
+                            ? 'bg-blue-50 text-blue-700 ring-blue-200 group-hover:bg-blue-100'
+                            : 'bg-blue-600/35 text-blue-50 ring-blue-500/40 group-hover:bg-blue-600/45'
+                        )}
+                      >
+                        {t('course.viewDetails')} <IconArrowRight size={11} />
                       </div>
                     </button>
                   ))

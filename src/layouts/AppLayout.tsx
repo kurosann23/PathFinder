@@ -5,10 +5,12 @@ import { cn } from '../lib/cn'
 import { Button } from '../components/ui/Button'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useTheme } from '../context/ThemeContext'
+import { useTranslation } from '../context/LanguageContext'
 
 function MobileTopbar(props: { onMenuClick: () => void }) {
   const location = useLocation()
   const { onMenuClick } = props
+  const { t } = useTranslation()
   const title =
     location.pathname
       .replace('/', '')
@@ -35,7 +37,7 @@ function MobileTopbar(props: { onMenuClick: () => void }) {
             size="sm"
             variant="secondary"
           >
-            Menu
+            {t('common.menu')}
           </Button>
         </div>
       </div>

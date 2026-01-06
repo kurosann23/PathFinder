@@ -9,6 +9,7 @@ import { Button } from './ui/Button'
 import { Avatar } from './ui/Avatar'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageToggle } from './LanguageToggle'
+import { useTranslation } from '../context/LanguageContext'
 import {
   IconBook,
   IconClipboard,
@@ -17,7 +18,6 @@ import {
   IconLogout,
   IconMap,
   IconUser,
-  IconSettings,
 } from './icons'
 
 function NavIcon(props: { navKey: NavKey; className?: string; isActive?: boolean; isLight?: boolean }) {
@@ -73,6 +73,7 @@ export function Sidebar(props: SidebarProps) {
   const navigate = useNavigate()
   const { theme } = useTheme()
   const isLight = theme === 'light'
+  const { t } = useTranslation()
   
   // Get role - hook must be called unconditionally
   // RoleProvider wraps the app, so this should always be available
@@ -81,6 +82,35 @@ export function Sidebar(props: SidebarProps) {
   // Wait for profile to load before showing navigation to avoid showing wrong role's nav
   // This prevents the flash of student navigation when a teacher logs in
   const navigation = profileLoading ? [] : (isTeacher ? teacherNavigation : studentNavigation)
+
+  function getLabel(key: NavKey) {
+    switch (key) {
+      case 'dashboard':
+        return t('nav.dashboard')
+      case 'profile':
+        return t('nav.profile')
+      case 'psychometric':
+        return t('nav.psychometricTest')
+      case 'course':
+        return t('nav.courseRecommendation')
+      case 'roadmap':
+        return t('nav.learningRoadmap')
+      case 'appointment':
+        return t('nav.appointments')
+      case 'teacher':
+        return t('nav.teacherDashboard')
+      case 'teacher-students':
+        return t('nav.studentOverview')
+      case 'teacher-questions':
+        return t('nav.manageQuestions')
+      case 'teacher-courses':
+        return t('nav.manageCourses')
+      case 'teacher-appointments':
+        return t('nav.teacherAppointments')
+      default:
+        return t('nav.dashboard')
+    }
+  }
 
   async function handleLogout() {
     await signOut()
@@ -132,7 +162,7 @@ export function Sidebar(props: SidebarProps) {
                 'text-xs font-medium uppercase tracking-[0.16em]',
                 isLight ? 'text-slate-600' : 'text-slate-400/90'
               )}>
-                {profileLoading ? 'Loading...' : (isTeacher ? 'Teacher Dashboard' : 'Student Dashboard')}
+                {profileLoading ? t('common.loading') : (isTeacher ? t('nav.teacherDashboard') : t('nav.dashboard'))}
               </div>
             </div>
           )}
@@ -232,7 +262,7 @@ export function Sidebar(props: SidebarProps) {
                           : 'truncate',
                       )}
                     >
-                      {item.label}
+                      {getLabel(item.key)}
                     </span>
                   )}
                 </>
@@ -309,7 +339,7 @@ export function Sidebar(props: SidebarProps) {
             )}
             aria-label="Sign out"
           >
-            {!isCollapsed && <span>Sign Out</span>}
+            {!isCollapsed && <span>{t('common.signOut')}</span>}
             <IconLogout size={20} className={cn(isLight ? 'text-slate-600' : 'text-slate-300')} />
           </Button>
         </div>
@@ -317,5 +347,3 @@ export function Sidebar(props: SidebarProps) {
     </aside>
   )
 }
-
-

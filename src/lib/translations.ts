@@ -11,6 +11,8 @@ export type TranslationKey =
   | 'common.update'
   | 'common.submit'
   | 'common.loading'
+  | 'common.signOut'
+  | 'common.menu'
   | 'common.error'
   | 'common.success'
   | 'common.confirm'
@@ -141,6 +143,8 @@ export const translations: Record<Language, Translations> = {
     'common.update': 'Update',
     'common.submit': 'Submit',
     'common.loading': 'Loading...',
+    'common.signOut': 'Sign Out',
+    'common.menu': 'Menu',
     'common.error': 'Error',
     'common.success': 'Success',
     'common.confirm': 'Confirm',
@@ -249,7 +253,7 @@ export const translations: Record<Language, Translations> = {
     
     // Teacher Pages
     'teacher.dashboard': 'Teacher Dashboard',
-    'teacher.welcome': 'SELAMAT KEMBALI',
+    'teacher.welcome': 'Welcome Back',
     'teacher.students': 'Student Overview',
     'teacher.questions': 'Manage Questions',
     'teacher.courses': 'Manage Courses',
@@ -266,6 +270,8 @@ export const translations: Record<Language, Translations> = {
     'common.update': 'Kemaskini',
     'common.submit': 'Hantar',
     'common.loading': 'Memuatkan...',
+    'common.signOut': 'Log Keluar',
+    'common.menu': 'Menu',
     'common.error': 'Ralat',
     'common.success': 'Berjaya',
     'common.confirm': 'Sahkan',
