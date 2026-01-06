@@ -126,6 +126,32 @@ export type TranslationKey =
   | 'teacher.questions'
   | 'teacher.courses'
   | 'teacher.appointments'
+  
+  // Login/Register Page
+  | 'auth.welcomeBack'
+  | 'auth.helloStudent'
+  | 'auth.alreadyHaveAccount'
+  | 'auth.newToPathfinder'
+  | 'auth.signIn'
+  | 'auth.signUp'
+  | 'auth.email'
+  | 'auth.password'
+  | 'auth.fullName'
+  | 'auth.class'
+  | 'auth.loginTitle'
+  | 'auth.signupTitle'
+  
+  // Dashboard Page
+  | 'dashboard.careerJourneyProgress'
+  | 'dashboard.keepGoing'
+  | 'dashboard.journeyComplete'
+  | 'dashboard.topCareerType'
+  | 'dashboard.gamifiedCareerJourney'
+  
+  // Sidebar
+  | 'sidebar.closeMenu'
+  | 'sidebar.expandSidebar'
+  | 'sidebar.collapseSidebar'
 
 type Translations = {
   [K in TranslationKey]: string
@@ -258,6 +284,32 @@ export const translations: Record<Language, Translations> = {
     'teacher.questions': 'Manage Questions',
     'teacher.courses': 'Manage Courses',
     'teacher.appointments': 'Appointments',
+    
+    // Login/Register Page
+    'auth.welcomeBack': 'Welcome Back!',
+    'auth.helloStudent': 'Hello, Student!',
+    'auth.alreadyHaveAccount': 'Already have an account? Sign in to continue.',
+    'auth.newToPathfinder': 'New to PathFinder? Create an account to get started.',
+    'auth.signIn': 'Sign In',
+    'auth.signUp': 'Sign Up',
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.fullName': 'Full Name',
+    'auth.class': 'Class',
+    'auth.loginTitle': 'Login to Your Account',
+    'auth.signupTitle': 'Create Your Account',
+    
+    // Dashboard Page
+    'dashboard.careerJourneyProgress': 'Career Journey Progress',
+    'dashboard.keepGoing': 'Keep going! You\'re making great progress.',
+    'dashboard.journeyComplete': 'Journey Complete',
+    'dashboard.topCareerType': 'Top career type:',
+    'dashboard.gamifiedCareerJourney': 'Gamified Career Journey',
+    
+    // Sidebar
+    'sidebar.closeMenu': 'Close menu',
+    'sidebar.expandSidebar': 'Expand sidebar',
+    'sidebar.collapseSidebar': 'Collapse sidebar',
   },
   my: {
     // Common
@@ -385,6 +437,32 @@ export const translations: Record<Language, Translations> = {
     'teacher.questions': 'Urus Soalan',
     'teacher.courses': 'Urus Kursus',
     'teacher.appointments': 'Temu Janji',
+    
+    // Login/Register Page
+    'auth.welcomeBack': 'Selamat Kembali!',
+    'auth.helloStudent': 'Hai, Pelajar!',
+    'auth.alreadyHaveAccount': 'Sudah ada akaun? Log masuk untuk teruskan.',
+    'auth.newToPathfinder': 'Baru di PathFinder? Buat akaun untuk bermula.',
+    'auth.signIn': 'Log Masuk',
+    'auth.signUp': 'Daftar',
+    'auth.email': 'E-mel',
+    'auth.password': 'Kata Laluan',
+    'auth.fullName': 'Nama Penuh',
+    'auth.class': 'Kelas',
+    'auth.loginTitle': 'Log Masuk ke Akaun Anda',
+    'auth.signupTitle': 'Buat Akaun Anda',
+    
+    // Dashboard Page
+    'dashboard.careerJourneyProgress': 'Kemajuan Perjalanan Kerjaya',
+    'dashboard.keepGoing': 'Teruskan! Anda membuat kemajuan yang hebat.',
+    'dashboard.journeyComplete': 'Perjalanan Selesai',
+    'dashboard.topCareerType': 'Jenis kerjaya teratas:',
+    'dashboard.gamifiedCareerJourney': 'Perjalanan Kerjaya Bermain',
+    
+    // Sidebar
+    'sidebar.closeMenu': 'Tutup menu',
+    'sidebar.expandSidebar': 'Kembangkan bar sisi',
+    'sidebar.collapseSidebar': 'Runtuhkan bar sisi',
   },
 }
 

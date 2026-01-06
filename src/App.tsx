@@ -6,14 +6,12 @@ import { RequireStudent } from './components/auth/RequireStudent'
 import { RedirectIfAuth } from './components/auth/RedirectIfAuth'
 import { RoleBasedRedirect } from './components/auth/RoleBasedRedirect'
 import { AppLayout } from './layouts/AppLayout'
-import { AuthLayout } from './layouts/AuthLayout'
 import { CourseRecommendationPage } from './pages/CourseRecommendationPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LearningRoadmapPage } from './pages/LearningRoadmapPage'
-import { LoginPage } from './pages/LoginPage'
+import { AuthPage } from './pages/AuthPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PsychometricTestPage } from './pages/PsychometricTestPage'
-import { SignUpPage } from './pages/SignUpPage'
 import { TeacherCoursesPage } from './pages/TeacherCoursesPage'
 import { TeacherDashboardPage } from './pages/TeacherDashboardPage'
 import { TeacherQuestionsPage } from './pages/TeacherQuestionsPage'
@@ -26,10 +24,8 @@ export default function App() {
     <Routes>
       {/* Public auth routes (redirect away if already logged-in) */}
       <Route element={<RedirectIfAuth />}>
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-        </Route>
+        <Route path="/login" element={<AuthPage initialMode="login" />} />
+        <Route path="/signup" element={<AuthPage initialMode="signup" />} />
       </Route>
 
           {/* Protected app routes */}

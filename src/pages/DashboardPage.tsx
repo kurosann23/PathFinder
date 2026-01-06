@@ -10,6 +10,7 @@ import { useUserProgress } from '../context/UserProgressContext'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { useTheme } from '../context/ThemeContext'
+import { useTranslation } from '../context/LanguageContext'
 import {
   IconBook,
   IconGamepad,
@@ -28,6 +29,7 @@ export function DashboardPage() {
   const { signOut } = useAuth()
   const { profile } = useProfile()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) {
@@ -195,17 +197,17 @@ export function DashboardPage() {
               'text-base font-bold',
               isLight ? 'text-slate-900' : 'text-slate-100'
             )}>
-              Career Journey Progress
+              {t('dashboard.careerJourneyProgress')}
             </h3>
             <p className={cn(
               'mt-1 text-xs',
               isLight ? 'text-slate-600' : 'text-slate-400'
             )}>
-              Keep going! You're making great progress.
+              {t('dashboard.keepGoing')}
             </p>
           </div>
           <div className="flex justify-center">
-            <HeroProgressRing value={roadmapPercent} label="Journey Complete" size={240} stroke={14} />
+            <HeroProgressRing value={roadmapPercent} label={t('dashboard.journeyComplete')} size={240} stroke={14} />
           </div>
         </div>
 
@@ -243,7 +245,7 @@ export function DashboardPage() {
                     ? 'bg-blue-100 text-blue-800 border border-blue-200/60' 
                     : 'text-slate-300/80'
                 )}>
-                  Top career type: {topCareerTypeLabel}
+                  {t('dashboard.topCareerType')} {topCareerTypeLabel}
                 </span>
               </div>
             </div>
@@ -272,7 +274,7 @@ export function DashboardPage() {
           ? 'border-slate-200 bg-white shadow-md' 
           : 'border-slate-800/60 bg-slate-950/16'
       )}>
-        <div className={cn('mb-6 text-sm font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>Gamified Career Journey</div>
+        <div className={cn('mb-6 text-sm font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>{t('dashboard.gamifiedCareerJourney')}</div>
         <div className="relative">
           {/* Progress bar background */}
           <div className="absolute left-0 right-0 top-12 h-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-orange-500/20" />

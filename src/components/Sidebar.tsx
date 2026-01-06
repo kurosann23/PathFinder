@@ -178,10 +178,10 @@ export function Sidebar(props: SidebarProps) {
           )}
           aria-label={
             isMobile
-              ? 'Close menu'
+              ? t('sidebar.closeMenu')
               : isCollapsed
-                ? 'Expand sidebar'
-                : 'Collapse sidebar'
+                ? t('sidebar.expandSidebar')
+                : t('sidebar.collapseSidebar')
           }
         >
           {isMobile ? (
