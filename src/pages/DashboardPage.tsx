@@ -1,35 +1,49 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   careerSnapshotMeta,
-  dashboardHeader,
   journeyMeta,
   type JourneyKey,
 } from '../constants/dashboard'
 import { useUserProgress } from '../context/UserProgressContext'
-import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../context/ProfileContext'
 import { useTheme } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
-import {
-  IconBook,
-  IconGamepad,
-  IconPin,
-  IconArrowRight,
-} from '../components/icons'
 import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
 import { TodaysFocusCard, type FocusTask } from '../components/dashboard/TodaysFocusCard'
-import { JourneyTimeline, type JourneyStep } from '../components/dashboard/JourneyTimeline'
+import { type JourneyStep } from '../components/dashboard/JourneyTimeline'
 import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
 import { Card } from '../components/ui/Card'
 import { cn } from '../lib/cn'
 
 export function DashboardPage() {
-  const { progress } = useUserProgress()
-  const { signOut } = useAuth()
-  const { profile } = useProfile()
-  const navigate = useNavigate()
+  const { progress, isHydrating } = useUserProgress()
+  const { profile, loading: profileLoading } = useProfile()
   const { t } = useTranslation()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+
+  // Show loading state while data is being fetched
+  if (isHydrating || profileLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className={cn(
+            "mb-2 text-sm",
+            isLight ? "text-slate-600" : "text-slate-400"
+          )}>
+            Loading dashboard...
+          </div>
+          <div className={cn(
+            "text-xs",
+            isLight ? "text-slate-500" : "text-slate-500"
+          )}>
+            Please wait
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) {
@@ -164,9 +178,6 @@ export function DashboardPage() {
   const firstThreeSteps = useMemo(() => {
     return journeySteps.slice(0, 3)
   }, [journeySteps])
-
-  const { theme } = useTheme()
-  const isLight = theme === 'light'
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { RequireAuth } from './components/auth/RequireAuth'
 import { RequirePermission } from './components/auth/RequirePermission'
 import { RequireRole } from './components/auth/RequireRole'
@@ -38,9 +38,7 @@ export default function App() {
 
           {/* Student-only routes - block teachers from accessing */}
           <Route element={<RequireStudent />}>
-            <Route element={<RequirePermission permission="view_dashboard" />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-            </Route>
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route element={<RequirePermission permission="take_psychometric_test" />}>
               <Route path="/psychometric-test" element={<PsychometricTestPage />} />
             </Route>

@@ -1,11 +1,12 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
-import { IconUser, IconMail, IconShield, IconBook } from '../components/icons'
+import { IconUser, IconMail, IconShield, IconBook, IconEye, IconEyeOff } from '../components/icons'
 import { useTheme } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
 import { Button } from '../components/ui/Button'
+import backgroundVideo from '../assets/background-login2.mp4'
 
 // --- Types & Props ---
 type AuthPageProps = {
@@ -22,18 +23,16 @@ function SignInForm({ email, setEmail, password, setPassword, isLight, t }: {
   isLight: boolean;
   t: (key: any) => string;
 }) {
+  const [showPassword, setShowPassword] = useState(false)
+
   return (
     <div className="flex flex-col items-center justify-center h-full px-10 text-center">
-      <h1 className={cn("text-3xl font-bold mb-4", isLight ? "text-slate-800" : "text-white")}>{t('auth.loginTitle')}</h1>
-      <div className="social-container mb-4">
-        {/* Social Icons would go here if needed, keeping it simple as per original code */}
-      </div>
-      <span className={cn("text-sm mb-4", isLight ? "text-slate-600" : "text-slate-400")}>{t('auth.useEmailAccount')}</span>
+      <h1 className={cn("text-3xl font-bold mb-6", isLight ? "text-slate-800" : "text-white")}>{t('auth.loginTitle')}</h1>
       
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      <div className="flex flex-col gap-4 w-full max-w-xs">
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconMail className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconMail className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
             type="email"
@@ -41,42 +40,47 @@ function SignInForm({ email, setEmail, password, setPassword, isLight, t }: {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
         </div>
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconShield className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconShield className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder={t('auth.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 pr-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className={cn(
+              "absolute inset-y-0 right-0 pr-3 flex items-center z-10 transition-colors",
+              isLight ? "text-slate-400 hover:text-slate-600" : "text-slate-500 hover:text-slate-300"
+            )}
+          >
+            {showPassword ? (
+              <IconEyeOff className="size-5" />
+            ) : (
+              <IconEye className="size-5" />
+            )}
+          </button>
         </div>
       </div>
 
-      <a href="#" className={cn("text-xs mt-4 hover:underline", isLight ? "text-slate-600" : "text-slate-400")}>Forgot your password?</a>
-      {/* Button is handled in the parent to share loading state/logic, but for UI match it should be here. 
-          However, the original code had the button outside the form fields. 
-          In standard sliding UI, the button is INSIDE the form container. 
-          I will place a button here that triggers the parent handler? 
-          No, I will pass the handler down or just render the button here. 
-          For now, I'll let the parent render the button to keep logic centralized, 
-          OR I can just accept the handler as a prop.
-          Actually, the original LoginPage had the button *below* the form fields.
-          I will put the button here. */}
+      <a href="#" className={cn("text-xs mt-6 hover:underline font-medium", isLight ? "text-slate-600" : "text-slate-400")}>Forgot your password?</a>
     </div>
   )
 }
@@ -93,18 +97,16 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
   isLight: boolean;
   t: (key: any) => string;
 }) {
+  const [showPassword, setShowPassword] = useState(false)
+
   return (
     <div className="flex flex-col items-center justify-center h-full px-10 text-center">
-      <h1 className={cn("text-3xl font-bold mb-4", isLight ? "text-slate-800" : "text-white")}>{t('auth.signupTitle')}</h1>
-      <div className="social-container mb-4">
-        {/* Social Icons */}
-      </div>
-      <span className={cn("text-sm mb-4", isLight ? "text-slate-600" : "text-slate-400")}>{t('auth.useEmailRegistration')}</span>
+      <h1 className={cn("text-3xl font-bold mb-6", isLight ? "text-slate-800" : "text-white")}>{t('auth.signupTitle')}</h1>
       
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      <div className="flex flex-col gap-4 w-full max-w-xs">
         <div className="relative w-full">
-           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconUser className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconUser className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
             type="text"
@@ -112,16 +114,16 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
         </div>
         <div className="relative w-full">
-           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconBook className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconBook className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
             type="text"
@@ -129,16 +131,16 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
             value={studentClass}
             onChange={(e) => setStudentClass(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
         </div>
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconMail className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconMail className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
             type="email"
@@ -146,29 +148,43 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
         </div>
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <IconShield className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <IconShield className={cn("size-5", isLight ? "text-slate-500" : "text-slate-400")} />
           </div>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder={t('auth.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-3 text-sm outline-none transition-all",
+              "w-full rounded-lg border px-3 pl-10 pr-10 py-3 text-sm outline-none transition-all shadow-sm focus:ring-4",
               isLight 
-                ? "bg-slate-100 border-none placeholder-slate-500 text-slate-900" 
-                : "bg-slate-800 border-slate-700 placeholder-slate-400 text-slate-100"
+                ? "bg-white border-slate-300 placeholder-slate-400 text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/10" 
+                : "bg-slate-950/50 border-slate-700 placeholder-slate-500 text-slate-100 focus:border-indigo-400 focus:ring-indigo-500/10"
             )}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className={cn(
+              "absolute inset-y-0 right-0 pr-3 flex items-center z-10 transition-colors",
+              isLight ? "text-slate-400 hover:text-slate-600" : "text-slate-500 hover:text-slate-300"
+            )}
+          >
+            {showPassword ? (
+              <IconEyeOff className="size-5" />
+            ) : (
+              <IconEye className="size-5" />
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -181,31 +197,39 @@ function TogglePanel({ isSignUp, toggleAuthMode, t }: {
   t: (key: any) => string;
 }) {
   return (
-    <div className="relative h-full w-full flex text-white">
+    <div className="relative h-full w-full flex text-white z-10">
       
-      {/* Left Panel Content - "Welcome Back" (Visible when Overlay is Left) */}
-          <div className="w-1/2 flex flex-col items-center justify-center px-8 text-center">
-            <h1 className="text-3xl font-bold mb-4">{t('auth.welcomeBack')}</h1>
-            <p className="mb-8">{t('auth.alreadyHaveAccount')}</p>
-            <button
-              onClick={toggleAuthMode}
-              className="rounded-full border border-white bg-transparent px-10 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-white hover:text-indigo-500"
-            >
-              {t('auth.signIn')}
-            </button>
-          </div>
+      {/* Left Panel Content - Visible in Sign Up Mode (Panel on Left) -> Target: Existing Users */}
+      <div className={cn(
+        "w-1/2 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ease-in-out absolute top-0 h-full left-0 z-20",
+        isSignUp ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10 pointer-events-none"
+      )}>
+        <h1 className="text-3xl font-semibold mb-2 tracking-tight text-indigo-50">Welcome to PathFinder</h1>
+        <p className="text-lg font-medium mb-4 text-indigo-100">Let’s find a career that fits you</p>
+        <p className="text-sm text-indigo-100/90 mb-8 max-w-[260px] font-medium">Take a short psychometric test and explore paths made for you</p>
+        <button
+          onClick={toggleAuthMode}
+          className="group relative rounded-full border-2 border-indigo-100 px-10 py-3 text-sm font-bold uppercase tracking-widest text-indigo-50 transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
+        >
+          <span className="relative z-10">{t('auth.signIn')}</span>
+        </button>
+      </div>
 
-          {/* Right Panel Content - "Hello Friend" (Visible when Overlay is Right) */}
-          <div className="w-1/2 flex flex-col items-center justify-center px-8 text-center">
-            <h1 className="text-3xl font-bold mb-4">{t('auth.helloStudent')}</h1>
-            <p className="mb-8">{t('auth.newToPathfinder')}</p>
-            <button
-              onClick={toggleAuthMode}
-              className="rounded-full border border-white bg-transparent px-10 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-white hover:text-indigo-500"
-            >
-              {t('auth.signUp')}
-            </button>
-          </div>
+      {/* Right Panel Content - Visible in Login Mode (Panel on Right) -> Target: New Users */}
+      <div className={cn(
+        "w-1/2 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ease-in-out absolute top-0 h-full right-0 z-20",
+        !isSignUp ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10 pointer-events-none"
+      )}>
+        <h1 className="text-3xl font-semibold mb-2 tracking-tight text-indigo-50">Welcome Back</h1>
+        <p className="text-lg font-medium mb-4 text-indigo-100">Let’s continue your career journey</p>
+        <p className="text-sm text-indigo-100/90 mb-8 max-w-[260px] font-medium">View your recommendations and track your progress</p>
+        <button
+          onClick={toggleAuthMode}
+          className="group relative rounded-full border-2 border-indigo-100 px-10 py-3 text-sm font-bold uppercase tracking-widest text-indigo-50 transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
+        >
+          <span className="relative z-10">{t('auth.signUp')}</span>
+        </button>
+      </div>
     </div>
   )
 }
@@ -328,13 +352,25 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   }
 
   return (
-    <div className={cn(
-      "min-h-screen flex items-center justify-center p-4 transition-colors duration-500 overflow-hidden",
-      isLight ? "bg-[#c9d6ff] bg-gradient-to-r from-[#e2e2e2] to-[#c9d6ff]" : "bg-slate-950"
-    )}>
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0">
+         <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            style={{ objectPosition: '60% center' }}
+         >
+            <source src={backgroundVideo} type="video/mp4" />
+         </video>
+         <div className={cn("absolute inset-0 backdrop-blur-[2px]", isLight ? "bg-white/30" : "bg-black/40")} />
+      </div>
+
       <div className={cn(
-        "relative w-[768px] max-w-full h-[480px] bg-white rounded-[30px] shadow-2xl overflow-hidden",
-        !isLight && "bg-slate-900"
+        "relative z-10 w-[768px] max-w-full h-[480px] rounded-[30px] shadow-2xl overflow-hidden transition-all duration-500",
+        isLight ? "bg-white/90 backdrop-blur-md" : "bg-slate-900/90 backdrop-blur-md"
       )}>
         
         {/* Sign Up Form Container */}
@@ -353,7 +389,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
            />
            <div className="px-10 pb-6 text-center">
              {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
-             <Button onClick={handleSignUp} disabled={loading} fullWidth className="rounded-lg font-bold uppercase tracking-wider py-3">
+             <Button onClick={handleSignUp} disabled={loading} fullWidth className="rounded-lg font-bold uppercase tracking-wider py-3 shadow-md">
                 {loading ? t('common.loading') : t('auth.signUp')}
              </Button>
            </div>
@@ -374,7 +410,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           <div className="px-10 pb-6 text-center">
              {info && <p className="text-amber-500 text-xs mb-2">{info}</p>}
              {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
-             <Button onClick={handleLogin} disabled={loading} fullWidth className="rounded-lg font-bold uppercase tracking-wider py-3">
+             <Button onClick={handleLogin} disabled={loading} fullWidth className="rounded-lg font-bold uppercase tracking-wider py-3 shadow-md">
                 {loading ? t('common.loading') : t('auth.signIn')}
              </Button>
           </div>
@@ -389,7 +425,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         )}>
            {/* Inner Gradient Panel */}
            <div className={cn(
-             "bg-gradient-to-r from-indigo-500 to-teal-500 relative -left-full h-full w-[200%] transform transition-transform duration-700 ease-in-out text-white",
+             "bg-gradient-to-br from-indigo-500 via-purple-500 to-teal-400 relative -left-full h-full w-[200%] transform transition-transform duration-700 ease-in-out text-white",
              isSignUp ? "translate-x-1/2" : "translate-x-0"
            )}>
              <TogglePanel isSignUp={isSignUp} toggleAuthMode={toggleAuthMode} t={t} />

@@ -715,6 +715,35 @@ export function IconMail(props: IconProps) {
   )
 }
 
+export function IconEye(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+export function IconEyeOff(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.05A10.51 10.51 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function IconPhone(props: IconProps) {
   return (
     <svg {...baseProps(props)}>

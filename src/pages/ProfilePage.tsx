@@ -324,16 +324,10 @@ function TeacherProfileView(props: {
               src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
               alt="Profile avatar"
               fallback={(form.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
-              sizeClassName="size-32"
-              className="rounded-full border-4 border-slate-700/50 shadow-[0_0_30px_rgba(59,130,246,0.20)]"
+              sizeClassName="size-10"
+              className="rounded-full cursor-pointer transition-all hover:opacity-80 hover:scale-105"
               loading="eager"
             />
-            {/* Info Badge */}
-            <div className="absolute bottom-0 right-0 grid size-8 place-items-center rounded-full bg-blue-600 border-2 border-slate-950">
-              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
           </div>
 
           {/* Name and Contact Info */}
@@ -1125,24 +1119,41 @@ export function ProfilePage() {
               />
 
               <div className="space-y-3">
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                <div className={cn(
+                  "text-xs font-semibold uppercase tracking-[0.14em]",
+                  isLight
+                    ? "text-slate-700"
+                    : "text-slate-300/70"
+                )}>
                   TAGS
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {interestTags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200"
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                        isLight
+                          ? "border-blue-200 bg-blue-50 text-slate-700 hover:bg-blue-100"
+                          : "border-slate-800/60 bg-slate-950/18 text-slate-200"
+                      )}
                     >
                       {t}
-                      <IconChevronDown size={12} className="text-slate-400" />
+                      <IconChevronDown size={12} className={cn(
+                        isLight ? "text-slate-500" : "text-slate-400"
+                      )} />
                       <button
                         type="button"
                         onClick={() => {
                           setInterestTags((prev) => prev.filter((x) => x !== t))
                           setIsDirty(true)
                         }}
-                        className="grid size-4 place-items-center rounded-full text-[10px] text-slate-400 hover:text-slate-200"
+                        className={cn(
+                          "grid size-4 place-items-center rounded-full text-[10px] transition",
+                          isLight
+                            ? "text-slate-500 hover:text-slate-700"
+                            : "text-slate-400 hover:text-slate-200"
+                        )}
                         aria-label={`Remove tag ${t}`}
                         disabled={saving || showSkeleton}
                       >
@@ -1187,14 +1198,24 @@ export function ProfilePage() {
               </div>
 
               <div className="space-y-3">
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                <div className={cn(
+                  "text-xs font-semibold uppercase tracking-[0.14em]",
+                  isLight
+                    ? "text-slate-700"
+                    : "text-slate-300/70"
+                )}>
                   HOBBIES
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {hobbyTags.map((h) => (
                     <span
                       key={h}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/18 px-3 py-1.5 text-xs font-semibold text-slate-200"
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                        isLight
+                          ? "border-blue-200 bg-blue-50 text-slate-700 hover:bg-blue-100"
+                          : "border-slate-800/60 bg-slate-950/18 text-slate-200"
+                      )}
                     >
                       <HobbyIcon label={h} />
                       <span className="truncate">{h}</span>
@@ -1204,7 +1225,12 @@ export function ProfilePage() {
                           setHobbyTags((prev) => prev.filter((x) => x !== h))
                           setIsDirty(true)
                         }}
-                        className="grid size-4 place-items-center rounded-full text-[10px] text-slate-400 hover:text-slate-200"
+                        className={cn(
+                          "grid size-4 place-items-center rounded-full text-[10px] transition",
+                          isLight
+                            ? "text-slate-500 hover:text-slate-700"
+                            : "text-slate-400 hover:text-slate-200"
+                        )}
                         aria-label={`Remove hobby ${h}`}
                         disabled={saving || showSkeleton}
                       >
@@ -1229,8 +1255,18 @@ export function ProfilePage() {
                 </div>
 
                 {isHobbyPickerOpen && (
-                  <div className="mt-3 rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                  <div className={cn(
+                    "mt-3 rounded-2xl border p-3",
+                    isLight
+                      ? "border-slate-200 bg-blue-50"
+                      : "border-slate-800/60 bg-slate-950/20"
+                  )}>
+                    <div className={cn(
+                      "mb-2 text-xs font-semibold uppercase tracking-[0.14em]",
+                      isLight
+                        ? "text-slate-700"
+                        : "text-slate-300/70"
+                    )}>
                       Suggested hobbies
                     </div>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1248,8 +1284,12 @@ export function ProfilePage() {
                             className={cn(
                               'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
                               active
-                                ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
-                                : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
+                                ? isLight
+                                  ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
+                                  : 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                                : isLight
+                                  ? 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-200'
+                                  : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
                               (saving || showSkeleton) && 'opacity-60',
                             )}
                             aria-pressed={active}
@@ -1411,8 +1451,18 @@ export function ProfilePage() {
               </div>
 
               {isSkillPickerOpen && (
-                <div className="rounded-2xl border border-slate-800/60 bg-slate-950/20 p-3">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300/70">
+                <div className={cn(
+                  "rounded-2xl border p-3",
+                  isLight
+                    ? "border-slate-200 bg-blue-50"
+                    : "border-slate-800/60 bg-slate-950/20"
+                )}>
+                  <div className={cn(
+                    "mb-2 text-xs font-semibold uppercase tracking-[0.14em]",
+                    isLight
+                      ? "text-slate-700"
+                      : "text-slate-300/70"
+                  )}>
                     Suggested skills
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1441,8 +1491,12 @@ export function ProfilePage() {
                           className={cn(
                             'flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-xs font-semibold transition',
                             exists
-                              ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
-                              : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
+                              ? isLight
+                                ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
+                                : 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+                              : isLight
+                                ? 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:border-blue-200'
+                                : 'border-slate-800/60 bg-slate-950/20 text-slate-200 hover:bg-slate-950/30',
                             (saving || showSkeleton) && 'opacity-60',
                           )}
                           aria-pressed={exists}
@@ -1534,6 +1588,8 @@ type SkillRowProps = {
 
 function SkillRow(props: SkillRowProps) {
   const { skill } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const clamped = clamp100(skill.value)
   const options: Array<{ icon: Skill['icon']; label: string }> = [
     { icon: 'html', label: 'HTML' },
@@ -1552,8 +1608,18 @@ function SkillRow(props: SkillRowProps) {
     options.find((o) => o.icon === icon)?.label ?? skill.label
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/18 px-4 py-3">
-      <div className="grid size-10 place-items-center rounded-lg border border-slate-800/60 bg-slate-950/25">
+    <div className={cn(
+      "flex items-center gap-3 rounded-2xl border px-4 py-3",
+      isLight
+        ? "border-slate-200 bg-slate-50"
+        : "border-slate-800/60 bg-slate-950/18"
+    )}>
+      <div className={cn(
+        "grid size-10 place-items-center rounded-lg border",
+        isLight
+          ? "border-slate-200 bg-white"
+          : "border-slate-800/60 bg-slate-950/25"
+      )}>
         <SkillIcon kind={skill.icon} />
       </div>
       <div className="min-w-0 flex-1">
@@ -1564,7 +1630,12 @@ function SkillRow(props: SkillRowProps) {
               const icon = e.target.value as Skill['icon']
               props.onChange({ ...skill, icon, label: labelForIcon(icon) })
             }}
-            className="min-w-0 flex-1 rounded-lg border border-slate-800/60 bg-slate-950/25 px-3 py-2 text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgNEw2IDdMOSA0IiBzdHJva2U9IiM5NDEwM0Y0IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==')] bg-no-repeat bg-right pr-8"
+            className={cn(
+              "min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgNEw2IDdMOSA0IiBzdHJva2U9IiM5NDEwM0Y0IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==')] bg-no-repeat bg-right pr-8",
+              isLight
+                ? "border-slate-200 bg-white text-slate-900"
+                : "border-slate-800/60 bg-slate-950/25 text-slate-100"
+            )}
             aria-label="Skill"
           >
             {options.map((o) => (
@@ -1577,9 +1648,19 @@ function SkillRow(props: SkillRowProps) {
             Remove
           </Button>
         </div>
-        <div className="mt-2 h-2 w-full rounded-full bg-slate-950/40 ring-1 ring-slate-800/60">
+        <div className={cn(
+          "mt-2 h-2 w-full rounded-full",
+          isLight
+            ? "bg-slate-200"
+            : "bg-slate-950/40 ring-1 ring-slate-800/60"
+        )}>
           <div
-            className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
+            className={cn(
+              "h-2 rounded-full",
+              isLight
+                ? "bg-blue-500"
+                : "bg-gradient-to-r from-blue-500 to-blue-600"
+            )}
             style={{ width: `${clamped}%` }}
           />
         </div>
