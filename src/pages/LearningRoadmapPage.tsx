@@ -10,7 +10,6 @@ import {
   IconBook,
   IconCheck,
   IconClipboard,
-  IconArrowRight,
   IconTarget,
   IconUser,
 } from '../components/icons'
@@ -64,7 +63,7 @@ export function LearningRoadmapPage() {
         bullets: ['Your interests', 'Your goal', 'Your context'],
         detailTitle: t('roadmap.profileTitle'),
         detailText: t('roadmap.profileDesc'),
-        cta: { label: t('roadmap.profileCta'), to: '/profile' },
+        cta: { label: t('roadmap.profileCta'), to: '/dashboard#profile' },
         accent: 'blue',
         icon: ({ className }) => <IconUser size={20} className={className} />,
         color: '#ef4444', // Red

@@ -3,7 +3,6 @@ import { useTranslation } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import { discoverYourselfContent, identityHeadings, personalInsights, type RiasecKey } from '../lib/discoverYourselfContent'
 import { cn } from '../lib/cn'
-import { IconArrowRight } from './icons'
 // Static image imports
 import mainIllustration from '../assets/pic1.png'
 import howYouThinkIcon from '../assets/how-you-think.png'
@@ -112,10 +111,10 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 How You Think
               </h4>
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {insights.howYouThink.bullets.slice(0, 2).map((bullet, idx) => (
                 <li key={idx} className={cn(
-                  'flex items-start gap-2 text-sm leading-relaxed',
+                  'flex items-start gap-2 text-base leading-relaxed',
                   isLight ? 'text-slate-700' : 'text-slate-300'
                 )}>
                   <span className={cn(
@@ -159,10 +158,10 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 How You Learn Best
               </h4>
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {insights.howYouLearnBest.bullets.slice(0, 2).map((bullet, idx) => (
                 <li key={idx} className={cn(
-                  'flex items-start gap-2 text-sm leading-relaxed',
+                  'flex items-start gap-2 text-base leading-relaxed',
                   isLight ? 'text-slate-700' : 'text-slate-300'
                 )}>
                   <span className={cn(
@@ -206,10 +205,10 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 What This Means for Your Future
               </h4>
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {insights.whyThisMatters.bullets.slice(0, 2).map((bullet, idx) => (
                 <li key={idx} className={cn(
-                  'flex items-start gap-2 text-sm leading-relaxed',
+                  'flex items-start gap-2 text-base leading-relaxed',
                   isLight ? 'text-slate-700' : 'text-slate-300'
                 )}>
                   <span className={cn(
@@ -226,7 +225,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
         {/* Additional Insights Section */}
         <div className="pt-6 border-t space-y-6">
           <h3 className={cn(
-            'text-xl md:text-2xl font-bold text-center',
+            'text-2xl md:text-3xl font-bold text-center',
             isLight ? 'text-slate-900' : 'text-slate-100'
           )}>
             Based on Your Result
@@ -241,7 +240,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 : 'bg-emerald-950/20 border-emerald-800/30'
             )}>
               <h4 className={cn(
-                'text-base font-bold flex items-center gap-2',
+                'text-lg font-bold flex items-center gap-2',
                 isLight ? 'text-emerald-900' : 'text-emerald-200'
               )}>
                 <span className={cn(
@@ -253,7 +252,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
               <ul className="space-y-2">
                 {insights.whatYoureGoodAt.bullets.slice(0, 3).map((strength, idx) => (
                   <li key={idx} className={cn(
-                    'flex items-start gap-2 text-sm leading-relaxed',
+                    'flex items-start gap-2 text-base leading-relaxed',
                     isLight ? 'text-slate-700' : 'text-slate-300'
                   )}>
                     <span className={cn(
@@ -274,7 +273,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 : 'bg-blue-950/20 border-blue-800/30'
             )}>
               <h4 className={cn(
-                'text-base font-bold flex items-center gap-2',
+                'text-lg font-bold flex items-center gap-2',
                 isLight ? 'text-blue-900' : 'text-blue-200'
               )}>
                 <span className={cn(
@@ -286,7 +285,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
               <ul className="space-y-2">
                 {getLearningAreas(primary, language).map((area, idx) => (
                   <li key={idx} className={cn(
-                    'flex items-start gap-2 text-sm leading-relaxed',
+                    'flex items-start gap-2 text-base leading-relaxed',
                     isLight ? 'text-slate-700' : 'text-slate-300'
                   )}>
                     <span className={cn(
@@ -307,7 +306,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
                 : 'bg-purple-950/20 border-purple-800/30'
             )}>
               <h4 className={cn(
-                'text-base font-bold flex items-center gap-2',
+                'text-lg font-bold flex items-center gap-2',
                 isLight ? 'text-purple-900' : 'text-purple-200'
               )}>
                 <span className={cn(
@@ -319,7 +318,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
               <ul className="space-y-2">
                 {getGrowthSuggestions(primary, language).map((suggestion, idx) => (
                   <li key={idx} className={cn(
-                    'flex items-start gap-2 text-sm leading-relaxed',
+                    'flex items-start gap-2 text-base leading-relaxed',
                     isLight ? 'text-slate-700' : 'text-slate-300'
                   )}>
                     <span className={cn(

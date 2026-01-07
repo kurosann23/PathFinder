@@ -10,8 +10,8 @@ import { CourseRecommendationPage } from './pages/CourseRecommendationPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LearningRoadmapPage } from './pages/LearningRoadmapPage'
 import { AuthPage } from './pages/AuthPage'
-import { ProfilePage } from './pages/ProfilePage'
 import { PsychometricTestPage } from './pages/PsychometricTestPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { TeacherCoursesPage } from './pages/TeacherCoursesPage'
 import { TeacherDashboardPage } from './pages/TeacherDashboardPage'
 import { TeacherQuestionsPage } from './pages/TeacherQuestionsPage'
@@ -32,9 +32,6 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route index element={<RoleBasedRedirect />} />
-          
-          {/* Profile route - accessible by both students and teachers */}
-          <Route path="/profile" element={<ProfilePage />} />
 
           {/* Student-only routes - block teachers from accessing */}
           <Route element={<RequireStudent />}>
@@ -51,13 +48,14 @@ export default function App() {
             <Route path="/appointment" element={<StudentAppointmentPage />} />
           </Route>
 
-          {/* Teacher-only routes - block students from accessing */}
+          {/* Teacher-only routes - block students from accessing (includes teacher profile page) */}
           <Route element={<RequireRole allowedRoles={['teacher']} />}>
             <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
             <Route path="/teacher/students" element={<TeacherStudentOverviewPage />} />
             <Route path="/teacher/appointments" element={<TeacherAppointmentsPage />} />
             <Route path="/teacher/questions" element={<TeacherQuestionsPage />} />
             <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
 
           <Route path="*" element={<RoleBasedRedirect />} />

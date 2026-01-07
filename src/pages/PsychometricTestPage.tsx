@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
-import { ProgressBar } from '../components/ui/ProgressBar'
 import { PageHeader } from '../components/PageHeader'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useTheme } from '../context/ThemeContext'
@@ -27,21 +26,21 @@ import {
   IconArrowRight,
 } from '../components/icons'
 import { DiscoverYourself } from '../components/DiscoverYourself'
-import { identityHeadings, riasecTypeInfo } from '../lib/discoverYourselfContent'
+import { riasecTypeInfo } from '../lib/discoverYourselfContent'
 import { useLanguage } from '../context/LanguageContext'
 import styles from './PsychometricTestPage.module.css'
 
 // Page-specific translations (kept local to this page)
-const translations: Record<'en' | 'my', Record<string, any>> = {
+// Typed via `as const` so properties are concrete strings instead of `unknown`.
+const translations = {
   en: {
     // Page headers
     pageTitle: 'Psychometric Test',
     pageSubtitle: 'Answer one statement at a time. Your responses are used to generate your guidance.',
     whatIsTest: 'What is this test?',
     whatIsTestDesc1: 'This assessment is designed to help you discover your unique personality traits and interests using the globally recognized RIASEC model. It provides insights into how you think, learn, and interact with the world around you.',
-    whatIsTestDesc2: 'By answering these simple questions, you will receive a personalized profile that aligns with your natural strengths. There are no right or wrong answers—simply choose the options that best describe you to unlock tailored learning paths and career recommendations.',
+    whatIsTestDesc2: 'By answering these simple questions, you will receive a personalized profile that aligns with your natural strengths. There are no right or wrong answers — simply choose the options that best describe you.',
     whatIsTestPoints: [
-      'No right or wrong answers — respond honestly.',
       'Helps align learning paths and careers to your strengths.',
       'Takes only a few minutes to complete.',
     ],
@@ -116,9 +115,8 @@ const translations: Record<'en' | 'my', Record<string, any>> = {
     pageSubtitle: 'Jawab satu kenyataan pada satu masa. Respons anda digunakan untuk menjana panduan anda.',
     whatIsTest: 'Apakah ujian ini?',
     whatIsTestDesc1: 'Penilaian ini direka untuk membantu anda menemui ciri-ciri personaliti dan minat unik anda menggunakan model RIASEC yang diiktiraf di peringkat global. Ia memberikan pandangan tentang cara anda berfikir, belajar, dan berinteraksi dengan dunia di sekeliling anda.',
-    whatIsTestDesc2: 'Dengan menjawab soalan-soalan mudah ini, anda akan menerima profil peribadi yang selaras dengan kekuatan semula jadi anda. Tiada jawapan betul atau salah—hanya pilih pilihan yang paling menggambarkan diri anda untuk membuka laluan pembelajaran dan cadangan kerjaya yang disesuaikan.',
+    whatIsTestDesc2: 'Dengan menjawab soalan-soalan mudah ini, anda akan menerima profil peribadi yang selaras dengan kekuatan semula jadi anda. Tiada jawapan betul atau salah — hanya pilih pilihan yang paling menggambarkan diri anda.',
     whatIsTestPoints: [
-      'Tiada jawapan betul atau salah — jawab dengan jujur.',
       'Membantu menyelaraskan laluan pembelajaran dan kerjaya dengan kekuatan anda.',
       'Hanya mengambil masa beberapa minit untuk diselesaikan.',
     ],
@@ -187,10 +185,10 @@ const translations: Record<'en' | 'my', Record<string, any>> = {
     whatDoRiasecMean: 'Apakah maksud jenis RIASEC?',
     riasecTypes: 'Jenis RIASEC',
   },
-}
+} as const
 
 export function PsychometricTestPage() {
-  const { progress, submitPsychometricTest, resetPsychometricTest, isHydrating, hydrationError, isSavingPsychometric } = useUserProgress()
+  const { progress, submitPsychometricTest, resetPsychometricTest, hydrationError, isSavingPsychometric } = useUserProgress()
   const { user } = useAuth()
   const { profile } = useProfile()
   const { hasPermission } = useRole()
@@ -199,28 +197,8 @@ export function PsychometricTestPage() {
   const resultsRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
-  // Check permission
-  if (!hasPermission('take_psychometric_test')) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Access Restricted"
-          subtitle="This feature is only available for students."
-        />
-        <Card title="Permission Denied">
-          <div className={cn('space-y-3 text-sm', isLight ? 'text-slate-700' : 'text-slate-300')}>
-            <p>Teachers cannot take the psychometric test.</p>
-            <p className={cn('text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
-              Please contact an administrator if you believe this is an error.
-            </p>
-          </div>
-        </Card>
-      </div>
-    )
-  }
-
   // Use global language from context
-  const { language, toggleLanguage } = useLanguage()
+  const { language } = useLanguage()
   const t = translations[language]
 
   // Questions state - load from database
@@ -236,7 +214,14 @@ export function PsychometricTestPage() {
       } catch (error) {
         // Fallback to static questions if database is not available
         console.warn('Failed to load questions from database, using static questions:', error)
-        setQuestions(riasecQuestions.map((q) => ({ id: q.id, text: q.text, type: q.type, is_active: true })))
+        setQuestions(
+          riasecQuestions.map((q) => ({
+            id: q.id,
+            text: q.text,
+            type: q.type as QuestionRow['type'],
+            is_active: true,
+          })),
+        )
       } finally {
         setQuestionsLoading(false)
       }
@@ -247,7 +232,14 @@ export function PsychometricTestPage() {
   // Get translated questions - memoized for performance
   const translatedQuestions = useMemo(() => {
     // Use database questions if available, otherwise fallback to static
-    const baseQuestions = questions.length > 0 ? questions : riasecQuestions.map((q) => ({ id: q.id, text: q.text, type: q.type }))
+    const baseQuestions =
+      questions.length > 0
+        ? questions
+        : riasecQuestions.map((q) => ({
+            id: q.id,
+            text: q.text,
+            type: q.type as QuestionRow['type'],
+          }))
 
     if (language === 'my') {
       // Malay translations for questions
@@ -270,10 +262,6 @@ export function PsychometricTestPage() {
   const [showAllTraits, setShowAllTraits] = useState(false)
   const [showRiasecInfo, setShowRiasecInfo] = useState(false)
 
-  const statusLabel = progress.psychometricCompleted ? t.completed : t.notTaken
-  const statusClass = progress.psychometricCompleted
-    ? 'text-emerald-200'
-    : 'text-slate-300'
   const canSubmit = !progress.psychometricCompleted
   const isTakingTest = hasStarted && canSubmit
 
@@ -304,6 +292,26 @@ export function PsychometricTestPage() {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }, [location.hash, progress.psychometricCompleted])
+
+  // Check permission
+  if (!hasPermission('take_psychometric_test')) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Access Restricted"
+          subtitle="This feature is only available for students."
+        />
+        <Card title="Permission Denied">
+          <div className={cn('space-y-3 text-sm', isLight ? 'text-slate-700' : 'text-slate-300')}>
+            <p>Teachers cannot take the psychometric test.</p>
+            <p className={cn('text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
+              Please contact an administrator if you believe this is an error.
+            </p>
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   function setAnswer(questionId: string, value: number) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
@@ -451,8 +459,8 @@ export function PsychometricTestPage() {
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="flex items-start justify-between">
           <PageHeader
-            title={t.pageTitle}
-            subtitle={t.pageSubtitle}
+            title={String(t.pageTitle)}
+            subtitle={t.pageSubtitle ? String(t.pageSubtitle) : undefined}
           />
         </div>
 
@@ -471,7 +479,7 @@ export function PsychometricTestPage() {
                     : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
                 )}
               >
-                {t.exit}
+                {String(t.exit)}
               </button>
             </div>
           }
@@ -512,8 +520,8 @@ export function PsychometricTestPage() {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {[
-                  { value: 1, label: t.yes },
-                  { value: 0, label: t.no },
+                  { value: 1, label: String(t.yes) },
+                  { value: 0, label: String(t.no) },
                 ].map((option) => {
                   const selected = current === option.value
                   return (
@@ -553,12 +561,14 @@ export function PsychometricTestPage() {
             </div>
 
             {stepError && (
-              <div className={cn(
-                "rounded-xl border px-4 py-3 text-sm font-medium",
-                isLight
-                  ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-rose-500/20 bg-rose-500/10 text-rose-200"
-              )}>
+              <div
+                className={cn(
+                  'rounded-xl border px-4 py-3 text-sm font-medium',
+                  isLight
+                    ? 'border-rose-200 bg-rose-50 text-rose-700'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-200',
+                )}
+              >
                 {stepError}
               </div>
             )}
@@ -579,11 +589,12 @@ export function PsychometricTestPage() {
               </button>
 
               <div className={cn("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
-                {t.answered}:{' '}
-                <span className={cn('font-semibold', isLight ? 'text-slate-800' : 'text-slate-200')}>
-                  {answeredCount}
-                </span> /{' '}
-                {translatedQuestions.length}
+                {String(t.answered)}{" "}
+                <span className={cn("font-semibold", isLight ? "text-slate-800" : "text-slate-200")}>
+                  {String(answeredCount)}
+                </span>
+                {" / "}
+                {String(translatedQuestions.length)}
               </div>
 
               {isLast ? (
@@ -635,19 +646,20 @@ export function PsychometricTestPage() {
         </div>
 
         {/* What is this test section */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h2 className={cn('text-xl font-bold', isLight ? 'text-slate-900' : 'text-slate-100')}>
             {t.whatIsTest}
           </h2>
-          <div className={cn(
-            styles.infoBlock,
-            'transition-all duration-200 hover:shadow-sm',
-            isLight ? 'bg-[#F8F9FA] text-slate-700' : 'bg-slate-900/50 text-slate-300'
-          )}>
+          <div
+            className={cn(
+              'max-w-3xl',
+              isLight ? 'text-slate-700' : 'text-slate-300',
+            )}
+          >
             <p className={styles.infoParagraph}>{t.whatIsTestDesc1}</p>
-            <p className={cn(styles.infoParagraph, styles.infoParagraphSpacing)}>{t.whatIsTestDesc2}</p>
-            <ul className={styles.infoList}>
-              {(t.whatIsTestPoints as string[]).map((point, i) => (
+            <p className={cn(styles.infoParagraph, 'mt-3')}>{t.whatIsTestDesc2}</p>
+            <ul className={cn(styles.infoList, 'mt-4 list-disc pl-5')}>
+              {((t.whatIsTestPoints as unknown) as string[]).map((point, i) => (
                 <li key={i}>{point}</li>
               ))}
             </ul>
@@ -853,15 +865,12 @@ function InteractiveCareerPathGuidance(props: {
   showAllTraits: boolean
   onToggleTraits: () => void
 }) {
-  const { name, hollandCode, report, showAllTraits, onToggleTraits } = props
+  const { name, hollandCode, report } = props
   const { theme } = useTheme()
   const isLight = theme === 'light'
 
-  const heroTitle = report.primaryPath.title
-  const heroDesc = report.primaryPath.description
-  const primaryFit = report.primaryPath.riasec.toUpperCase()
-  const { language } = useLanguage()
-  const identityHeading = identityHeadings[language][primaryFit as keyof typeof identityHeadings['en']]
+  const primaryFit = report.primaryPath.riasec.toUpperCase() as keyof typeof riasecTypeInfo['en']
+  useLanguage()
 
   return (
     <section className={cn(
@@ -928,8 +937,8 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
     .filter((l) => l !== normalizedLetter)
     .slice(0, 2) // Show up to 2 supporting letters
 
-  // Color scheme based on RIASEC type - Light Mode
-  const colorSchemeLight = {
+  // Color scheme based on RIASEC type - Light Mode (kept for reference)
+  /* const colorSchemeLight = {
     R: {
       bg: 'bg-blue-50',
       border: 'border-blue-200',
@@ -968,7 +977,7 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
     },
   }
 
-  // Color scheme based on RIASEC type - Dark Mode
+  // Color scheme based on RIASEC type - Dark Mode (kept for reference)
   const colorSchemeDark = {
     R: {
       bg: 'bg-blue-600/20',
@@ -1006,11 +1015,8 @@ function RiasecLetterBadge(props: { letter: string; hollandCode: string }) {
       text: 'text-blue-100',
       glow: 'rgba(59, 130, 246, 0.25)',
     },
-  }
+  } */
 
-  const colors = isLight
-    ? colorSchemeLight[normalizedLetter] || colorSchemeLight.I
-    : colorSchemeDark[normalizedLetter] || colorSchemeDark.I
 
   return (
     <div className="flex-shrink-0">

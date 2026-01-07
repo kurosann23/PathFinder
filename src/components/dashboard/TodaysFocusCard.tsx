@@ -178,7 +178,7 @@ export function TodaysFocusCard(props: {
               ))}
 
               <Link
-                to="/profile"
+                to="/dashboard#profile"
                 className={buttonClasses({ variant: 'ghost', size: 'sm' })}
               >
                 View

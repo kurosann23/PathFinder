@@ -23,28 +23,6 @@ export function DashboardPage() {
   const { theme } = useTheme()
   const isLight = theme === 'light'
 
-  // Show loading state while data is being fetched
-  if (isHydrating || profileLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className={cn(
-            "mb-2 text-sm",
-            isLight ? "text-slate-600" : "text-slate-400"
-          )}>
-            Loading dashboard...
-          </div>
-          <div className={cn(
-            "text-xs",
-            isLight ? "text-slate-500" : "text-slate-500"
-          )}>
-            Please wait
-            </div>
-          </div>
-        </div>
-    )
-  }
-
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) {
       // After a reset, we should not show demo traits. Show a "cleared" snapshot.
@@ -96,31 +74,29 @@ export function DashboardPage() {
 
   const journeySteps: JourneyStep[] = useMemo(() => {
     return journeyMeta.map((j, idx) => {
-        const to =
+      const to =
         j.key === 'profile'
-          ? '/profile'
+          ? '/dashboard#profile'
           : j.key === 'psychometric'
             ? '/psychometric-test'
             : j.key === 'course'
-            ? '/course-recommendations'
-          : j.key === 'appointment'
-            ? '/appointment'
-          : j.key === 'futureRole'
-            ? '/psychometric-test'
-              : '/profile'
+              ? '/course-recommendations'
+              : j.key === 'appointment'
+                ? '/appointment'
+                : j.key === 'futureRole'
+                  ? '/psychometric-test'
+                  : '/dashboard#profile'
 
-      const icon =
+      const icon: JourneyStep['icon'] =
         j.key === 'profile'
           ? 'profile'
           : j.key === 'psychometric'
             ? 'psychometric'
             : j.key === 'course'
               ? 'course'
-            : j.key === 'appointment'
-              ? 'calendar'
-            : j.key === 'futureRole'
-              ? 'roadmap'
-              : 'profile'
+              : j.key === 'futureRole'
+                ? 'roadmap'
+                : 'games'
 
       const locked =
         idx === 0
@@ -143,6 +119,32 @@ export function DashboardPage() {
   const visibleSteps = useMemo(() => {
     return journeySteps.slice(0, 4)
   }, [journeySteps])
+
+  // Show loading state while data is being fetched
+  if (isHydrating || profileLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div
+            className={cn(
+              'mb-2 text-sm',
+              isLight ? 'text-slate-600' : 'text-slate-400',
+            )}
+          >
+            Loading dashboard...
+          </div>
+          <div
+            className={cn(
+              'text-xs',
+              isLight ? 'text-slate-500' : 'text-slate-500',
+            )}
+          >
+            Please wait
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -278,13 +280,16 @@ export function DashboardPage() {
             {/* Steps */}
             <div className="relative grid grid-cols-4 gap-8">
               {visibleSteps.map((step, idx) => {
-                const StepWrapper = step.locked ? 'div' : Link
-                const wrapperProps = step.locked
-                  ? { className: 'group relative flex flex-col items-center cursor-not-allowed opacity-60' }
-                  : { to: step.to, className: 'group relative flex flex-col items-center' }
-                
+                const isLocked = step.locked
                 return (
-                  <StepWrapper key={step.key} {...wrapperProps}>
+                  <Link
+                    key={step.key}
+                    to={isLocked ? '#' : step.to}
+                    className={cn(
+                      'group relative flex flex-col items-center',
+                      isLocked && 'cursor-not-allowed opacity-60 pointer-events-none',
+                    )}
+                  >
                   <div
                     className={cn(
                       'relative z-10 w-full h-[72px] flex items-center justify-center rounded-2xl border px-2 text-center text-sm font-semibold transition-all',
@@ -299,7 +304,7 @@ export function DashboardPage() {
                           : isLight
                             ? 'border-slate-300 bg-white text-slate-700'
                             : 'border-purple-500/40 bg-purple-600/20 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.3)]',
-                      !step.locked && 'group-hover:scale-105'
+                      !isLocked && 'group-hover:scale-105'
                     )}
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -332,7 +337,7 @@ export function DashboardPage() {
                             ? 'Explore career paths and strategies.'
                             : 'Book a session for guidance.'}
                 </div>
-                </StepWrapper>
+                </Link>
               )
             })}
             </div>
@@ -492,42 +497,6 @@ function RiasecProfileCard({ progress }: RiasecProfileCardProps) {
         </div>
       </div>
     </Card>
-  )
-}
-
-function getMeaning(topCareerTypeLabel: string) {
-  const copy: Record<string, { title: string; body: string }> = {
-    Conventional: {
-      title: 'Well-organized and detail-oriented',
-      body: 'You excel in structured environments and enjoy working with data and systems. Consider roles in office administration, operations, analysis, or finance.',
-    },
-    Investigative: {
-      title: 'Analytical and curious',
-      body: 'You thrive on problem-solving and learning. Roles involving research, engineering, data, or troubleshooting are often a strong match.',
-    },
-    Artistic: {
-      title: 'Creative and expressive',
-      body: 'You enjoy creating, exploring ideas, and producing original work. Roles involving design, content, UX, or creative tech often fit well.',
-    },
-    Social: {
-      title: 'People-focused and supportive',
-      body: 'You enjoy helping others learn and grow. Roles involving teaching, collaboration, community, or user success often fit well.',
-    },
-    Enterprising: {
-      title: 'Ambitious and persuasive',
-      body: 'You enjoy leading, initiating, and turning ideas into action. Roles involving product, business, marketing, or entrepreneurship often fit well.',
-    },
-    Realistic: {
-      title: 'Hands-on and practical',
-      body: 'You prefer building and doing. Roles involving technical implementation, systems, hardware, or applied engineering often fit well.',
-    },
-  }
-
-  return (
-    copy[topCareerTypeLabel] ?? {
-      title: 'Your strengths are emerging',
-      body: 'Complete the psychometric test to unlock a personalized interpretation and a clearer direction for your next steps.',
-    }
   )
 }
 
