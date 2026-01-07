@@ -3,10 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { cn } from '../lib/cn'
 import { IconUser, IconMail, IconShield, IconBook, IconEye, IconEyeOff } from '../components/icons'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme, THEME_STORAGE_KEY } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
 import { Button } from '../components/ui/Button'
-import backgroundVideo from '../assets/background-login2.mp4'
+import backgroundVideo from '../assets/background-login.mp4'
+import styles from './AuthPage.module.css'
+import { type TranslationKey } from '../lib/translations'
 
 // --- Types & Props ---
 type AuthPageProps = {
@@ -21,13 +23,13 @@ function SignInForm({ email, setEmail, password, setPassword, isLight, t }: {
   password: string;
   setPassword: (value: string) => void;
   isLight: boolean;
-  t: (key: any) => string;
+  t: (key: TranslationKey) => string;
 }) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <div className="flex flex-col items-center justify-center h-full px-10 text-center">
-      <h1 className={cn("text-3xl font-bold mb-6", isLight ? "text-slate-800" : "text-white")}>{t('auth.loginTitle')}</h1>
+      <h1 className={cn("text-3xl font-bold mb-6", styles.authHeading, isLight ? "text-slate-800" : "text-white")}>{t('auth.loginTitle')}</h1>
       
       <div className="flex flex-col gap-4 w-full max-w-xs">
         <div className="relative w-full">
@@ -95,13 +97,13 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
   password: string;
   setPassword: (value: string) => void;
   isLight: boolean;
-  t: (key: any) => string;
+  t: (key: TranslationKey) => string;
 }) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <div className="flex flex-col items-center justify-center h-full px-10 text-center">
-      <h1 className={cn("text-3xl font-bold mb-6", isLight ? "text-slate-800" : "text-white")}>{t('auth.signupTitle')}</h1>
+      <h1 className={cn("text-3xl font-bold mb-6", styles.authHeading, isLight ? "text-slate-800" : "text-white")}>{t('auth.signupTitle')}</h1>
       
       <div className="flex flex-col gap-4 w-full max-w-xs">
         <div className="relative w-full">
@@ -194,7 +196,7 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
 function TogglePanel({ isSignUp, toggleAuthMode, t }: {
   isSignUp: boolean;
   toggleAuthMode: () => void;
-  t: (key: any) => string;
+  t: (key: TranslationKey) => string;
 }) {
   return (
     <div className="relative h-full w-full flex text-white z-10">
@@ -239,7 +241,7 @@ function TogglePanel({ isSignUp, toggleAuthMode, t }: {
 export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const nav = useNavigate()
   const location = useLocation()
-  const { theme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const isLight = theme === 'light'
   const { t } = useTranslation()
 
@@ -263,6 +265,11 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   useEffect(() => {
     setIsSignUp(initialMode === 'signup')
   }, [initialMode])
+
+  // Force light theme on auth pages to isolate dashboard theme
+  useEffect(() => {
+    setTheme('light')
+  }, [setTheme])
 
   // Clear error
   useEffect(() => {
@@ -300,6 +307,9 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
       })
       if (authError) throw authError
       if (data.session) await supabase.auth.setSession(data.session)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(THEME_STORAGE_KEY, 'light')
+      }
       nav(from || '/', { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed.')
@@ -343,6 +353,9 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
       })
       if (profileError) throw profileError
 
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(THEME_STORAGE_KEY, 'light')
+      }
       nav('/dashboard', { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign up failed.')
@@ -352,7 +365,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+    <div className={cn("min-h-screen relative flex items-center justify-center p-4 overflow-hidden", styles.authPage)}>
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
          <video

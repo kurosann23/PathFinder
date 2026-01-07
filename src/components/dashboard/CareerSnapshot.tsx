@@ -10,6 +10,7 @@ import type { CareerTraitKey } from '../../constants/dashboard'
 import { Card } from '../ui/Card'
 import { buttonClasses } from '../ui/buttonStyles'
 import { useTheme } from '../../context/ThemeContext'
+import { useTranslation } from '../../context/LanguageContext'
 import { cn } from '../../lib/cn'
 
 // Custom tick component to show full labels
@@ -46,7 +47,8 @@ export function CareerSnapshot(props: {
   traits: TraitDatum[]
   topCareerTypeLabel: string
 }) {
-  const { title = 'Career Snapshot', viewReportTo, traits, topCareerTypeLabel } = props
+  const { t } = useTranslation()
+  const { title = t('dashboard.careerSnapshot'), viewReportTo, traits, topCareerTypeLabel } = props
   const { theme } = useTheme()
   const isLight = theme === 'light'
 
@@ -55,14 +57,18 @@ export function CareerSnapshot(props: {
     value: clamp100(t.value),
   }))
 
-  const meaning = getMeaning(topCareerTypeLabel)
+  const validTypes = ['Conventional', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Realistic']
+  const typeKey = validTypes.includes(topCareerTypeLabel) ? topCareerTypeLabel : 'default'
+  
+  const meaningTitle = t(`career.meaning.${typeKey}.title` as any)
+  const meaningBody = t(`career.meaning.${typeKey}.body` as any)
 
   return (
     <Card
       title={title}
       right={
         <Link to={viewReportTo} className={buttonClasses({ variant: 'ghost', size: 'sm' })}>
-          View Full Report
+          {t('dashboard.viewFullReport')}
         </Link>
       }
     >
@@ -132,10 +138,10 @@ export function CareerSnapshot(props: {
         <div className="min-w-0 space-y-3">
           <div>
             <div className={cn('text-sm font-semibold leading-tight', isLight ? 'text-slate-900' : 'text-slate-100')}>
-              {meaning.title}
+              {meaningTitle}
             </div>
             <div className={cn('mt-2 text-sm leading-relaxed', isLight ? 'text-slate-700' : 'text-slate-300')}>
-              {meaning.body}
+              {meaningBody}
             </div>
           </div>
 
@@ -146,7 +152,7 @@ export function CareerSnapshot(props: {
                 ? 'border-blue-200 bg-blue-50 text-blue-700' 
                 : 'border-slate-800/60 bg-slate-950/18 text-slate-200'
             )}>
-              Top: {topCareerTypeLabel}
+              {t('dashboard.top')} {topCareerTypeLabel}
             </span>
             <span className={cn(
               'rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap',
@@ -154,48 +160,12 @@ export function CareerSnapshot(props: {
                 ? 'border-slate-200 bg-slate-50 text-slate-700' 
                 : 'border-slate-800/60 bg-slate-950/18 text-slate-200'
             )}>
-              RIASEC Radar
+              {t('dashboard.riasecRadar')}
             </span>
           </div>
         </div>
       </div>
     </Card>
-  )
-}
-
-function getMeaning(topCareerTypeLabel: string) {
-  const copy: Record<string, { title: string; body: string }> = {
-    Conventional: {
-      title: 'Well-organized and detail-oriented',
-      body: 'You excel in structured environments and enjoy working with systems, data, and clear processes. Roles involving administration, operations, analysis, or finance often fit well.',
-    },
-    Investigative: {
-      title: 'Analytical and curious',
-      body: 'You thrive on problem-solving and learning. Roles involving research, engineering, data, or troubleshooting are often a strong match.',
-    },
-    Artistic: {
-      title: 'Creative and expressive',
-      body: 'You enjoy creating, exploring ideas, and producing original work. Roles involving design, content, UX, or creative tech often fit well.',
-    },
-    Social: {
-      title: 'People-focused and supportive',
-      body: 'You enjoy helping others learn and grow. Roles involving teaching, collaboration, community, or user success often fit well.',
-    },
-    Enterprising: {
-      title: 'Ambitious and persuasive',
-      body: 'You enjoy leading, initiating, and turning ideas into action. Roles involving product, business, marketing, or entrepreneurship often fit well.',
-    },
-    Realistic: {
-      title: 'Hands-on and practical',
-      body: 'You prefer building and doing. Roles involving technical implementation, systems, hardware, or applied engineering often fit well.',
-    },
-  }
-
-  return (
-    copy[topCareerTypeLabel] ?? {
-      title: 'Your strengths are emerging',
-      body: 'Complete the psychometric test to unlock a personalized interpretation and a clearer direction for your next steps.',
-    }
   )
 }
 

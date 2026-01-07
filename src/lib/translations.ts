@@ -147,6 +147,24 @@ export type TranslationKey =
   | 'dashboard.journeyComplete'
   | 'dashboard.topCareerType'
   | 'dashboard.gamifiedCareerJourney'
+  | 'dashboard.viewFullReport'
+  | 'dashboard.riasecRadar'
+
+  // Career Snapshot Meanings
+  | 'career.meaning.Conventional.title'
+  | 'career.meaning.Conventional.body'
+  | 'career.meaning.Investigative.title'
+  | 'career.meaning.Investigative.body'
+  | 'career.meaning.Artistic.title'
+  | 'career.meaning.Artistic.body'
+  | 'career.meaning.Social.title'
+  | 'career.meaning.Social.body'
+  | 'career.meaning.Enterprising.title'
+  | 'career.meaning.Enterprising.body'
+  | 'career.meaning.Realistic.title'
+  | 'career.meaning.Realistic.body'
+  | 'career.meaning.default.title'
+  | 'career.meaning.default.body'
   
   // Sidebar
   | 'sidebar.closeMenu'
@@ -204,6 +222,24 @@ export const translations: Record<Language, Translations> = {
     'dashboard.todayFocus': "Today's Focus",
     'dashboard.careerSnapshot': 'Career Snapshot',
     'dashboard.riasecProfile': 'RIASEC Profile',
+    'dashboard.viewFullReport': 'View Full Report',
+    'dashboard.riasecRadar': 'RIASEC Radar',
+    'dashboard.top': 'Top:',
+
+    'career.meaning.Conventional.title': 'Well-organized and detail-oriented',
+    'career.meaning.Conventional.body': 'You excel in structured environments and enjoy working with systems, data, and clear processes. Roles involving administration, operations, analysis, or finance often fit well.',
+    'career.meaning.Investigative.title': 'Analytical and curious',
+    'career.meaning.Investigative.body': 'You thrive on problem-solving and learning. Roles involving research, engineering, data, or troubleshooting are often a strong match.',
+    'career.meaning.Artistic.title': 'Creative and expressive',
+    'career.meaning.Artistic.body': 'You enjoy creating, exploring ideas, and producing original work. Roles involving design, content, UX, or creative tech often fit well.',
+    'career.meaning.Social.title': 'People-focused and supportive',
+    'career.meaning.Social.body': 'You enjoy helping others learn and grow. Roles involving teaching, collaboration, community, or user success often fit well.',
+    'career.meaning.Enterprising.title': 'Ambitious and persuasive',
+    'career.meaning.Enterprising.body': 'You enjoy leading, initiating, and turning ideas into action. Roles involving product, business, marketing, or entrepreneurship often fit well.',
+    'career.meaning.Realistic.title': 'Hands-on and practical',
+    'career.meaning.Realistic.body': 'You prefer building and doing. Roles involving technical implementation, systems, hardware, or applied engineering often fit well.',
+    'career.meaning.default.title': 'Your strengths are emerging',
+    'career.meaning.default.body': 'Complete the psychometric test to unlock a personalized interpretation and a clearer direction for your next steps.',
     
     // Profile
     'profile.title': 'Profile',
@@ -357,7 +393,25 @@ export const translations: Record<Language, Translations> = {
     'dashboard.todayFocus': 'Fokus Hari Ini',
     'dashboard.careerSnapshot': 'Gambaran Kerjaya',
     'dashboard.riasecProfile': 'Profil RIASEC',
-    
+    'dashboard.viewFullReport': 'Lihat Laporan Penuh',
+    'dashboard.riasecRadar': 'Radar RIASEC',
+    'dashboard.top': 'Teratas:',
+
+    'career.meaning.Conventional.title': 'Teratur dan teliti',
+    'career.meaning.Conventional.body': 'Anda cemerlang dalam persekitaran berstruktur dan suka bekerja dengan sistem, data, dan proses yang jelas. Peranan melibatkan pentadbiran, operasi, analisis, atau kewangan sering sesuai.',
+    'career.meaning.Investigative.title': 'Analitikal dan ingin tahu',
+    'career.meaning.Investigative.body': 'Anda berkembang maju dalam penyelesaian masalah dan pembelajaran. Peranan melibatkan penyelidikan, kejuruteraan, data, atau penyelesaian masalah sering menjadi padanan yang kuat.',
+    'career.meaning.Artistic.title': 'Kreatif dan ekspresif',
+    'career.meaning.Artistic.body': 'Anda suka mencipta, meneroka idea, dan menghasilkan karya asli. Peranan melibatkan reka bentuk, kandungan, UX, atau teknologi kreatif sering sesuai.',
+    'career.meaning.Social.title': 'Berfokuskan orang dan menyokong',
+    'career.meaning.Social.body': 'Anda suka membantu orang lain belajar dan berkembang. Peranan melibatkan pengajaran, kolaborasi, komuniti, atau kejayaan pengguna sering sesuai.',
+    'career.meaning.Enterprising.title': 'Bercita-cita tinggi dan meyakinkan',
+    'career.meaning.Enterprising.body': 'Anda suka memimpin, memulakan, dan menukar idea menjadi tindakan. Peranan melibatkan produk, perniagaan, pemasaran, atau keusahawanan sering sesuai.',
+    'career.meaning.Realistic.title': 'Praktikal dan hands-on',
+    'career.meaning.Realistic.body': 'Anda lebih suka membina dan melakukan. Peranan melibatkan pelaksanaan teknikal, sistem, perkakasan, atau kejuruteraan gunaan sering sesuai.',
+    'career.meaning.default.title': 'Kekuatan anda sedang muncul',
+    'career.meaning.default.body': 'Lengkapkan ujian psikometrik untuk membuka tafsiran peribadi dan arah yang lebih jelas untuk langkah seterusnya.',
+
     // Profile
     'profile.title': 'Profil',
     'profile.edit': 'Edit Profil',

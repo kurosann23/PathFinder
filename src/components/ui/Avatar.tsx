@@ -27,9 +27,19 @@ export function Avatar(props: {
   // Reset fade state whenever the src changes.
   const key = useMemo(() => safeSrc, [safeSrc])
   useEffect(() => {
+    // Check if image is already cached/loaded
+    if (safeSrc) {
+      const img = new Image()
+      img.src = safeSrc
+      if (img.complete) {
+        setLoaded(true)
+        setErrored(false)
+        return
+      }
+    }
     setLoaded(false)
     setErrored(false)
-  }, [key])
+  }, [key, safeSrc])
 
   const showImg = Boolean(safeSrc) && !errored
   const letter = (fallback || 'U').slice(0, 1).toUpperCase()

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
+import { useTheme, THEME_STORAGE_KEY } from './ThemeContext'
 
 type AuthContextValue = {
   isReady: boolean
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider(props: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
+  const { setTheme } = useTheme()
 
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -45,6 +47,11 @@ export function AuthProvider(props: { children: ReactNode }) {
     async function signOut() {
       if (!supabase) return
       await supabase.auth.signOut()
+      // Reset theme to light and clear stored theme on logout
+      setTheme('light')
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(THEME_STORAGE_KEY)
+      }
     }
 
     return {

@@ -40,6 +40,8 @@ type UserProgressContextValue = {
   resetPsychometricTest: () => Promise<void>
   simulateProgress: () => void
   resetDemo: () => void
+  markCourseViewed: () => void
+  markAppointmentCompleted: () => void
 }
 
 const UserProgressContext = createContext<UserProgressContextValue | null>(null)
@@ -49,7 +51,12 @@ function cloneInitial(): UserProgressState {
     ...initialUserProgressState,
     courseRecommendations: [...initialUserProgressState.courseRecommendations],
     riasecPercentages: { ...initialUserProgressState.riasecPercentages },
-    journey: { ...initialUserProgressState.journey },
+    journey: { 
+      ...initialUserProgressState.journey,
+      // Check local storage for course viewed state (since we don't have a DB column yet)
+      course: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_course_viewed')) : false,
+      appointment: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_appointment_completed')) : false
+    },
   }
 }
 
@@ -212,6 +219,22 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       setProgress(cloneInitial())
     }
 
+    function markCourseViewed() {
+      localStorage.setItem('pathfinder_course_viewed', 'true')
+      setProgress((prev) => ({
+        ...prev,
+        journey: { ...prev.journey, course: true },
+      }))
+    }
+
+    function markAppointmentCompleted() {
+      localStorage.setItem('pathfinder_appointment_completed', 'true')
+      setProgress((prev) => ({
+        ...prev,
+        journey: { ...prev.journey, appointment: true },
+      }))
+    }
+
     return {
       progress,
       isHydrating,
@@ -222,6 +245,8 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       resetPsychometricTest,
       simulateProgress,
       resetDemo,
+      markCourseViewed,
+      markAppointmentCompleted,
     }
   }, [hydrationError, isHydrating, isSavingPsychometric, progress, user])
 

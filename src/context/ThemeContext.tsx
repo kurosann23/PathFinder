@@ -10,18 +10,21 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-const THEME_STORAGE_KEY = 'pathfinder-theme'
+export const THEME_STORAGE_KEY = 'pathfinder-theme'
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Read from localStorage on mount
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
-      if (saved === 'light' || saved === 'dark') {
-        return saved
+      const pathname = window.location.pathname
+      const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
+      if (!isAuthPage) {
+        const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+        if (saved === 'light' || saved === 'dark') {
+          return saved
+        }
       }
     }
-    return 'dark' // Default to dark
+    return 'light'
   })
 
   // Apply theme to document root
@@ -34,13 +37,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.add('light-mode')
     } else {
       root.classList.add('dark-mode')
-    }
-  }, [theme])
-
-  // Save to localStorage whenever theme changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(THEME_STORAGE_KEY, theme)
     }
   }, [theme])
 

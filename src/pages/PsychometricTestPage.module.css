@@ -1,0 +1,30 @@
+.infoBlock {
+  background: #F8F9FA;
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-family: 'Inter', 'Open Sans', system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.infoParagraph {
+  margin: 0;
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.infoParagraphSpacing {
+  margin-top: 24px;
+}
+
+.infoList {
+  margin: 18px 0 0 18px;
+  padding: 0;
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.infoList li {
+  margin-bottom: 6px;
+}

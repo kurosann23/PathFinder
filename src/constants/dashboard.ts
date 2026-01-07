@@ -10,6 +10,7 @@ export type JourneyKey =
   | 'profile'
   | 'psychometric'
   | 'course'
+  | 'appointment'
   | 'futureRole'
 
 export type RiasecType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
@@ -87,7 +88,7 @@ export const journeyMeta: Array<{ key: JourneyKey; label: string }> = [
   { key: 'profile', label: 'Complete Profile' },
   { key: 'psychometric', label: 'Take Psychometric Test' },
   { key: 'course', label: 'Explore Course Recommendations' },
-  { key: 'futureRole', label: 'Future Roles' },
+  { key: 'appointment', label: 'Make an appointment' },
 ]
 
 export const initialCareerTraits: Record<CareerTraitKey, number> = {
@@ -111,6 +112,7 @@ export const initialUserProgressState: UserProgressState = {
     profile: true,
     psychometric: false,
     course: false,
+    appointment: false,
     futureRole: false,
   },
 }

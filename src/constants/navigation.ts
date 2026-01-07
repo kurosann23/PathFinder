@@ -17,10 +17,8 @@ export const studentNavigation: Array<{
   to: string
 }> = [
   { key: 'dashboard', label: 'Dashboard', to: '/dashboard' },
-  { key: 'profile', label: 'Profile', to: '/profile' },
   { key: 'psychometric', label: 'Psychometric Test', to: '/psychometric-test' },
   { key: 'course', label: 'Course Recommendation', to: '/course-recommendation' },
-  { key: 'roadmap', label: 'Learning Roadmap', to: '/learning-roadmap' },
   { key: 'appointment', label: 'Appointment', to: '/appointment' },
 ] as const
 

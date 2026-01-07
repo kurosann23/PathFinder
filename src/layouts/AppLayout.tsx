@@ -5,6 +5,7 @@ import { cn } from '../lib/cn'
 import { Button } from '../components/ui/Button'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useTheme } from '../context/ThemeContext'
+import { THEME_STORAGE_KEY } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
 
 function MobileTopbar(props: { onMenuClick: () => void }) {
@@ -51,6 +52,13 @@ export function AppLayout() {
   const location = useLocation()
   const { theme } = useTheme()
   const isLight = theme === 'light'
+
+  // Persist theme only for authenticated routes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(THEME_STORAGE_KEY, theme)
+    }
+  }, [theme])
 
   // Close the mobile sidebar when navigating to a new route.
   useEffect(() => {

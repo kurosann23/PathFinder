@@ -10,9 +10,9 @@ import { useProfile } from '../context/ProfileContext'
 import { useTheme } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
 import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
-import { TodaysFocusCard, type FocusTask } from '../components/dashboard/TodaysFocusCard'
 import { type JourneyStep } from '../components/dashboard/JourneyTimeline'
 import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
+import { DashboardProfileCard } from '../components/dashboard/DashboardProfileCard'
 import { Card } from '../components/ui/Card'
 import { cn } from '../lib/cn'
 
@@ -39,9 +39,9 @@ export function DashboardPage() {
             isLight ? "text-slate-500" : "text-slate-500"
           )}>
             Please wait
+            </div>
           </div>
         </div>
-      </div>
     )
   }
 
@@ -94,68 +94,33 @@ export function DashboardPage() {
     return careerSnapshotMeta.find((t) => t.key === topKey)?.label ?? '—'
   }, [careerTraits])
 
-  const focusTasks: FocusTask[] = useMemo(() => {
-    // Keep the focus card stable and informative: show the first 2 journey steps,
-    // reflecting their real completion status (completed vs locked).
-    const items = journeyMeta
-      .slice(0, 2)
-      .map((j) => {
-        const to =
-          j.key === 'profile'
-            ? '/profile'
-            : j.key === 'psychometric'
-              ? '/psychometric-test'
-              : j.key === 'course'
-                ? '/course-recommendation'
-              : j.key === 'futureRole'
-                ? '/psychometric-test'
-                : '/profile'
-
-        const subtitle =
-          progress.journey[j.key as JourneyKey]
-            ? 'Completed'
-            : j.key === 'psychometric'
-              ? 'Start'
-              : j.key === 'course'
-                ? 'Go'
-                : 'Start'
-
-        return {
-          id: j.key,
-          title: j.label,
-          subtitle,
-          to,
-          done: Boolean(progress.journey[j.key as JourneyKey]),
-          xp: 50,
-        }
-      })
-
-    return items
-  }, [progress.journey])
-
   const journeySteps: JourneyStep[] = useMemo(() => {
     return journeyMeta.map((j, idx) => {
         const to =
-          j.key === 'profile'
-            ? '/profile'
-            : j.key === 'psychometric'
-              ? '/psychometric-test'
-              : j.key === 'course'
-                ? '/course-recommendation'
-              : j.key === 'futureRole'
-                ? '/psychometric-test'
-                : '/profile'
+        j.key === 'profile'
+          ? '/profile'
+          : j.key === 'psychometric'
+            ? '/psychometric-test'
+            : j.key === 'course'
+            ? '/course-recommendations'
+          : j.key === 'appointment'
+            ? '/appointment'
+          : j.key === 'futureRole'
+            ? '/psychometric-test'
+              : '/profile'
 
-        const icon =
-          j.key === 'profile'
-            ? 'profile'
-            : j.key === 'psychometric'
-              ? 'psychometric'
-              : j.key === 'course'
-                ? 'course'
-              : j.key === 'futureRole'
-                ? 'roadmap'
-                : 'profile'
+      const icon =
+        j.key === 'profile'
+          ? 'profile'
+          : j.key === 'psychometric'
+            ? 'psychometric'
+            : j.key === 'course'
+              ? 'course'
+            : j.key === 'appointment'
+              ? 'calendar'
+            : j.key === 'futureRole'
+              ? 'roadmap'
+              : 'profile'
 
       const locked =
         idx === 0
@@ -174,9 +139,9 @@ export function DashboardPage() {
     })
   }, [progress.journey])
 
-  // Get first 3 journey steps for the prominent display
-  const firstThreeSteps = useMemo(() => {
-    return journeySteps.slice(0, 3)
+  // Get first 4 journey steps for the prominent display
+  const visibleSteps = useMemo(() => {
+    return journeySteps.slice(0, 4)
   }, [journeySteps])
 
   return (
@@ -190,12 +155,12 @@ export function DashboardPage() {
 
       {/* Top Section: 3 columns */}
       <div className={cn(
-        'grid grid-cols-1 gap-6 rounded-3xl p-6',
+        'grid grid-cols-1 gap-12 rounded-3xl p-6',
         isLight 
           ? 'bg-gradient-to-br from-blue-50/50 via-slate-50/30 to-blue-50/30' 
           : ''
       )}>
-        <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr_360px]', isLight && 'lg:gap-6')}>
+        <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-[320px_2fr_320px]', isLight && 'lg:gap-6')}>
         {/* Left: Journey Progress Ring */}
         <div className={cn(
           'flex flex-col justify-center rounded-2xl border p-6 backdrop-blur-xl',
@@ -266,19 +231,12 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Right: Today's Focus */}
-        <TodaysFocusCard
-          tasks={focusTasks}
-          rewards={[
-            { id: 'r1', type: 'count', value: '22' },
-            { id: 'r2', type: 'trophy' },
-            { id: 'r3', type: 'trophy' },
-          ]}
-        />
+        {/* Right: Profile Card */}
+        <DashboardProfileCard />
         </div>
       </div>
 
-      {/* Gamified Career Journey - 3 Step Progression */}
+      {/* Gamified Career Journey - 4 Step Progression */}
       <div className={cn(
         'rounded-2xl border p-6 backdrop-blur-xl',
         isLight 
@@ -286,71 +244,98 @@ export function DashboardPage() {
           : 'border-slate-800/60 bg-slate-950/16'
       )}>
         <div className={cn('mb-6 text-sm font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>{t('dashboard.gamifiedCareerJourney')}</div>
-        <div className="relative">
-          {/* Progress bar background */}
-          <div className="absolute left-0 right-0 top-12 h-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-orange-500/20" />
-          {/* Progress fill */}
-          <div
-            className={cn(
-              'absolute left-0 top-12 h-1.5 rounded-full',
-              isLight 
-                ? 'bg-blue-500 shadow-sm' 
-                : 'bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
-            )}
-            style={{ width: `${(firstThreeSteps.filter(s => s.done).length / firstThreeSteps.length) * 100}%` }}
-          />
-          
-          {/* Steps */}
-          <div className="relative grid grid-cols-3 gap-4">
-            {firstThreeSteps.map((step, idx) => {
-              const StepWrapper = step.locked ? 'div' : Link
-              const wrapperProps = step.locked
-                ? { className: 'group relative flex flex-col items-center cursor-not-allowed opacity-60' }
-                : { to: step.to, className: 'group relative flex flex-col items-center' }
-              
-              return (
-                <StepWrapper key={step.key} {...wrapperProps}>
-                <div
-                  className={cn(
-                    'relative z-10 rounded-2xl border px-4 py-3 text-center text-sm font-semibold transition-all',
-                    step.done
-                      ? isLight
-                        ? 'border-blue-500/50 bg-blue-50 text-blue-700 shadow-sm'
-                        : 'border-blue-500/40 bg-blue-600/20 text-blue-100 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
-                      : idx === 2
+        
+        {/* Scrollable container for responsiveness */}
+        <div className="overflow-x-auto py-4">
+          <div className="relative min-w-[768px] px-2">
+            {/* Progress bar background */}
+            <div className={cn(
+              "absolute left-0 right-0 top-[88px] h-2 rounded-full",
+              isLight ? "bg-slate-100" : "bg-slate-800"
+            )} />
+            
+            {/* Progress fill */}
+            <div
+              className={cn(
+                'absolute left-0 top-[88px] h-2 rounded-full transition-all duration-1000 ease-out z-0',
+                isLight 
+                  ? 'bg-blue-500 shadow-sm' 
+                  : 'bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+              )}
+              style={{ width: `${(visibleSteps.filter(s => s.done).length / visibleSteps.length) * 100}%` }}
+            >
+              {/* Arrow Indicator */}
+              <div className={cn(
+                "absolute -right-2 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full p-1 shadow-sm",
+                isLight ? "bg-blue-500" : "bg-orange-500"
+              )}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="text-white ml-0.5">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Steps */}
+            <div className="relative grid grid-cols-4 gap-8">
+              {visibleSteps.map((step, idx) => {
+                const StepWrapper = step.locked ? 'div' : Link
+                const wrapperProps = step.locked
+                  ? { className: 'group relative flex flex-col items-center cursor-not-allowed opacity-60' }
+                  : { to: step.to, className: 'group relative flex flex-col items-center' }
+                
+                return (
+                  <StepWrapper key={step.key} {...wrapperProps}>
+                  <div
+                    className={cn(
+                      'relative z-10 w-full h-[72px] flex items-center justify-center rounded-2xl border px-2 text-center text-sm font-semibold transition-all',
+                      step.done
                         ? isLight
-                          ? 'border-blue-500/30 bg-white text-slate-700 border-2'
-                          : 'border-orange-500/40 bg-orange-600/20 text-orange-100 shadow-[0_0_20px_rgba(251,146,60,0.3)]'
-                        : isLight
-                          ? 'border-slate-300 bg-white text-slate-700'
-                          : 'border-purple-500/40 bg-purple-600/20 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.3)]',
-                    !step.locked && 'group-hover:scale-105'
-                  )}
-                >
-                  {step.label}
-                  {idx === 2 && (
-                    <span className={cn(
-                      'ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                      isLight ? 'bg-emerald-500/20 text-emerald-700' : 'bg-orange-500/30 text-orange-100'
-                    )}>
-                      New!
-                    </span>
-                  )}
-                </div>
-                <div className={cn('mt-3 text-xs', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                  {step.done
-                    ? 'Completed'
+                          ? 'border-blue-500/50 bg-blue-50 text-blue-700 shadow-sm'
+                          : 'border-blue-500/40 bg-blue-600/20 text-blue-100 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+                        : idx >= 2
+                          ? isLight
+                            ? 'border-blue-500/30 bg-white text-slate-700 border-2'
+                            : 'border-orange-500/40 bg-orange-600/20 text-orange-100 shadow-[0_0_20px_rgba(251,146,60,0.3)]'
+                          : isLight
+                            ? 'border-slate-300 bg-white text-slate-700'
+                            : 'border-purple-500/40 bg-purple-600/20 text-purple-100 shadow-[0_0_20px_rgba(168,85,247,0.3)]',
+                      !step.locked && 'group-hover:scale-105'
+                    )}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                    {step.done && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {step.label}
+                    {idx === 2 && (
+                        <span className={cn(
+                          'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+                          isLight ? 'bg-emerald-500/20 text-emerald-700' : 'bg-orange-500/30 text-orange-100'
+                        )}>
+                          New!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={cn('mt-10 text-center text-xs leading-relaxed px-2', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                    {step.done
+                      ? 'Completed'
                     : step.locked
                       ? 'Locked'
                       : idx === 0
-                        ? 'Upload your profile photo and basic information for a personalized experience.'
+                        ? 'Upload your profile photo and basic information.'
                         : idx === 1
-                          ? 'Take the test to identify your RIASEC personality and progress.'
-                          : 'Explore more career paths, specialization and career strategies.'}
+                          ? 'Identify your RIASEC personality.'
+                          : idx === 2
+                            ? 'Explore career paths and strategies.'
+                            : 'Book a session for guidance.'}
                 </div>
                 </StepWrapper>
               )
             })}
+            </div>
           </div>
         </div>
       </div>

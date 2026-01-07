@@ -13,6 +13,7 @@ import {
 } from '../lib/appointmentsRepo'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { useUserProgress } from '../context/UserProgressContext'
 import { useTheme } from '../context/ThemeContext'
 import { cn } from '../lib/cn'
 import { IconX } from '../components/icons'
@@ -20,6 +21,7 @@ import { IconX } from '../components/icons'
 export function StudentAppointmentPage() {
   const { user } = useAuth()
   const { theme } = useTheme()
+  const { markAppointmentCompleted } = useUserProgress()
   const isLight = theme === 'light'
   
   const STATUS_COLORS = isLight
@@ -130,6 +132,7 @@ export function StudentAppointmentPage() {
       })
 
       setSuccess('Appointment request submitted successfully!')
+      markAppointmentCompleted()
       // Reset form
       setSelectedTeacher('')
       setDate('')

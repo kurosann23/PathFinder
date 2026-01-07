@@ -81,7 +81,9 @@ export function Sidebar(props: SidebarProps) {
   
   // Wait for profile to load before showing navigation to avoid showing wrong role's nav
   // This prevents the flash of student navigation when a teacher logs in
-  const navigation = profileLoading ? [] : (isTeacher ? teacherNavigation : studentNavigation)
+  // Filter out profile and roadmap for students only
+  const baseNavigation = profileLoading ? [] : (isTeacher ? teacherNavigation : studentNavigation)
+  const navigation = isTeacher || profileLoading ? baseNavigation : baseNavigation.filter(item => item.key !== 'profile' && item.key !== 'roadmap')
 
   function getLabel(key: NavKey) {
     switch (key) {

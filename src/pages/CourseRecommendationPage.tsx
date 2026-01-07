@@ -55,7 +55,7 @@ type UICourse = {
 const ALL_RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const
 
 export function CourseRecommendationPage() {
-  const { progress } = useUserProgress()
+  const { progress, markCourseViewed } = useUserProgress()
   const { theme } = useTheme()
   const { t } = useTranslation()
   const isLight = theme === 'light'
@@ -244,7 +244,10 @@ export function CourseRecommendationPage() {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setSelectedCourse({ course, riasecType: topRiasecType })}
+                    onClick={() => {
+                      setSelectedCourse({ course, riasecType: topRiasecType })
+                      markCourseViewed()
+                    }}
                     className={cn(
                       'group relative overflow-hidden rounded-3xl border-2 p-8 text-left backdrop-blur-xl transition',
                       isLight
@@ -304,7 +307,10 @@ export function CourseRecommendationPage() {
                     <button
                       key={`${type}-${idx}`}
                       type="button"
-                      onClick={() => setSelectedCourse({ course, riasecType: type })}
+                      onClick={() => {
+                        setSelectedCourse({ course, riasecType: type })
+                        markCourseViewed()
+                      }}
                       className="group relative overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950/25 p-6 text-left backdrop-blur-xl transition hover:border-slate-700/70 hover:bg-slate-950/35"
                     >
                       <div className="mb-3 flex items-center justify-between">

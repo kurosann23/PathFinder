@@ -17,6 +17,17 @@ function baseProps(props: IconProps) {
   } as const
 }
 
+export function IconCalendar(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="1.8" />
+      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
 export function IconHome(props: IconProps) {
   return (
     <svg {...baseProps(props)}>
