@@ -19,6 +19,10 @@ export type CourseRow = {
   is_active?: boolean
   created_at?: string
   updated_at?: string
+  work_projects?: string
+  work_labs?: string
+  work_collaboration?: string
+  what_you_will_work?: string
 }
 
 export type CourseInput = Omit<CourseRow, 'id' | 'created_at' | 'updated_at'>
@@ -161,6 +165,10 @@ export async function createCourse(course: CourseInput): Promise<CourseRow> {
       course_image_url: course.course_image_url || null,
       order_index: course.order_index,
       is_active: course.is_active ?? true,
+      work_projects: course.work_projects,
+      work_labs: course.work_labs,
+      work_collaboration: course.work_collaboration,
+      what_you_will_work: course.what_you_will_work,
     })
     .select('*')
     .single()
@@ -216,6 +224,18 @@ export async function updateCourse(id: number, updates: Partial<CourseInput>): P
   }
   if (updates.is_active !== undefined) {
     updateData.is_active = updates.is_active
+  }
+  if (updates.work_projects !== undefined) {
+    updateData.work_projects = updates.work_projects
+  }
+  if (updates.work_labs !== undefined) {
+    updateData.work_labs = updates.work_labs
+  }
+  if (updates.work_collaboration !== undefined) {
+    updateData.work_collaboration = updates.work_collaboration
+  }
+  if (updates.what_you_will_work !== undefined) {
+    updateData.what_you_will_work = updates.what_you_will_work
   }
 
   const { data, error } = await supabase
@@ -274,6 +294,10 @@ export function courseRowToUI(course: CourseRow): {
   toolsAndSkills: string[]
   exampleJobRoles: JobRole[]
   courseImageUrl?: string | null
+  workProjects?: string
+  workLabs?: string
+  workCollaboration?: string
+  whatYouWillWork?: string
 } {
   return {
     courseName: course.course_name,
@@ -282,6 +306,10 @@ export function courseRowToUI(course: CourseRow): {
     toolsAndSkills: course.tools_and_skills,
     exampleJobRoles: course.example_job_roles,
     courseImageUrl: course.course_image_url,
+    workProjects: course.work_projects,
+    workLabs: course.work_labs,
+    workCollaboration: course.work_collaboration,
+    whatYouWillWork: course.what_you_will_work,
   }
 }
 
@@ -297,6 +325,10 @@ export function uiToCourseInput(
     toolsAndSkills: string[]
     exampleJobRoles: JobRole[]
     courseImageUrl?: string | null
+    workProjects?: string
+    workLabs?: string
+    workCollaboration?: string
+    whatYouWillWork?: string
   },
 ): CourseInput {
   return {
@@ -308,6 +340,10 @@ export function uiToCourseInput(
     example_job_roles: uiCourse.exampleJobRoles,
     course_image_url: uiCourse.courseImageUrl || null,
     is_active: true,
+    work_projects: uiCourse.workProjects,
+    work_labs: uiCourse.workLabs,
+    work_collaboration: uiCourse.workCollaboration,
+    what_you_will_work: uiCourse.whatYouWillWork,
   }
 }
 

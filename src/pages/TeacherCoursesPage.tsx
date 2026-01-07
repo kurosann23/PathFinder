@@ -22,7 +22,12 @@ type UICourse = {
   focusDescription: string
   whatYouLearn: string[]
   toolsAndSkills: string[]
-  exampleJobRoles: Array<{ title: string; description: string }>
+  exampleJobRoles: Array<{ title: string; description: string; image_url?: string | null }>
+  courseImageUrl?: string | null
+  workProjects?: string
+  workLabs?: string
+  workCollaboration?: string
+  whatYouWillWork?: string
 }
 
 export function TeacherCoursesPage() {
@@ -41,6 +46,10 @@ export function TeacherCoursesPage() {
     whatYouLearn: [],
     toolsAndSkills: [],
     exampleJobRoles: [],
+    workProjects: '',
+    workLabs: '',
+    workCollaboration: '',
+    whatYouWillWork: '',
   })
   const [formRiasecType, setFormRiasecType] = useState<'R' | 'I' | 'A' | 'S' | 'E' | 'C' | null>(null)
   const [newLearnItem, setNewLearnItem] = useState('')
@@ -56,6 +65,8 @@ export function TeacherCoursesPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
 
+  const [editingJobIndex, setEditingJobIndex] = useState<number | null>(null)
+  
   const riasecTypes: Array<{ value: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'; label: string }> = [
     { value: 'R', label: 'Realistic' },
     { value: 'I', label: 'Investigative' },
@@ -162,6 +173,10 @@ export function TeacherCoursesPage() {
         whatYouLearn: [],
         toolsAndSkills: [],
         exampleJobRoles: [],
+        workProjects: '',
+        workLabs: '',
+        workCollaboration: '',
+        whatYouWillWork: '',
       })
       setFormRiasecType(null)
       setCourseImageUrl(null)
@@ -248,8 +263,12 @@ export function TeacherCoursesPage() {
         whatYouLearn: [],
         toolsAndSkills: [],
         exampleJobRoles: [],
-      })
-      setCourseImageUrl(null)
+        workProjects: '',
+         workLabs: '',
+         workCollaboration: '',
+         whatYouWillWork: '',
+       })
+       setCourseImageUrl(null)
       setCourseImagePreview(null)
       setCourseImageFile(null)
       setNewJobImageFile(null)
@@ -280,12 +299,17 @@ export function TeacherCoursesPage() {
   const handleCancel = () => {
     setShowAddForm(false)
     setEditingId(null)
+    setEditingJobIndex(null)
     setFormData({
       courseName: '',
       focusDescription: '',
       whatYouLearn: [],
       toolsAndSkills: [],
       exampleJobRoles: [],
+      workProjects: '',
+      workLabs: '',
+      workCollaboration: '',
+      whatYouWillWork: '',
     })
     setFormRiasecType(null)
     setCourseImageUrl(null)
@@ -419,7 +443,7 @@ export function TeacherCoursesPage() {
           { 
             title: newJobTitle.trim(), 
             description: newJobDescription.trim(),
-            image_url: newJobImagePreview || null, // Preview URL for display
+            image_url: newJobImagePreview || null,
           },
         ],
       })
@@ -428,6 +452,69 @@ export function TeacherCoursesPage() {
       setNewJobImageFile(null)
       setNewJobImagePreview(null)
     }
+  }
+
+  function startEditingJob(index: number) {
+    const role = formData.exampleJobRoles[index]
+    setNewJobTitle(role.title)
+    setNewJobDescription(role.description)
+    setNewJobImagePreview(role.image_url || null)
+    setNewJobImageFile(null) // Reset file input, assume existing image unless changed
+    setEditingJobIndex(index)
+  }
+
+  function updateJobRole() {
+    if (editingJobIndex === null) return
+    if (!newJobTitle.trim() || !newJobDescription.trim()) return
+
+    const updatedRoles = [...formData.exampleJobRoles]
+    updatedRoles[editingJobIndex] = {
+      ...updatedRoles[editingJobIndex],
+      title: newJobTitle.trim(),
+      description: newJobDescription.trim(),
+      // Keep existing image_url if not changed (handled by preview logic)
+      image_url: newJobImagePreview || updatedRoles[editingJobIndex].image_url,
+    }
+
+    // If a new file was selected during edit
+    if (newJobImageFile) {
+        const newMap = new Map(jobRoleImageFiles)
+        newMap.set(editingJobIndex, newJobImageFile)
+        setJobRoleImageFiles(newMap)
+    }
+
+    setFormData({
+      ...formData,
+      exampleJobRoles: updatedRoles,
+    })
+    
+    // Reset form
+    setEditingJobIndex(null)
+    setNewJobTitle('')
+    setNewJobDescription('')
+    setNewJobImageFile(null)
+    setNewJobImagePreview(null)
+  }
+
+  function cancelEditJob() {
+    setEditingJobIndex(null)
+    setNewJobTitle('')
+    setNewJobDescription('')
+    setNewJobImageFile(null)
+    setNewJobImagePreview(null)
+  }
+
+
+  function updateJobRole(index: number, field: 'title' | 'description', value: string) {
+    const updatedRoles = [...formData.exampleJobRoles]
+    updatedRoles[index] = {
+      ...updatedRoles[index],
+      [field]: value,
+    }
+    setFormData({
+      ...formData,
+      exampleJobRoles: updatedRoles,
+    })
   }
 
   function handleJobImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -994,6 +1081,28 @@ export function TeacherCoursesPage() {
                     </div>
                   )}
                 </div>
+
+                {/* "What You'll Work On" - Full Text Section (MOVED HERE) */}
+                <div className="rounded-xl border border-slate-800/70 p-4">
+                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                    What You'll Work On (Overview)
+                  </label>
+                  <p className={cn('mb-3 text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                    This text will be displayed as the main description for the "What you'll work on" section.
+                  </p>
+                  <textarea
+                    value={formData.whatYouWillWork || ''}
+                    onChange={(e) => setFormData({ ...formData, whatYouWillWork: e.target.value })}
+                    rows={4}
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
+                    placeholder="Describe the overall practical experience..."
+                  />
+                </div>
               </div>
             </div>
 
@@ -1113,19 +1222,51 @@ export function TeacherCoursesPage() {
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={addJobRole}
-                disabled={!newJobTitle.trim() || !newJobDescription.trim()}
-                className={cn(
-                  'mb-4 w-full rounded-lg px-4 py-2 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
-                  isLight
-                    ? 'bg-blue-100 text-blue-900 ring-blue-300 hover:bg-blue-200'
-                    : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+              <div className="flex gap-2">
+                {editingJobIndex !== null ? (
+                   <>
+                    <button
+                      type="button"
+                      onClick={updateJobRole}
+                      disabled={!newJobTitle.trim() || !newJobDescription.trim()}
+                      className={cn(
+                        'mb-4 w-full rounded-lg px-4 py-2 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
+                        isLight
+                          ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700'
+                          : 'bg-blue-600 text-white ring-blue-500 hover:bg-blue-500',
+                      )}
+                    >
+                      Update Job Role
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEditJob}
+                      className={cn(
+                        'mb-4 w-auto rounded-lg px-4 py-2 text-base font-semibold ring-1 transition',
+                        isLight
+                          ? 'bg-slate-100 text-slate-700 ring-slate-300 hover:bg-slate-200'
+                          : 'bg-slate-800 text-slate-300 ring-slate-700 hover:bg-slate-700',
+                      )}
+                    >
+                      Cancel
+                    </button>
+                   </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={addJobRole}
+                    disabled={!newJobTitle.trim() || !newJobDescription.trim()}
+                    className={cn(
+                      'mb-4 w-full rounded-lg px-4 py-2 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
+                      isLight
+                        ? 'bg-blue-100 text-blue-900 ring-blue-300 hover:bg-blue-200'
+                        : 'bg-blue-600/20 text-blue-100 ring-blue-500/25 hover:bg-blue-600/25',
+                    )}
+                  >
+                    Add Job Role
+                  </button>
                 )}
-              >
-                Add Job Role
-              </button>
+              </div>
               {formData.exampleJobRoles.length > 0 && (
                 <div className="space-y-2">
                   {formData.exampleJobRoles.map((role, idx) => (
@@ -1179,9 +1320,25 @@ export function TeacherCoursesPage() {
                               )}
                             />
                           )}
-                          <div className="flex-1 min-w-0">
-                            <div className={cn('font-semibold', isLight ? 'text-slate-900' : 'text-slate-200')}>{role.title}</div>
-                            <div className={cn('mt-1 text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>{role.description}</div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <input
+                              type="text"
+                              value={role.title}
+                              onChange={(e) => updateJobRole(idx, 'title', e.target.value)}
+                              className={cn(
+                                'w-full rounded bg-transparent px-2 py-1 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/50',
+                                isLight ? 'text-slate-900 hover:bg-slate-100' : 'text-slate-200 hover:bg-slate-800/50'
+                              )}
+                            />
+                            <textarea
+                              value={role.description}
+                              onChange={(e) => updateJobRole(idx, 'description', e.target.value)}
+                              rows={2}
+                              className={cn(
+                                'w-full resize-none rounded bg-transparent px-2 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500/50',
+                                isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-800/50'
+                              )}
+                            />
                           </div>
                         </div>
                         {/* Image Upload/Edit for Existing Job Role */}
@@ -1214,7 +1371,7 @@ export function TeacherCoursesPage() {
                                     : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
                                 )}
                               >
-                                Remove
+                                Remove Image
                               </button>
                             </>
                           ) : (
@@ -1247,6 +1404,75 @@ export function TeacherCoursesPage() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Dynamic Course Details Section - New Feature */}
+            <div className="col-span-1 lg:col-span-2 space-y-6 pt-6 border-t border-slate-800/70">
+              <h3 className={cn('text-xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
+                What You'll Work On (Dynamic Section)
+              </h3>
+              <p className={cn('text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                These details will be displayed in the interactive course modal.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Real-world Projects */}
+                <div>
+                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                    Real-world Projects
+                  </label>
+                  <textarea
+                    value={formData.workProjects || ''}
+                    onChange={(e) => setFormData({ ...formData, workProjects: e.target.value })}
+                    rows={4}
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
+                    placeholder="Describe the projects students will build..."
+                  />
+                </div>
+
+                {/* Interactive Labs */}
+                <div>
+                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                    Interactive Labs
+                  </label>
+                  <textarea
+                    value={formData.workLabs || ''}
+                    onChange={(e) => setFormData({ ...formData, workLabs: e.target.value })}
+                    rows={4}
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
+                    placeholder="Describe the hands-on lab activities..."
+                  />
+                </div>
+
+                {/* Team Collaboration */}
+                <div>
+                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                    Team Collaboration
+                  </label>
+                  <textarea
+                    value={formData.workCollaboration || ''}
+                    onChange={(e) => setFormData({ ...formData, workCollaboration: e.target.value })}
+                    rows={4}
+                    className={cn(
+                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                      isLight
+                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                    )}
+                    placeholder="Describe collaborative opportunities..."
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}

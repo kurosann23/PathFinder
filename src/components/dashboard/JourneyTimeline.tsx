@@ -56,18 +56,19 @@ export function JourneyTimeline(props: {
         </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <div className="relative min-w-[860px] px-2 pb-4 pt-1">
+      <div className="mt-4">
+        <div className="relative px-2 pb-4 pt-1">
           {/* Track */}
           <div className="absolute left-2 right-2 top-[74px] h-px bg-blue-500/12" />
-          {/* Progress fill */}
-          <div
-            className="absolute left-2 top-[74px] h-px bg-gradient-to-r from-blue-500/70 to-blue-300/70 shadow-[0_0_18px_rgba(59,130,246,0.20)]"
-            style={{ width: `calc(${p}% * (100% - 16px) / 100)` }}
-          />
-          {/* Marker removed (user requested no avatar on the timeline) */}
+          {/* Progress fill - only show if not 100% */}
+          {p < 100 && (
+            <div
+              className="absolute left-2 top-[74px] h-px bg-gradient-to-r from-blue-500/70 to-blue-300/70 shadow-[0_0_18px_rgba(59,130,246,0.20)]"
+              style={{ width: `calc(${p}% * (100% - 16px) / 100)` }}
+            />
+          )}
 
-          <div className="relative grid grid-cols-5 gap-6">
+          <div className="relative flex flex-wrap justify-between gap-6">
             {steps.map((s) => (
               <StepLink
                 key={s.key}
@@ -77,7 +78,7 @@ export function JourneyTimeline(props: {
               >
                 <div
                   className={cn(
-                    'rounded-2xl border px-4 py-2 text-center text-xs font-semibold',
+                    'rounded-2xl border px-4 py-2 text-center text-xs font-semibold whitespace-nowrap',
                     s.done
                       ? 'border-blue-500/25 bg-blue-600/10 text-blue-100 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
                       : s.locked
@@ -85,15 +86,16 @@ export function JourneyTimeline(props: {
                         : 'border-slate-800/60 bg-slate-950/18 text-slate-200',
                   )}
                 >
+                  {s.done && <span className="mr-1.5 inline-block text-blue-400">✓</span>}
                   {s.label}
                 </div>
                 <motion.div
                   whileHover={s.locked && !s.done ? undefined : { y: -2 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   className={cn(
-                    'mt-4 grid size-12 place-items-center rounded-full border',
+                    'mt-4 grid size-12 place-items-center rounded-full border z-10',
                     s.done
-                      ? 'border-blue-500/30 bg-blue-500/12 text-blue-200 shadow-[0_0_18px_rgba(59,130,246,0.18)]'
+                      ? 'border-blue-500/30 bg-slate-950 text-blue-200 shadow-[0_0_18px_rgba(59,130,246,0.18)]'
                       : s.locked
                         ? 'border-slate-800/60 bg-slate-950/18 text-slate-300/70'
                         : 'border-slate-800/60 bg-slate-950/18 text-slate-200/90',
