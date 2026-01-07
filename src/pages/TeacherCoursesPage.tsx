@@ -463,9 +463,15 @@ export function TeacherCoursesPage() {
     setEditingJobIndex(index)
   }
 
-  function updateJobRole() {
+  function saveJobRoleChanges() {
+    // Check if editingJobIndex is valid (including 0)
     if (editingJobIndex === null) return
-    if (!newJobTitle.trim() || !newJobDescription.trim()) return
+    
+    // Validate inputs
+    if (!newJobTitle.trim() || !newJobDescription.trim()) {
+        alert("Please enter both a job title and description.")
+        return
+    }
 
     const updatedRoles = [...formData.exampleJobRoles]
     updatedRoles[editingJobIndex] = {
@@ -865,6 +871,77 @@ export function TeacherCoursesPage() {
                     placeholder="Describe what this course focuses on..."
                   />
                 </div>
+
+                {/* Dynamic Course Details Section (Moved from Right Column) */}
+                <div className="space-y-6 pt-2">
+                   <div>
+                     <h3 className={cn('text-lg font-semibold mb-2', isLight ? 'text-slate-900' : 'text-slate-100')}>
+                       What You'll Work On
+                     </h3>
+                     <p className={cn('text-sm mb-4', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                       These details will be displayed in the interactive course modal.
+                     </p>
+                     
+                     <div className="space-y-4">
+                       {/* Real-world Projects */}
+                       <div>
+                         <label className={cn('mb-2 block text-sm font-semibold', isLight ? 'text-slate-700' : 'text-slate-300')}>
+                           Real-world Projects
+                         </label>
+                         <textarea
+                           value={formData.workProjects || ''}
+                           onChange={(e) => setFormData({ ...formData, workProjects: e.target.value })}
+                           rows={3}
+                           className={cn(
+                             'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                             isLight
+                               ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                               : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                           )}
+                           placeholder="Describe the projects students will build..."
+                         />
+                       </div>
+       
+                       {/* Interactive Labs */}
+                       <div>
+                         <label className={cn('mb-2 block text-sm font-semibold', isLight ? 'text-slate-700' : 'text-slate-300')}>
+                           Interactive Labs
+                         </label>
+                         <textarea
+                           value={formData.workLabs || ''}
+                           onChange={(e) => setFormData({ ...formData, workLabs: e.target.value })}
+                           rows={3}
+                           className={cn(
+                             'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                             isLight
+                               ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                               : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                           )}
+                           placeholder="Describe the hands-on lab activities..."
+                         />
+                       </div>
+       
+                       {/* Team Collaboration */}
+                       <div>
+                         <label className={cn('mb-2 block text-sm font-semibold', isLight ? 'text-slate-700' : 'text-slate-300')}>
+                           Team Collaboration
+                         </label>
+                         <textarea
+                           value={formData.workCollaboration || ''}
+                           onChange={(e) => setFormData({ ...formData, workCollaboration: e.target.value })}
+                           rows={3}
+                           className={cn(
+                             'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
+                             isLight
+                               ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                               : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
+                           )}
+                           placeholder="Describe collaborative opportunities..."
+                         />
+                       </div>
+                     </div>
+                   </div>
+                </div>
               </div>
 
               {/* Right Column - Lists */}
@@ -1082,27 +1159,7 @@ export function TeacherCoursesPage() {
                   )}
                 </div>
 
-                {/* "What You'll Work On" - Full Text Section (MOVED HERE) */}
-                <div className="rounded-xl border border-slate-800/70 p-4">
-                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
-                    What You'll Work On (Overview)
-                  </label>
-                  <p className={cn('mb-3 text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                    This text will be displayed as the main description for the "What you'll work on" section.
-                  </p>
-                  <textarea
-                    value={formData.whatYouWillWork || ''}
-                    onChange={(e) => setFormData({ ...formData, whatYouWillWork: e.target.value })}
-                    rows={4}
-                    className={cn(
-                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
-                    )}
-                    placeholder="Describe the overall practical experience..."
-                  />
-                </div>
+                {/* Dynamic Course Details Section (Moved & Replaced Overview) - REMOVED from right column */}
               </div>
             </div>
 
@@ -1121,59 +1178,94 @@ export function TeacherCoursesPage() {
               >
                 Example Job Roles ({formData.exampleJobRoles.length})
               </label>
-              <div className="mb-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={newJobTitle}
-                    onChange={(e) => setNewJobTitle(e.target.value)}
-                    className={cn(
-                      'rounded-lg border px-3 py-2 text-base focus:ring-2 transition',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
-                    )}
-                    placeholder="Job title..."
-                  />
-                  <textarea
-                    value={newJobDescription}
-                    onChange={(e) => setNewJobDescription(e.target.value)}
-                    rows={2}
-                    className={cn(
-                      'rounded-lg border px-3 py-2 text-base focus:ring-2 transition resize-none',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
-                    )}
-                    placeholder="Job description..."
-                  />
-                </div>
-                {/* Job Role Image Upload */}
-                <div>
-                  <label
-                    className={cn(
-                      'mb-2 block text-base font-medium',
-                      isLight ? 'text-slate-700' : 'text-slate-400',
-                    )}
-                  >
-                    Job Image (Optional)
-                  </label>
-                  {newJobImagePreview ? (
-                    <div className="relative">
-                      <img
-                        src={newJobImagePreview}
-                        alt="Job preview"
+
+              {/* Add Job Role Form - Only visible when not editing a specific role */}
+              {editingJobIndex === null && (
+                <>
+                  <div className="mb-4 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        value={newJobTitle}
+                        onChange={(e) => setNewJobTitle(e.target.value)}
                         className={cn(
-                          'h-32 w-full rounded-lg border object-cover',
-                          isLight ? 'border-slate-300' : 'border-slate-800/70'
-                        )}
-                      />
-                      <div className="absolute right-2 top-2 flex gap-2">
-                        <label className={cn(
-                          'cursor-pointer rounded-lg p-1.5 transition disabled:opacity-50',
+                          'rounded-lg border px-3 py-2 text-base focus:ring-2 transition',
                           isLight
-                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                            : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                            ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                            : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                        )}
+                        placeholder="Job title..."
+                      />
+                      <textarea
+                        value={newJobDescription}
+                        onChange={(e) => setNewJobDescription(e.target.value)}
+                        rows={2}
+                        className={cn(
+                          'rounded-lg border px-3 py-2 text-base focus:ring-2 transition resize-none',
+                          isLight
+                            ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                            : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                        )}
+                        placeholder="Job description..."
+                      />
+                    </div>
+                    {/* Job Role Image Upload */}
+                    <div>
+                      <label
+                        className={cn(
+                          'mb-2 block text-base font-medium',
+                          isLight ? 'text-slate-700' : 'text-slate-400',
+                        )}
+                      >
+                        Job Image (Optional)
+                      </label>
+                      {newJobImagePreview ? (
+                        <div className="relative">
+                          <img
+                            src={newJobImagePreview}
+                            alt="Job preview"
+                            className={cn(
+                              'h-32 w-full rounded-lg border object-cover',
+                              isLight ? 'border-slate-300' : 'border-slate-800/70'
+                            )}
+                          />
+                          <div className="absolute right-2 top-2 flex gap-2">
+                            <label className={cn(
+                              'cursor-pointer rounded-lg p-1.5 transition disabled:opacity-50',
+                              isLight
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
+                            )}>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleJobImageChange}
+                                disabled={uploadingImage || saving}
+                                className="hidden"
+                              />
+                              <IconEdit size={14} />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleRemoveNewJobImage}
+                              disabled={uploadingImage || saving}
+                              className={cn(
+                                'rounded-lg p-1.5 transition disabled:opacity-50',
+                                isLight
+                                  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                                  : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
+                              )}
+                            >
+                              <IconX size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className={cn(
+                          'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-3 transition',
+                          isLight
+                            ? 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+                            : 'border-slate-800/70 bg-slate-950/40 hover:border-slate-700/70 hover:bg-slate-950/60'
                         )}>
                           <input
                             type="file"
@@ -1182,76 +1274,15 @@ export function TeacherCoursesPage() {
                             disabled={uploadingImage || saving}
                             className="hidden"
                           />
-                          <IconEdit size={14} />
+                          <div className="text-center">
+                            <div className={cn('text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
+                              Click to upload job image
+                            </div>
+                          </div>
                         </label>
-                        <button
-                          type="button"
-                          onClick={handleRemoveNewJobImage}
-                          disabled={uploadingImage || saving}
-                          className={cn(
-                            'rounded-lg p-1.5 transition disabled:opacity-50',
-                            isLight
-                              ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
-                              : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
-                          )}
-                        >
-                          <IconX size={14} />
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  ) : (
-                    <label className={cn(
-                      'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-3 transition',
-                      isLight
-                        ? 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
-                        : 'border-slate-800/70 bg-slate-950/40 hover:border-slate-700/70 hover:bg-slate-950/60'
-                    )}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleJobImageChange}
-                        disabled={uploadingImage || saving}
-                        className="hidden"
-                      />
-                      <div className="text-center">
-                        <div className={cn('text-base', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                          Click to upload job image
-                        </div>
-                      </div>
-                    </label>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {editingJobIndex !== null ? (
-                   <>
-                    <button
-                      type="button"
-                      onClick={updateJobRole}
-                      disabled={!newJobTitle.trim() || !newJobDescription.trim()}
-                      className={cn(
-                        'mb-4 w-full rounded-lg px-4 py-2 text-base font-semibold ring-1 transition disabled:opacity-50 disabled:cursor-not-allowed',
-                        isLight
-                          ? 'bg-blue-600 text-white ring-blue-700 hover:bg-blue-700'
-                          : 'bg-blue-600 text-white ring-blue-500 hover:bg-blue-500',
-                      )}
-                    >
-                      Update Job Role
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEditJob}
-                      className={cn(
-                        'mb-4 w-auto rounded-lg px-4 py-2 text-base font-semibold ring-1 transition',
-                        isLight
-                          ? 'bg-slate-100 text-slate-700 ring-slate-300 hover:bg-slate-200'
-                          : 'bg-slate-800 text-slate-300 ring-slate-700 hover:bg-slate-700',
-                      )}
-                    >
-                      Cancel
-                    </button>
-                   </>
-                ) : (
+                  </div>
                   <button
                     type="button"
                     onClick={addJobRole}
@@ -1265,8 +1296,9 @@ export function TeacherCoursesPage() {
                   >
                     Add Job Role
                   </button>
-                )}
-              </div>
+                </>
+              )}
+
               {formData.exampleJobRoles.length > 0 && (
                 <div className="space-y-2">
                   {formData.exampleJobRoles.map((role, idx) => (
@@ -1276,204 +1308,223 @@ export function TeacherCoursesPage() {
                         'group flex items-start gap-3 rounded-lg border p-4 transition',
                         isLight
                           ? 'border-slate-200 bg-white hover:bg-slate-50'
-                          : 'border-slate-800/70 bg-slate-950/40 hover:bg-slate-900/40'
+                          : 'border-slate-800/70 bg-slate-950/40 hover:bg-slate-900/40',
+                        editingJobIndex === idx && (isLight ? 'bg-blue-50/50 border-blue-200' : 'bg-blue-900/10 border-blue-800/50')
                       )}
                     >
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded bg-emerald-600/20 text-xs font-semibold text-emerald-200">
-                          {idx + 1}
-                        </span>
-                        <div className="flex flex-col">
-                          <button
-                            type="button"
-                            onClick={() => moveJobRole(idx, 'up')}
-                            disabled={idx === 0}
-                            className={cn(
-                              'p-0.5 text-slate-400 hover:text-slate-200 transition',
-                              idx === 0 && 'opacity-30 cursor-not-allowed',
-                            )}
-                          >
-                            <IconChevronUp size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveJobRole(idx, 'down')}
-                            disabled={idx === formData.exampleJobRoles.length - 1}
-                            className={cn(
-                              'p-0.5 text-slate-400 hover:text-slate-200 transition',
-                              idx === formData.exampleJobRoles.length - 1 && 'opacity-30 cursor-not-allowed',
-                            )}
-                          >
-                            <IconChevronDown size={12} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-3">
-                          {role.image_url && (
-                            <img
-                              src={role.image_url}
-                              alt={role.title}
-                              className={cn(
-                                'h-16 w-16 shrink-0 rounded-lg border object-cover',
-                                isLight ? 'border-slate-300' : 'border-slate-800/70'
-                              )}
-                            />
-                          )}
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <input
-                              type="text"
-                              value={role.title}
-                              onChange={(e) => updateJobRole(idx, 'title', e.target.value)}
-                              className={cn(
-                                'w-full rounded bg-transparent px-2 py-1 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/50',
-                                isLight ? 'text-slate-900 hover:bg-slate-100' : 'text-slate-200 hover:bg-slate-800/50'
-                              )}
-                            />
-                            <textarea
-                              value={role.description}
-                              onChange={(e) => updateJobRole(idx, 'description', e.target.value)}
-                              rows={2}
-                              className={cn(
-                                'w-full resize-none rounded bg-transparent px-2 py-1 text-base focus:outline-none focus:ring-2 focus:ring-blue-500/50',
-                                isLight ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-800/50'
-                              )}
-                            />
+                      {editingJobIndex === idx ? (
+                        // Edit Mode
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-3 border-b pb-2 border-slate-200 dark:border-slate-800">
+                             <span className={cn("text-sm font-semibold flex items-center gap-2", isLight ? "text-blue-600" : "text-blue-400")}>
+                               <IconEdit size={14} /> Editing Role #{idx + 1}
+                             </span>
+                          </div>
+                          
+                          <div className="flex flex-col gap-4">
+                            {/* Row 1: Title and Description */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                   <label className={cn("block text-xs font-medium uppercase tracking-wide mb-1", isLight ? "text-slate-500" : "text-slate-400")}>
+                                     Job Title
+                                   </label>
+                                   <input
+                                      type="text"
+                                      value={newJobTitle}
+                                      onChange={(e) => setNewJobTitle(e.target.value)}
+                                      className={cn(
+                                        'w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 transition',
+                                        isLight
+                                          ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                                          : 'border-slate-700 bg-slate-900/50 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                                      )}
+                                      placeholder="e.g. UX Designer"
+                                    />
+                                </div>
+                                <div>
+                                   <label className={cn("block text-xs font-medium uppercase tracking-wide mb-1", isLight ? "text-slate-500" : "text-slate-400")}>
+                                     Description
+                                   </label>
+                                   <textarea
+                                      value={newJobDescription}
+                                      onChange={(e) => setNewJobDescription(e.target.value)}
+                                      rows={2}
+                                      className={cn(
+                                        'w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 transition resize-none',
+                                        isLight
+                                          ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
+                                          : 'border-slate-700 bg-slate-900/50 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50',
+                                      )}
+                                      placeholder="Describe the role..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Row 2: Image and Actions */}
+                            <div className="flex items-center justify-between gap-4 pt-2">
+                                <div className="flex items-center gap-3">
+                                   <div className="shrink-0">
+                                     {newJobImagePreview ? (
+                                        <div className="relative group h-12 w-12">
+                                          <img
+                                            src={newJobImagePreview}
+                                            alt="Preview"
+                                            className={cn(
+                                              'h-full w-full rounded-lg border object-cover',
+                                              isLight ? 'border-slate-200' : 'border-slate-700'
+                                            )}
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={handleRemoveNewJobImage}
+                                            className="absolute -top-1 -right-1 bg-rose-500 text-white p-0.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600"
+                                            title="Remove image"
+                                          >
+                                            <IconX size={10} />
+                                          </button>
+                                        </div>
+                                     ) : (
+                                        <div className={cn(
+                                          'h-12 w-12 flex items-center justify-center rounded-lg border border-dashed',
+                                          isLight ? 'border-slate-300 bg-slate-50 text-slate-400' : 'border-slate-700 bg-slate-800 text-slate-500'
+                                        )}>
+                                          <IconPlus size={16} />
+                                        </div>
+                                     )}
+                                   </div>
+                                   
+                                   <label className={cn(
+                                      'cursor-pointer text-xs font-medium hover:underline',
+                                      isLight ? 'text-blue-600' : 'text-blue-400'
+                                    )}>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleJobImageChange}
+                                        className="hidden"
+                                      />
+                                      {newJobImagePreview ? 'Change Image' : 'Upload Image'}
+                                    </label>
+                                </div>
+
+                                <div className="flex gap-2">
+                                   <button
+                                      type="button"
+                                      onClick={cancelEditJob}
+                                      className={cn(
+                                        'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+                                        isLight
+                                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                      )}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={saveJobRoleChanges}
+                                      className={cn(
+                                        'rounded-lg px-4 py-1.5 text-sm font-medium text-white transition shadow-sm',
+                                        isLight
+                                          ? 'bg-blue-600 hover:bg-blue-700'
+                                          : 'bg-blue-600 hover:bg-blue-500'
+                                      )}
+                                    >
+                                      Save
+                                    </button>
+                                </div>
+                            </div>
                           </div>
                         </div>
-                        {/* Image Upload/Edit for Existing Job Role */}
-                        <div className="mt-2 flex gap-2">
-                          {role.image_url ? (
-                            <>
-                              <label className={cn(
-                                'cursor-pointer rounded px-2 py-1 text-sm font-medium transition disabled:opacity-50',
-                                isLight
-                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                  : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
-                              )}>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleJobImageChangeExisting(e, idx)}
-                                  disabled={uploadingImage || saving}
-                                  className="hidden"
-                                />
-                                Change
-                              </label>
+                      ) : (
+                        // View Mode
+                        <>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded bg-emerald-600/20 text-xs font-semibold text-emerald-200">
+                              {idx + 1}
+                            </span>
+                            <div className="flex flex-col">
                               <button
                                 type="button"
-                                onClick={() => handleRemoveJobRoleImage(idx)}
-                                disabled={uploadingImage || saving}
+                                onClick={() => moveJobRole(idx, 'up')}
+                                disabled={idx === 0 || editingJobIndex !== null}
                                 className={cn(
-                                  'rounded px-2 py-1 text-sm font-medium transition disabled:opacity-50',
-                                  isLight
-                                    ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
-                                    : 'bg-rose-600/20 text-rose-200 hover:bg-rose-600/30'
+                                  'p-0.5 text-slate-400 hover:text-slate-200 transition',
+                                  (idx === 0 || editingJobIndex !== null) && 'opacity-30 cursor-not-allowed',
                                 )}
                               >
-                                Remove Image
+                                <IconChevronUp size={12} />
                               </button>
-                            </>
-                          ) : (
-                            <label className={cn(
-                              'cursor-pointer rounded px-2 py-1 text-sm font-medium transition',
-                              isLight
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                : 'bg-blue-600/20 text-blue-200 hover:bg-blue-600/30'
-                            )}>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleJobImageChangeExisting(e, idx)}
-                                disabled={uploadingImage || saving}
-                                className="hidden"
-                              />
-                              Add image
-                            </label>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeJobRole(idx)}
-                        className="shrink-0 rounded p-1 text-slate-400 hover:bg-rose-600/20 hover:text-rose-400 transition opacity-0 group-hover:opacity-100"
-                      >
-                        <IconX size={14} />
-                      </button>
+                              <button
+                                type="button"
+                                onClick={() => moveJobRole(idx, 'down')}
+                                disabled={idx === formData.exampleJobRoles.length - 1 || editingJobIndex !== null}
+                                className={cn(
+                                  'p-0.5 text-slate-400 hover:text-slate-200 transition',
+                                  (idx === formData.exampleJobRoles.length - 1 || editingJobIndex !== null) && 'opacity-30 cursor-not-allowed',
+                                )}
+                              >
+                                <IconChevronDown size={12} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-3">
+                              {role.image_url && (
+                                <img
+                                  src={role.image_url}
+                                  alt={role.title}
+                                  className={cn(
+                                    'h-16 w-16 shrink-0 rounded-lg border object-cover',
+                                    isLight ? 'border-slate-300' : 'border-slate-800/70'
+                                  )}
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className={cn("font-semibold text-base", isLight ? "text-slate-900" : "text-slate-200")}>
+                                  {role.title}
+                                </h4>
+                                <p className={cn("text-sm leading-relaxed mt-1", isLight ? "text-slate-600" : "text-slate-400")}>
+                                  {role.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                             <button
+                                type="button"
+                                onClick={() => startEditingJob(idx)}
+                                disabled={editingJobIndex !== null}
+                                className={cn(
+                                  "rounded p-1.5 text-blue-400 hover:bg-blue-500/10 transition",
+                                  editingJobIndex !== null && "opacity-30 cursor-not-allowed"
+                                )}
+                                title="Edit Role"
+                              >
+                                <IconEdit size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeJobRole(idx)}
+                                disabled={editingJobIndex !== null}
+                                className={cn(
+                                  "rounded p-1.5 text-rose-400 hover:bg-rose-500/10 transition",
+                                  editingJobIndex !== null && "opacity-30 cursor-not-allowed"
+                                )}
+                                title="Remove Role"
+                              >
+                                <IconTrash size={16} />
+                              </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Dynamic Course Details Section - New Feature */}
-            <div className="col-span-1 lg:col-span-2 space-y-6 pt-6 border-t border-slate-800/70">
-              <h3 className={cn('text-xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-100')}>
-                What You'll Work On (Dynamic Section)
-              </h3>
-              <p className={cn('text-sm', isLight ? 'text-slate-600' : 'text-slate-400')}>
-                These details will be displayed in the interactive course modal.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Real-world Projects */}
-                <div>
-                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
-                    Real-world Projects
-                  </label>
-                  <textarea
-                    value={formData.workProjects || ''}
-                    onChange={(e) => setFormData({ ...formData, workProjects: e.target.value })}
-                    rows={4}
-                    className={cn(
-                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
-                    )}
-                    placeholder="Describe the projects students will build..."
-                  />
-                </div>
-
-                {/* Interactive Labs */}
-                <div>
-                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
-                    Interactive Labs
-                  </label>
-                  <textarea
-                    value={formData.workLabs || ''}
-                    onChange={(e) => setFormData({ ...formData, workLabs: e.target.value })}
-                    rows={4}
-                    className={cn(
-                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
-                    )}
-                    placeholder="Describe the hands-on lab activities..."
-                  />
-                </div>
-
-                {/* Team Collaboration */}
-                <div>
-                  <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
-                    Team Collaboration
-                  </label>
-                  <textarea
-                    value={formData.workCollaboration || ''}
-                    onChange={(e) => setFormData({ ...formData, workCollaboration: e.target.value })}
-                    rows={4}
-                    className={cn(
-                      'w-full rounded-xl border px-4 py-3 text-base focus:ring-2 transition resize-none',
-                      isLight
-                        ? 'border-slate-300 bg-white text-slate-900 focus:ring-blue-500/30 focus:border-blue-500'
-                        : 'border-slate-800/70 bg-slate-950/40 text-slate-200 focus:ring-blue-500/50 focus:border-blue-500/50'
-                    )}
-                    placeholder="Describe collaborative opportunities..."
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Dynamic Course Details Section - REMOVED from bottom */}
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 border-t border-slate-800/70 pt-4">
