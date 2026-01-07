@@ -38,7 +38,13 @@ const translations: Record<'en' | 'my', Record<string, any>> = {
     pageTitle: 'Psychometric Test',
     pageSubtitle: 'Answer one statement at a time. Your responses are used to generate your guidance.',
     whatIsTest: 'What is this test?',
-    whatIsTestDesc: 'This psychometric test helps you understand your personality, interests, and the way you think. It is based on the RIASEC model, which groups people into different interest types such as Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. By answering the questions, you will discover which types describe you the most. There are no right or wrong answers — just choose what feels most like you. Your results are used to help you explore learning paths and careers that match who you are.',
+    whatIsTestDesc1: 'This assessment is designed to help you discover your unique personality traits and interests using the globally recognized RIASEC model. It provides insights into how you think, learn, and interact with the world around you.',
+    whatIsTestDesc2: 'By answering these simple questions, you will receive a personalized profile that aligns with your natural strengths. There are no right or wrong answers—simply choose the options that best describe you to unlock tailored learning paths and career recommendations.',
+    whatIsTestPoints: [
+      'No right or wrong answers — respond honestly.',
+      'Helps align learning paths and careers to your strengths.',
+      'Takes only a few minutes to complete.',
+    ],
 
     // Buttons
     startTest: 'Start Test',
@@ -109,7 +115,13 @@ const translations: Record<'en' | 'my', Record<string, any>> = {
     pageTitle: 'Ujian Psikometrik',
     pageSubtitle: 'Jawab satu kenyataan pada satu masa. Respons anda digunakan untuk menjana panduan anda.',
     whatIsTest: 'Apakah ujian ini?',
-    whatIsTestDesc: 'Ujian psikometrik ini membantu anda memahami personaliti, minat, dan cara anda berfikir. Ia berdasarkan model RIASEC, yang mengelompokkan orang ke dalam jenis minat yang berbeza seperti Realistik, Investigatif, Artistik, Sosial, Enterprising, dan Konvensional. Dengan menjawab soalan-soalan ini, anda akan mengetahui jenis yang paling menggambarkan diri anda. Tiada jawapan betul atau salah — hanya pilih yang paling sesuai dengan anda. Hasil anda digunakan untuk membantu anda meneroka laluan pembelajaran dan kerjaya yang sepadan dengan siapa anda.',
+    whatIsTestDesc1: 'Penilaian ini direka untuk membantu anda menemui ciri-ciri personaliti dan minat unik anda menggunakan model RIASEC yang diiktiraf di peringkat global. Ia memberikan pandangan tentang cara anda berfikir, belajar, dan berinteraksi dengan dunia di sekeliling anda.',
+    whatIsTestDesc2: 'Dengan menjawab soalan-soalan mudah ini, anda akan menerima profil peribadi yang selaras dengan kekuatan semula jadi anda. Tiada jawapan betul atau salah—hanya pilih pilihan yang paling menggambarkan diri anda untuk membuka laluan pembelajaran dan cadangan kerjaya yang disesuaikan.',
+    whatIsTestPoints: [
+      'Tiada jawapan betul atau salah — jawab dengan jujur.',
+      'Membantu menyelaraskan laluan pembelajaran dan kerjaya dengan kekuatan anda.',
+      'Hanya mengambil masa beberapa minit untuk diselesaikan.',
+    ],
 
     // Buttons
     startTest: 'Mula Ujian',
@@ -264,22 +276,6 @@ export function PsychometricTestPage() {
     : 'text-slate-300'
   const canSubmit = !progress.psychometricCompleted
   const isTakingTest = hasStarted && canSubmit
-
-  const { firstDesc, secondDesc } = useMemo(() => {
-    const desc = t.whatIsTestDesc as string
-    const tokens = ['By answering the questions', 'Dengan menjawab soalan']
-    let first = desc
-    let second = ''
-    for (const token of tokens) {
-      if (desc.includes(token)) {
-        const parts = desc.split(token)
-        first = parts[0]
-        second = `${token}${parts.slice(1).join(token)}`
-        break
-      }
-    }
-    return { firstDesc: first.trim(), secondDesc: second.trim() }
-  }, [t.whatIsTestDesc])
 
   // toggleLanguage is provided by LanguageContext
 
@@ -668,14 +664,12 @@ export function PsychometricTestPage() {
             {t.whatIsTest}
           </h2>
           <div className={cn(styles.infoBlock, 'transition-all duration-200 hover:shadow-sm')}>
-            <p className={styles.infoParagraph}>{firstDesc}</p>
-            {secondDesc && (
-              <p className={cn(styles.infoParagraph, styles.infoParagraphSpacing)}>{secondDesc}</p>
-            )}
+            <p className={styles.infoParagraph}>{t.whatIsTestDesc1}</p>
+            <p className={cn(styles.infoParagraph, styles.infoParagraphSpacing)}>{t.whatIsTestDesc2}</p>
             <ul className={styles.infoList}>
-              <li>No right or wrong answers — respond honestly.</li>
-              <li>Helps align learning paths and careers to your strengths.</li>
-              <li>Takes only a few minutes to complete.</li>
+              {(t.whatIsTestPoints as string[]).map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
             </ul>
           </div>
           

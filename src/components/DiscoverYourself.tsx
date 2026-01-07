@@ -334,18 +334,7 @@ export const DiscoverYourself: FC<Props> = ({ riasecCode }) => {
           </div>
         </div>
 
-        {/* CTA Button */}
-        <div className="flex justify-center pt-4">
-          <button className={cn(
-            'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition',
-            isLight
-              ? 'bg-slate-100 text-slate-900 hover:bg-slate-200 border border-slate-200'
-              : 'bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700'
-          )}>
-            See What This Means for Learning
-            <IconArrowRight size={18} />
-          </button>
-        </div>
+
       </div>
     </section>
   )
