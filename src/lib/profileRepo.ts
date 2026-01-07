@@ -276,14 +276,16 @@ export async function uploadAvatar(file: File, profileId: string) {
 
   const bucket = getAvatarBucketName()
   const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
-  const path = `${profileId}/avatar.${ext}`
+  // Use a unique filename to force cache invalidation (hard refresh)
+  const timestamp = Date.now()
+  const path = `${profileId}/avatar_${timestamp}.${ext}`
 
+  // 1. Upload the new file first
   const { error: uploadErr } = await supabase.storage
     .from(bucket)
     .upload(path, file, { upsert: true, cacheControl: '3600' })
 
   if (uploadErr) {
-    // Provide a clearer error for the most common setup issue.
     const msg = uploadErr.message || 'Failed to upload avatar.'
     const lower = msg.toLowerCase()
     const hint =
@@ -295,7 +297,28 @@ export async function uploadAvatar(file: File, profileId: string) {
     throw new Error(`${msg}${hint}`)
   }
 
+  // 2. Get the new public URL
   const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+  
+  // 3. Clean up old files (fire and forget to not block UI)
+  void (async () => {
+    try {
+      const { data: listData } = await supabase.storage.from(bucket).list(profileId)
+      if (listData && listData.length > 0) {
+        // Filter out the file we just uploaded
+        const filesToDelete = listData
+          .filter(f => f.name !== `avatar_${timestamp}.${ext}` && f.name.startsWith('avatar'))
+          .map(f => `${profileId}/${f.name}`)
+        
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from(bucket).remove(filesToDelete)
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to cleanup old avatars:', err)
+    }
+  })()
+
   return data.publicUrl
 }
 

@@ -149,7 +149,6 @@ function TeacherProfileView(props: {
   success: string
   showSkeleton: boolean
   avatarPreviewUrl: string
-  avatarRevision: number
   avatarFile: File | null
   setAvatarFile: (f: File | null) => void
   setIsDirty: (d: boolean) => void
@@ -167,7 +166,6 @@ function TeacherProfileView(props: {
     success,
     showSkeleton,
     avatarPreviewUrl,
-    avatarRevision,
     avatarFile,
     setAvatarFile,
     setIsDirty,
@@ -321,7 +319,7 @@ function TeacherProfileView(props: {
           {/* Avatar Section */}
           <div className="relative">
             <Avatar
-              src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+              src={avatarPreviewUrl || form.avatar_url}
               alt="Profile avatar"
               fallback={(form.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
               sizeClassName="size-10"
@@ -417,7 +415,7 @@ function TeacherProfileView(props: {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar
-                    src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+                    src={avatarPreviewUrl || form.avatar_url}
                     alt="Profile avatar"
                     fallback={(form.full_name || user?.email || 'T').slice(0, 1).toUpperCase()}
                     sizeClassName="size-12"
@@ -720,7 +718,6 @@ export function ProfilePage() {
   )
   const [isHobbyPickerOpen, setIsHobbyPickerOpen] = useState(false)
   const [isSkillPickerOpen, setIsSkillPickerOpen] = useState(false)
-  const [avatarRevision, setAvatarRevision] = useState<number>(() => Date.now())
 
   const [form, setForm] = useState<FormState>(() => toForm(profile ?? null))
   const [skillsState, setSkillsState] = useState<Skill[]>(() => {
@@ -742,6 +739,33 @@ export function ProfilePage() {
     }
   }, [avatarPreviewUrl])
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) {
+      setAvatarFile(null)
+      return
+    }
+    
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      setError('Please select a valid image file (JPG, PNG, GIF, WEBP).')
+      setAvatarFile(null)
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB.')
+      setAvatarFile(null)
+      e.target.value = ''
+      return
+    }
+    
+    setError('')
+    setAvatarFile(file)
+    setIsDirty(true)
+  }
+
   // Initialize local editable state from ProfileContext once (prevents "pop-in"),
   // but never overwrite while the user is typing (fixes "can't delete text" issues).
   const initializedForUserRef = useRef<string>('')
@@ -760,7 +784,10 @@ export function ProfilePage() {
 
     if (!profile) return
     if (saving) return
-    if (initializedForUserRef.current === profileId) return
+    
+    // Allow re-sync if the form is not dirty, even if initialized.
+    // This handles cases where profile updates externally (e.g. from Dashboard).
+    if (initializedForUserRef.current === profileId && isDirty) return
 
     initializedForUserRef.current = profileId
     setForm(toForm(profile))
@@ -779,9 +806,8 @@ export function ProfilePage() {
     }
     setIsHobbyPickerOpen(false)
     setIsSkillPickerOpen(false)
-    setAvatarRevision(Date.now())
     // Do not touch isDirty here.
-  }, [profile, profileId, saving, user?.email])
+  }, [profile, profileId, saving, user?.email, isDirty])
 
   const stateRef = useRef({
     form,
@@ -885,9 +911,8 @@ export function ProfilePage() {
     try {
       let avatarUrl = form.avatar_url
       if (avatarFile) {
-        const uploaded = await uploadAvatar(avatarFile, profileId)
-        // Store a versioned URL so the whole app refreshes the image (browser cache-safe).
-        avatarUrl = withCacheBust(uploaded, Date.now())
+        // Upload returns a unique URL (timestamped), so no cache busting needed.
+        avatarUrl = await uploadAvatar(avatarFile, profileId)
       }
 
       await upsertProfile({
@@ -910,8 +935,6 @@ export function ProfilePage() {
       })
 
       setForm((prev) => ({ ...prev, avatar_url: avatarUrl }))
-      // Force image refresh even if the public URL path stays the same (browser cache).
-      setAvatarRevision(Date.now())
       setAvatarFile(null)
       setIsDirty(false)
       setSuccess('Profile saved.')
@@ -978,7 +1001,6 @@ export function ProfilePage() {
       success={success}
       showSkeleton={showSkeleton}
       avatarPreviewUrl={avatarPreviewUrl}
-      avatarRevision={avatarRevision}
       avatarFile={avatarFile}
       setAvatarFile={setAvatarFile}
       setIsDirty={setIsDirty}
@@ -1039,7 +1061,7 @@ export function ProfilePage() {
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <Avatar
-                  src={avatarPreviewUrl || withCacheBust(form.avatar_url, avatarRevision)}
+                  src={avatarPreviewUrl || form.avatar_url}
                   alt="Profile avatar"
                   fallback={(form.full_name || user?.email || 'U').slice(0, 1).toUpperCase()}
                   sizeClassName="size-24"
@@ -1076,10 +1098,7 @@ export function ProfilePage() {
                     type="file"
                     accept="image/*"
                     disabled={saving}
-                    onChange={(e) => {
-                      setAvatarFile(e.target.files?.[0] ?? null)
-                      setIsDirty(true)
-                    }}
+                    onChange={handleFileChange}
                     className={cn(
                       "mt-3 block w-full text-xs file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2 file:text-xs file:font-semibold file:ring-1 disabled:opacity-60",
                       isLight
@@ -1832,10 +1851,6 @@ function LockBadgeIcon() {
   )
 }
 
-function withCacheBust(url: string, revision: number) {
-  if (!url) return ''
-  const sep = url.includes('?') ? '&' : '?'
-  return `${url}${sep}v=${revision}`
-}
+
 
 

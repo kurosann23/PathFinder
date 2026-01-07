@@ -147,7 +147,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10 pb-10">
       {/* Header: PATHFINDER Dashboard */}
       <header>
         <h1 className={cn('text-2xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-50')}>
