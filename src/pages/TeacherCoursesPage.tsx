@@ -15,6 +15,7 @@ import {
   type CourseRow,
 } from '../lib/coursesRepo'
 import { supabase } from '../lib/supabaseClient'
+import { generateMockAIContent, ENABLE_AI_ASSIST } from '../utils/mockAIAssist'
 
 type UICourse = {
   courseName: string
@@ -53,6 +54,7 @@ export function TeacherCoursesPage() {
   const [courseImagePreview, setCourseImagePreview] = useState<string | null>(null)
   const [courseImageUrl, setCourseImageUrl] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
 
   const riasecTypes: Array<{ value: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'; label: string }> = [
     { value: 'R', label: 'Realistic' },
@@ -509,6 +511,30 @@ export function TeacherCoursesPage() {
     })
   }
 
+  async function handleAIGenerate() {
+    if (!formRiasecType || !formData.courseName.trim()) return
+
+    setIsGeneratingAI(true)
+    
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const generated = generateMockAIContent(formData.courseName, formRiasecType)
+
+    setFormData(prev => ({
+      ...prev,
+      focusDescription: generated.focusDescription,
+      whatYouLearn: generated.learningOutcomes,
+      toolsAndSkills: generated.toolsAndSkills,
+      exampleJobRoles: generated.exampleJobRoles.map(role => ({
+        title: role,
+        description: 'Suggested role based on course focus.'
+      }))
+    }))
+
+    setIsGeneratingAI(false)
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -619,9 +645,34 @@ export function TeacherCoursesPage() {
 
                 {/* Course Name */}
                 <div>
-                    <label className={cn('mb-2 block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className={cn('block text-base font-semibold', isLight ? 'text-slate-700' : 'text-slate-200')}>
                       Course Name <span className="text-rose-400">*</span>
                     </label>
+                    {ENABLE_AI_ASSIST && (
+                      <button
+                        type="button"
+                        onClick={handleAIGenerate}
+                        disabled={isGeneratingAI || !formData.courseName.trim() || !formRiasecType}
+                        className={cn(
+                          'flex items-center gap-2 rounded-lg px-3 py-1 text-sm font-semibold transition',
+                          isLight
+                            ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:bg-slate-100 disabled:text-slate-400'
+                            : 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 disabled:bg-slate-800/50 disabled:text-slate-600'
+                        )}
+                      >
+                        {isGeneratingAI ? (
+                          <>
+                            <span className="animate-spin">⏳</span> AI Generating...
+                          </>
+                        ) : (
+                          <>
+                            🤖 AI Generate
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={formData.courseName}
@@ -634,6 +685,11 @@ export function TeacherCoursesPage() {
                     )}
                     placeholder="e.g., Data Science & Analytics"
                   />
+                  {ENABLE_AI_ASSIST && (
+                    <p className={cn('mt-2 text-sm', isLight ? 'text-slate-500' : 'text-slate-500')}>
+                      AI Assist helps draft content for writing inspiration. Please review and edit before saving.
+                    </p>
+                  )}
                 </div>
 
                 {/* Course Image */}
