@@ -433,7 +433,7 @@ export function CourseRecommendationPage() {
               
               {/* Modal Container */}
               <div className={cn(
-                "animate-modal-content relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl shadow-2xl ring-1",
+                "animate-modal-content relative flex max-h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl shadow-2xl ring-1",
                 isLight
                   ? "bg-white ring-black/5"
                   : "bg-[#0B0E14] ring-white/10"
@@ -458,7 +458,7 @@ export function CourseRecommendationPage() {
                     
                     {/* Left Column: Visuals & Core Info */}
                     <div className={cn(
-                      "relative w-full lg:w-[40%] p-8 flex flex-col",
+                      "relative w-full lg:w-[45%] p-8 flex flex-col",
                       isLight ? "bg-slate-50" : "bg-slate-900/50"
                     )}>
                       {/* Image or Pattern */}
@@ -500,14 +500,29 @@ export function CourseRecommendationPage() {
                         </h2>
                       </div>
 
-                      <p className={cn(
-                        "text-lg leading-relaxed mb-8",
-                        isLight ? "text-slate-600" : "text-slate-300"
+                      {/* About this Course - MOVED to Left Column */}
+                      <div className={cn(
+                        "rounded-2xl p-6 relative overflow-hidden mb-8",
+                        isLight ? "bg-white shadow-sm ring-1 ring-slate-200" : "bg-slate-800/50 ring-1 ring-slate-700"
                       )}>
-                        {selectedCourse.course.focusDescription}
-                      </p>
+                         <div className="relative z-10">
+                            <h3 className={cn(
+                              "flex items-center gap-2 text-base font-bold mb-3 uppercase tracking-wide",
+                              isLight ? "text-slate-500" : "text-slate-400"
+                            )}>
+                              <IconBook size={16} />
+                              About this Course
+                            </h3>
+                            <p className={cn(
+                              "text-base leading-relaxed",
+                              isLight ? "text-slate-700" : "text-slate-300"
+                            )}>
+                              {selectedCourse.course.focusDescription}
+                            </p>
+                         </div>
+                      </div>
 
-                      {/* Job Roles Section - Moved here for better flow */}
+                      {/* Job Roles Section */}
                       <div className="mt-auto">
                         <h3 className={cn(
                           "mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider",
@@ -521,27 +536,27 @@ export function CourseRecommendationPage() {
                             <div
                               key={idx}
                               className={cn(
-                                "flex items-center gap-3 rounded-xl p-3 transition-colors",
+                                "flex items-start gap-4 rounded-xl p-4 transition-colors",
                                 isLight
                                   ? "bg-white shadow-sm ring-1 ring-slate-200 hover:ring-blue-200"
                                   : "bg-slate-800/50 ring-1 ring-slate-700 hover:bg-slate-800 hover:ring-slate-600"
                               )}
                             >
                               {role.image_url ? (
-                                <img src={role.image_url} alt="" className="h-10 w-10 rounded-lg object-cover bg-slate-200" />
+                                <img src={role.image_url} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover bg-slate-200" />
                               ) : (
                                 <div className={cn(
-                                  "flex h-10 w-10 items-center justify-center rounded-lg",
+                                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
                                   isLight ? "bg-slate-100 text-slate-500" : "bg-slate-700 text-slate-300"
                                 )}>
-                                  <IconBriefcase size={18} />
+                                  <IconBriefcase size={20} />
                                 </div>
                               )}
-                              <div>
-                                <div className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-slate-200")}>
+                              <div className="min-w-0 flex-1">
+                                <div className={cn("text-base font-bold mb-1", isLight ? "text-slate-900" : "text-slate-200")}>
                                   {role.title}
                                 </div>
-                                <div className={cn("text-xs line-clamp-1", isLight ? "text-slate-500" : "text-slate-400")}>
+                                <div className={cn("text-sm leading-relaxed", isLight ? "text-slate-600" : "text-slate-400")}>
                                   {role.description}
                                 </div>
                               </div>
@@ -552,10 +567,8 @@ export function CourseRecommendationPage() {
                     </div>
 
                     {/* Right Column: Detailed Breakdown */}
-                    <div className="relative w-full lg:w-[60%] p-8">
+                    <div className="relative w-full lg:w-[55%] p-8">
                       <div className="space-y-8">
-                        
-                        {/* 1. What you'll learn - Modern List */}
                         <div>
                            <button
                             onClick={() => toggleSection('learn')}
