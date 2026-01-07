@@ -454,18 +454,6 @@ export function PsychometricTestPage() {
             title={t.pageTitle}
             subtitle={t.pageSubtitle}
           />
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className={cn(
-              "rounded-xl border px-4 py-2 text-sm font-semibold transition-colors",
-              isLight
-                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm"
-                : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
-            )}
-          >
-            {language === 'en' ? '🇲🇾 BM' : '🇬🇧 EN'}
-          </button>
         </div>
 
         <Card
@@ -644,18 +632,6 @@ export function PsychometricTestPage() {
         {/* Header with Language Toggle */}
         <div className="flex items-start justify-between">
           <h1 className={cn("text-4xl font-bold md:text-5xl", isLight ? "text-slate-900" : "text-slate-50")}>{t.pageTitle}</h1>
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className={cn(
-              "rounded-xl border px-4 py-2 text-sm font-semibold transition-colors",
-              isLight
-                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm"
-                : "border-slate-800/70 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
-            )}
-          >
-            {language === 'en' ? '🇲🇾 BM' : '🇬🇧 EN'}
-          </button>
         </div>
 
         {/* What is this test section */}
@@ -663,7 +639,11 @@ export function PsychometricTestPage() {
           <h2 className={cn('text-xl font-bold', isLight ? 'text-slate-900' : 'text-slate-100')}>
             {t.whatIsTest}
           </h2>
-          <div className={cn(styles.infoBlock, 'transition-all duration-200 hover:shadow-sm')}>
+          <div className={cn(
+            styles.infoBlock,
+            'transition-all duration-200 hover:shadow-sm',
+            isLight ? 'bg-[#F8F9FA] text-slate-700' : 'bg-slate-900/50 text-slate-300'
+          )}>
             <p className={styles.infoParagraph}>{t.whatIsTestDesc1}</p>
             <p className={cn(styles.infoParagraph, styles.infoParagraphSpacing)}>{t.whatIsTestDesc2}</p>
             <ul className={styles.infoList}>
