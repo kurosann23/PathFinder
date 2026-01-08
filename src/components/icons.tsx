@@ -503,6 +503,34 @@ export function IconChevronUp(props: IconProps) {
   )
 }
 
+export function IconChevronLeft(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="m15 18-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconChevronRight(props: IconProps) {
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="m9 18 6-6-6-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function IconX(props: IconProps) {
   return (
     <svg {...baseProps(props)}>

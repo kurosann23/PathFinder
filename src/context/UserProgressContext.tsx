@@ -21,6 +21,7 @@ import {
   fetchPsychometricResult,
   upsertPsychometricResult,
 } from '../lib/psychometricRepo'
+import { fetchProfile } from '../lib/profileRepo'
 
 type UserProgressContextValue = {
   // Stores the minimal user progress (dummy-only, frontend state).
@@ -42,6 +43,7 @@ type UserProgressContextValue = {
   resetDemo: () => void
   markCourseViewed: () => void
   markAppointmentCompleted: () => void
+  checkProfileCompletion: () => Promise<void>
 }
 
 const UserProgressContext = createContext<UserProgressContextValue | null>(null)
@@ -53,6 +55,7 @@ function cloneInitial(): UserProgressState {
     riasecPercentages: { ...initialUserProgressState.riasecPercentages },
     journey: { 
       ...initialUserProgressState.journey,
+      profile: false,
       course: false,
       appointment: false
     },
@@ -85,17 +88,32 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       setIsHydrating(true)
       setHydrationError('')
       try {
-        const row = await fetchPsychometricResult(userId)
+        const [row, profile] = await Promise.all([
+          fetchPsychometricResult(userId),
+          fetchProfile(userId)
+        ])
+        
         if (cancelled) return
-
-        if (!row) {
-          setIsHydrating(false)
-          return
-        }
 
         // Check local storage for user-specific journey progress
         const courseViewed = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_course_viewed_${userId}`)) : false
         const appointmentCompleted = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_appointment_completed_${userId}`)) : false
+        const profileCompleted = Boolean(profile?.avatar_url)
+
+        if (!row) {
+          // Even if no psychometric result, we should update profile status
+          setProgress((prev) => ({
+            ...prev,
+            journey: {
+              ...prev.journey,
+              profile: profileCompleted,
+              course: courseViewed,
+              appointment: appointmentCompleted
+            }
+          }))
+          setIsHydrating(false)
+          return
+        }
 
         setProgress((prev) => ({
           ...prev,
@@ -114,12 +132,13 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           journey: { 
             ...prev.journey, 
             psychometric: true,
+            profile: profileCompleted,
             course: courseViewed,
             appointment: appointmentCompleted
           },
         }))
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to load psychometric result.'
+        const msg = e instanceof Error ? e.message : 'Failed to load user data.'
         if (!cancelled) setHydrationError(msg)
       } finally {
         if (!cancelled) setIsHydrating(false)
@@ -250,6 +269,21 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       }))
     }
 
+    async function checkProfileCompletion() {
+      if (!user?.id) return
+      try {
+        const profile = await fetchProfile(user.id)
+        if (profile?.avatar_url) {
+          setProgress((prev) => ({
+            ...prev,
+            journey: { ...prev.journey, profile: true },
+          }))
+        }
+      } catch (err) {
+        console.error('Failed to check profile completion:', err)
+      }
+    }
+
     return {
       progress,
       isHydrating,
@@ -262,6 +296,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       resetDemo,
       markCourseViewed,
       markAppointmentCompleted,
+      checkProfileCompletion,
     }
   }, [hydrationError, isHydrating, isSavingPsychometric, progress, user])
 
