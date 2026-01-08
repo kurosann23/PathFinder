@@ -53,9 +53,8 @@ function cloneInitial(): UserProgressState {
     riasecPercentages: { ...initialUserProgressState.riasecPercentages },
     journey: { 
       ...initialUserProgressState.journey,
-      // Check local storage for course viewed state (since we don't have a DB column yet)
-      course: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_course_viewed')) : false,
-      appointment: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_appointment_completed')) : false
+      course: false,
+      appointment: false
     },
   }
 }
@@ -94,6 +93,10 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           return
         }
 
+        // Check local storage for user-specific journey progress
+        const courseViewed = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_course_viewed_${userId}`)) : false
+        const appointmentCompleted = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_appointment_completed_${userId}`)) : false
+
         setProgress((prev) => ({
           ...prev,
           psychometricCompleted: true,
@@ -108,7 +111,12 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           },
           careerPathReport: (row.career_path_report as CareerPathReport | null) ?? null,
           courseRecommendations: (row.course_recommendations as CourseRecommendation[] | null) ?? [],
-          journey: { ...prev.journey, psychometric: true },
+          journey: { 
+            ...prev.journey, 
+            psychometric: true,
+            course: courseViewed,
+            appointment: appointmentCompleted
+          },
         }))
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Failed to load psychometric result.'
@@ -190,6 +198,11 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       }
 
       await deletePsychometricResult(user.id)
+      
+      // Clear local storage progress
+      localStorage.removeItem(`pathfinder_course_viewed_${user.id}`)
+      localStorage.removeItem(`pathfinder_appointment_completed_${user.id}`)
+
       setProgress((prev) => ({
         ...prev,
         psychometricCompleted: false,
@@ -220,7 +233,8 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markCourseViewed() {
-      localStorage.setItem('pathfinder_course_viewed', 'true')
+      if (!user?.id) return
+      localStorage.setItem(`pathfinder_course_viewed_${user.id}`, 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, course: true },
@@ -228,7 +242,8 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markAppointmentCompleted() {
-      localStorage.setItem('pathfinder_appointment_completed', 'true')
+      if (!user?.id) return
+      localStorage.setItem(`pathfinder_appointment_completed_${user.id}`, 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, appointment: true },

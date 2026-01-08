@@ -522,48 +522,7 @@ export function CourseRecommendationPage() {
                          </div>
                       </div>
 
-                      {/* Job Roles Section */}
-                      <div className="mt-auto">
-                        <h3 className={cn(
-                          "mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider",
-                          isLight ? "text-slate-500" : "text-slate-400"
-                        )}>
-                          <IconBriefcase size={16} />
-                          {t('course.exampleJobRoles')}
-                        </h3>
-                        <div className="space-y-3">
-                          {selectedCourse.course.exampleJobRoles.slice(0, 3).map((role, idx) => (
-                            <div
-                              key={idx}
-                              className={cn(
-                                "flex items-start gap-4 rounded-xl p-4 transition-colors",
-                                isLight
-                                  ? "bg-white shadow-sm ring-1 ring-slate-200 hover:ring-blue-200"
-                                  : "bg-slate-800/50 ring-1 ring-slate-700 hover:bg-slate-800 hover:ring-slate-600"
-                              )}
-                            >
-                              {role.image_url ? (
-                                <img src={role.image_url} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover bg-slate-200" />
-                              ) : (
-                                <div className={cn(
-                                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
-                                  isLight ? "bg-slate-100 text-slate-500" : "bg-slate-700 text-slate-300"
-                                )}>
-                                  <IconBriefcase size={20} />
-                                </div>
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <div className={cn("text-base font-bold mb-1", isLight ? "text-slate-900" : "text-slate-200")}>
-                                  {role.title}
-                                </div>
-                                <div className={cn("text-sm leading-relaxed", isLight ? "text-slate-600" : "text-slate-400")}>
-                                  {role.description}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+
                     </div>
 
                     {/* Right Column: Detailed Breakdown */}
@@ -623,6 +582,8 @@ export function CourseRecommendationPage() {
                             </div>
                           )}
                         </div>
+
+
 
                         {/* 2. Interactive "What you'll work on" Section */}
                         <div>
@@ -760,6 +721,57 @@ export function CourseRecommendationPage() {
                               ))}
                             </div>
                           )}
+                        </div>
+
+                        {/* 4. Example Job Roles - Moved from Left Column */}
+                        <div>
+                           <div className="mb-4">
+                            <h3 className={cn(
+                              "flex items-center gap-3 text-xl font-bold",
+                              isLight ? "text-slate-900" : "text-white"
+                            )}>
+                              <span className={cn(
+                                "flex h-8 w-8 items-center justify-center rounded-lg",
+                                isLight ? "bg-cyan-100 text-cyan-600" : "bg-cyan-500/20 text-cyan-400"
+                              )}>
+                                <IconBriefcase size={18} />
+                              </span>
+                              {t('course.exampleJobRoles')}
+                            </h3>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {selectedCourse.course.exampleJobRoles.slice(0, 3).map((role, idx) => (
+                              <div
+                                key={idx}
+                                className={cn(
+                                  "flex items-start gap-4 rounded-xl p-4 transition-colors",
+                                  isLight
+                                    ? "bg-white shadow-sm ring-1 ring-slate-200 hover:ring-blue-200"
+                                    : "bg-slate-800/50 ring-1 ring-slate-700 hover:bg-slate-800 hover:ring-slate-600"
+                                )}
+                              >
+                                {role.image_url ? (
+                                  <img src={role.image_url} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover bg-slate-200" />
+                                ) : (
+                                  <div className={cn(
+                                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
+                                    isLight ? "bg-slate-100 text-slate-500" : "bg-slate-700 text-slate-300"
+                                  )}>
+                                    <IconBriefcase size={20} />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <div className={cn("text-base font-bold mb-1", isLight ? "text-slate-900" : "text-slate-200")}>
+                                    {role.title}
+                                  </div>
+                                  <div className={cn("text-sm leading-relaxed", isLight ? "text-slate-600" : "text-slate-400")}>
+                                    {role.description}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
                       </div>
