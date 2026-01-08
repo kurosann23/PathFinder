@@ -206,12 +206,12 @@ function TogglePanel({ isSignUp, toggleAuthMode, t }: {
         "w-1/2 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ease-in-out absolute top-0 h-full left-0 z-20",
         isSignUp ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10 pointer-events-none"
       )}>
-        <h1 className="text-3xl font-semibold mb-2 tracking-tight text-indigo-50">Welcome to PathFinder</h1>
-        <p className="text-lg font-medium mb-4 text-indigo-100">Let’s find a career that fits you</p>
-        <p className="text-sm text-indigo-100/90 mb-8 max-w-[260px] font-medium">Take a short psychometric test and explore paths made for you</p>
+        <h1 className="text-3xl font-bold mb-2 tracking-tight text-white drop-shadow-sm">Welcome to PathFinder</h1>
+        <p className="text-lg font-medium mb-4 text-white/90">Let's find a career that fits you</p>
+        <p className="text-sm text-white/80 mb-8 max-w-[260px] font-normal leading-relaxed">Take a short psychometric test and explore paths made for you</p>
         <button
           onClick={toggleAuthMode}
-          className="group relative rounded-full border-2 border-indigo-100 px-10 py-3 text-sm font-bold uppercase tracking-widest text-indigo-50 transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
+          className="group relative rounded-full border-2 border-white/90 px-10 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
         >
           <span className="relative z-10">{t('auth.signIn')}</span>
         </button>
@@ -222,12 +222,12 @@ function TogglePanel({ isSignUp, toggleAuthMode, t }: {
         "w-1/2 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ease-in-out absolute top-0 h-full right-0 z-20",
         !isSignUp ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10 pointer-events-none"
       )}>
-        <h1 className="text-3xl font-semibold mb-2 tracking-tight text-indigo-50">Welcome Back</h1>
-        <p className="text-lg font-medium mb-4 text-indigo-100">Let’s continue your career journey</p>
-        <p className="text-sm text-indigo-100/90 mb-8 max-w-[260px] font-medium">View your recommendations and track your progress</p>
+        <h1 className="text-3xl font-bold mb-2 tracking-tight text-white drop-shadow-sm">Welcome Back</h1>
+        <p className="text-lg font-medium mb-4 text-white/90">Let's continue your career journey</p>
+        <p className="text-sm text-white/80 mb-8 max-w-[260px] font-normal leading-relaxed">View your recommendations and track your progress</p>
         <button
           onClick={toggleAuthMode}
-          className="group relative rounded-full border-2 border-indigo-100 px-10 py-3 text-sm font-bold uppercase tracking-widest text-indigo-50 transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
+          className="group relative rounded-full border-2 border-white/90 px-10 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-white hover:text-indigo-600 shadow-xl backdrop-blur-sm overflow-hidden"
         >
           <span className="relative z-10">{t('auth.signUp')}</span>
         </button>

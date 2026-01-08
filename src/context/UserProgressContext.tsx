@@ -42,20 +42,20 @@ type UserProgressContextValue = {
   resetDemo: () => void
   markCourseViewed: () => void
   markAppointmentCompleted: () => void
+  markProfileCompleted: () => void
 }
 
 const UserProgressContext = createContext<UserProgressContextValue | null>(null)
 
 function cloneInitial(): UserProgressState {
+  // Start with completely fresh state - no localStorage checks
+  // localStorage will be restored per-user in the hydration effect
   return {
     ...initialUserProgressState,
     courseRecommendations: [...initialUserProgressState.courseRecommendations],
     riasecPercentages: { ...initialUserProgressState.riasecPercentages },
     journey: { 
       ...initialUserProgressState.journey,
-      // Check local storage for course viewed state (since we don't have a DB column yet)
-      course: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_course_viewed')) : false,
-      appointment: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_appointment_completed')) : false
     },
   }
 }
@@ -86,32 +86,57 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       setIsHydrating(true)
       setHydrationError('')
       try {
+        // Check for user-specific localStorage values (restore session progress)
+        const courseViewedKey = `pathfinder_course_viewed_${userId}`
+        const appointmentCompletedKey = `pathfinder_appointment_completed_${userId}`
+        const courseViewed = typeof window !== 'undefined' ? Boolean(localStorage.getItem(courseViewedKey)) : false
+        const appointmentCompleted = typeof window !== 'undefined' ? Boolean(localStorage.getItem(appointmentCompletedKey)) : false
+
+        // Check if profile exists (import fetchProfile to check)
+        const { fetchProfile } = await import('../lib/profileRepo')
+        let profileExists = false
+        try {
+          const profile = await fetchProfile(userId)
+          profileExists = !!profile && !!profile.full_name && !!profile.avatar_url // Profile is complete only with avatar uploaded
+        } catch {
+          // Profile doesn't exist yet - that's fine for new users
+          profileExists = false
+        }
+
         const row = await fetchPsychometricResult(userId)
         if (cancelled) return
 
-        if (!row) {
-          setIsHydrating(false)
-          return
-        }
-
+        // Update progress with all loaded data
         setProgress((prev) => ({
           ...prev,
-          psychometricCompleted: true,
-          psychometricResult: row.code ?? prev.psychometricResult,
-          riasecPercentages: {
-            R: row.riasec_percentages?.R ?? prev.riasecPercentages.R,
-            I: row.riasec_percentages?.I ?? prev.riasecPercentages.I,
-            A: row.riasec_percentages?.A ?? prev.riasecPercentages.A,
-            S: row.riasec_percentages?.S ?? prev.riasecPercentages.S,
-            E: row.riasec_percentages?.E ?? prev.riasecPercentages.E,
-            C: row.riasec_percentages?.C ?? prev.riasecPercentages.C,
+          // Mark profile as completed if it exists
+          journey: {
+            ...prev.journey,
+            profile: profileExists,
+            // Restore localStorage values for this user
+            course: courseViewed,
+            appointment: appointmentCompleted,
+            // Mark psychometric as completed if we have results
+            psychometric: !!row,
           },
-          careerPathReport: (row.career_path_report as CareerPathReport | null) ?? null,
-          courseRecommendations: (row.course_recommendations as CourseRecommendation[] | null) ?? [],
-          journey: { ...prev.journey, psychometric: true },
+          // Load psychometric data if available
+          ...(row ? {
+            psychometricCompleted: true,
+            psychometricResult: row.code ?? prev.psychometricResult,
+            riasecPercentages: {
+              R: row.riasec_percentages?.R ?? prev.riasecPercentages.R,
+              I: row.riasec_percentages?.I ?? prev.riasecPercentages.I,
+              A: row.riasec_percentages?.A ?? prev.riasecPercentages.A,
+              S: row.riasec_percentages?.S ?? prev.riasecPercentages.S,
+              E: row.riasec_percentages?.E ?? prev.riasecPercentages.E,
+              C: row.riasec_percentages?.C ?? prev.riasecPercentages.C,
+            },
+            careerPathReport: (row.career_path_report as CareerPathReport | null) ?? null,
+            courseRecommendations: (row.course_recommendations as CourseRecommendation[] | null) ?? [],
+          } : {}),
         }))
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to load psychometric result.'
+        const msg = e instanceof Error ? e.message : 'Failed to load user progress.'
         if (!cancelled) setHydrationError(msg)
       } finally {
         if (!cancelled) setIsHydrating(false)
@@ -184,12 +209,16 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           riasecPercentages: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
           careerPathReport: null,
           courseRecommendations: [],
-          journey: { ...prev.journey, psychometric: false, course: false },
+          journey: { ...prev.journey, psychometric: false, course: false, appointment: false },
         }))
         return
       }
 
       await deletePsychometricResult(user.id)
+      const courseViewedKey = `pathfinder_course_viewed_${user.id}`
+      const appointmentCompletedKey = `pathfinder_appointment_completed_${user.id}`
+      localStorage.removeItem(courseViewedKey)
+      localStorage.removeItem(appointmentCompletedKey)
       setProgress((prev) => ({
         ...prev,
         psychometricCompleted: false,
@@ -197,7 +226,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
         riasecPercentages: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
         careerPathReport: null,
         courseRecommendations: [],
-        journey: { ...prev.journey, psychometric: false, course: false },
+        journey: { ...prev.journey, psychometric: false, course: false, appointment: false },
       }))
     }
 
@@ -220,7 +249,9 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markCourseViewed() {
-      localStorage.setItem('pathfinder_course_viewed', 'true')
+      if (!user) return
+      const key = `pathfinder_course_viewed_${user.id}`
+      localStorage.setItem(key, 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, course: true },
@@ -228,10 +259,19 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markAppointmentCompleted() {
-      localStorage.setItem('pathfinder_appointment_completed', 'true')
+      if (!user) return
+      const key = `pathfinder_appointment_completed_${user.id}`
+      localStorage.setItem(key, 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, appointment: true },
+      }))
+    }
+
+    function markProfileCompleted() {
+      setProgress((prev) => ({
+        ...prev,
+        journey: { ...prev.journey, profile: true },
       }))
     }
 
@@ -247,6 +287,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       resetDemo,
       markCourseViewed,
       markAppointmentCompleted,
+      markProfileCompleted,
     }
   }, [hydrationError, isHydrating, isSavingPsychometric, progress, user])
 

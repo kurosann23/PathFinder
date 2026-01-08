@@ -106,10 +106,10 @@ export const initialUserProgressState: UserProgressState = {
   psychometricResult: '',
   riasecPercentages: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
   careerPathReport: null,
-  roadmapProgress: 70,
+  roadmapProgress: 0,
   courseRecommendations: [],
   journey: {
-    profile: true,
+    profile: false,
     psychometric: false,
     course: false,
     appointment: false,

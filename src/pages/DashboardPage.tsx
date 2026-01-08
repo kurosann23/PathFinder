@@ -9,19 +9,40 @@ import { useUserProgress } from '../context/UserProgressContext'
 import { useProfile } from '../context/ProfileContext'
 import { useTheme } from '../context/ThemeContext'
 import { useTranslation } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import { HeroProgressRing } from '../components/dashboard/HeroProgressRing'
 import { type JourneyStep } from '../components/dashboard/JourneyTimeline'
 import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
 import { DashboardProfileCard } from '../components/dashboard/DashboardProfileCard'
 import { Card } from '../components/ui/Card'
+import { Button } from '../components/ui/Button'
 import { cn } from '../lib/cn'
 
 export function DashboardPage() {
-  const { progress, isHydrating } = useUserProgress()
+  const { progress, isHydrating, markProfileCompleted } = useUserProgress()
   const { profile, loading: profileLoading } = useProfile()
   const { t } = useTranslation()
   const { theme } = useTheme()
+  const { user } = useAuth()
   const isLight = theme === 'light'
+  const guideStorageKey = user ? `pathfinder_dashboard_guide_seen_${user.id}` : null
+  const [showGuide, setShowGuide] = useState(false)
+  const [guideInitialized, setGuideInitialized] = useState(false)
+
+  // Sync profile completion status when profile loads
+  useEffect(() => {
+    if (!profileLoading && profile?.full_name && profile?.avatar_url && !progress.journey.profile) {
+      markProfileCompleted()
+    }
+  }, [profile, profileLoading, progress.journey.profile, markProfileCompleted])
+
+  // Show the dashboard guide on first login and allow reopening via button.
+  useEffect(() => {
+    if (!guideStorageKey || isHydrating) return
+    const alreadySeen = typeof window !== 'undefined' && localStorage.getItem(guideStorageKey) === 'true'
+    setShowGuide(!alreadySeen)
+    setGuideInitialized(true)
+  }, [guideStorageKey, isHydrating])
 
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) {
@@ -47,12 +68,6 @@ export function DashboardPage() {
     } as const
   }, [progress.psychometricCompleted, progress.riasecPercentages])
 
-  const roadmapPercent = useMemo(() => {
-    const keys = journeyMeta.map((j) => j.key)
-    const done = keys.filter((k) => Boolean(progress.journey[k])).length
-    return Math.round((done / keys.length) * 100)
-  }, [progress.journey])
-
   const topCareerTypeLabel = useMemo(() => {
     const values = Object.values(careerTraits)
     const allZero = values.every((v) => (Number.isFinite(v) ? v : 0) <= 0)
@@ -74,6 +89,11 @@ export function DashboardPage() {
 
   const journeySteps: JourneyStep[] = useMemo(() => {
     return journeyMeta.map((j, idx) => {
+      const prevKey = journeyMeta[idx - 1]?.key as JourneyKey | undefined
+      const prevDone = idx === 0 ? true : Boolean(prevKey && progress.journey[prevKey])
+      const rawDone = Boolean(progress.journey[j.key as JourneyKey])
+      const done = rawDone && prevDone
+
       const to =
         j.key === 'profile'
           ? '/dashboard#profile'
@@ -98,27 +118,39 @@ export function DashboardPage() {
                 ? 'roadmap'
                 : 'games'
 
-      const locked =
-        idx === 0
-          ? false
-          : !progress.journey[journeyMeta[idx - 1].key as JourneyKey] &&
-            !progress.journey[j.key as JourneyKey]
+      const locked = idx !== 0 && !prevDone
 
       return {
         key: j.key,
         label: j.label,
         to,
-        done: Boolean(progress.journey[j.key as JourneyKey]),
+        done,
         locked,
         icon,
       }
     })
   }, [progress.journey])
 
+  const roadmapPercent = useMemo(() => {
+    const done = journeySteps.filter((step) => step.done).length
+    return Math.round((done / journeySteps.length) * 100)
+  }, [journeySteps])
+
   // Get first 4 journey steps for the prominent display
   const visibleSteps = useMemo(() => {
     return journeySteps.slice(0, 4)
   }, [journeySteps])
+
+  const handleGuideClose = () => {
+    setShowGuide(false)
+    if (guideStorageKey) {
+      localStorage.setItem(guideStorageKey, 'true')
+    }
+  }
+
+  const handleGuideOpen = () => {
+    setShowGuide(true)
+  }
 
   // Show loading state while data is being fetched
   if (isHydrating || profileLoading) {
@@ -149,10 +181,15 @@ export function DashboardPage() {
   return (
     <div className="space-y-10 pb-10">
       {/* Header: PATHFINDER Dashboard */}
-      <header>
+      <header className="flex items-center justify-between gap-4">
         <h1 className={cn('text-2xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-50')}>
           PATHFINDER Dashboard
         </h1>
+        {guideInitialized && (
+          <Button variant="secondary" size="sm" onClick={handleGuideOpen} className="text-sm">
+            Dashboard Guide
+          </Button>
+        )}
       </header>
 
       {/* Top Section: 3 columns */}
@@ -365,6 +402,8 @@ export function DashboardPage() {
           <RiasecProfileCard progress={progress} />
         </div>
       </div>
+
+      {guideInitialized && showGuide && <DashboardGuide onClose={handleGuideClose} />}
     </div>
   )
 }
@@ -657,6 +696,213 @@ function MotivationalCarousel() {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+type DashboardGuideProps = {
+  onClose: () => void
+}
+
+function DashboardGuide({ onClose }: DashboardGuideProps) {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  const [currentStep, setCurrentStep] = useState(0)
+
+  const steps = [
+    { 
+      title: 'Complete Your Profile', 
+      detail: 'Upload a profile photo and fill in your basic information to unlock your career journey.',
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    { 
+      title: 'Take Psychometric Test', 
+      detail: 'Discover your RIASEC personality type through a simple questionnaire. This helps identify careers that match your interests.',
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+    },
+    { 
+      title: 'Explore Recommendations', 
+      detail: 'Based on your test results, explore personalized course recommendations and career paths tailored just for you.',
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      ),
+    },
+    { 
+      title: 'Book an Appointment', 
+      detail: 'Schedule a one-on-one session with your teacher to discuss your results and plan your next steps together.',
+      icon: (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      ),
+    },
+  ]
+
+  const isLastStep = currentStep === steps.length - 1
+  const step = steps[currentStep]
+
+  const handleNext = () => {
+    if (isLastStep) {
+      onClose()
+    } else {
+      setCurrentStep((prev) => prev + 1)
+    }
+  }
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(0, prev - 1))
+  }
+
+  const handleSkip = () => {
+    onClose()
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className={cn(
+        "w-full max-w-md rounded-3xl border p-6 shadow-2xl overflow-hidden",
+        isLight 
+          ? "border-slate-200 bg-white" 
+          : "border-slate-800/80 bg-slate-950/95"
+      )}>
+        {/* Progress indicator */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-2">
+            {steps.map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  idx === currentStep 
+                    ? "w-8 bg-blue-500" 
+                    : idx < currentStep 
+                      ? "w-4 bg-blue-400" 
+                      : isLight ? "w-4 bg-slate-200" : "w-4 bg-slate-700"
+                )}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={handleSkip}
+            className={cn(
+              "text-xs font-medium transition-colors",
+              isLight ? "text-slate-500 hover:text-slate-700" : "text-slate-400 hover:text-slate-200"
+            )}
+          >
+            Skip
+          </button>
+        </div>
+
+        {/* Step content with slide animation */}
+        <div className="relative min-h-[280px]">
+          <div
+            key={currentStep}
+            className="animate-fade-in-slide"
+          >
+            {/* Icon */}
+            <div className={cn(
+              "flex h-16 w-16 items-center justify-center rounded-2xl mb-5 mx-auto",
+              isLight 
+                ? "bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600" 
+                : "bg-gradient-to-br from-blue-600/20 to-blue-500/10 text-blue-400"
+            )}>
+              {step.icon}
+            </div>
+
+            {/* Step number */}
+            <div className={cn(
+              "text-center text-xs font-semibold uppercase tracking-wider mb-2",
+              isLight ? "text-blue-600" : "text-blue-400"
+            )}>
+              Step {currentStep + 1} of {steps.length}
+            </div>
+
+            {/* Title */}
+            <h2 className={cn(
+              "text-center text-xl font-bold mb-3",
+              isLight ? "text-slate-900" : "text-slate-50"
+            )}>
+              {step.title}
+            </h2>
+
+            {/* Description */}
+            <p className={cn(
+              "text-center text-sm leading-relaxed mb-6",
+              isLight ? "text-slate-600" : "text-slate-400"
+            )}>
+              {step.detail}
+            </p>
+          </div>
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            disabled={currentStep === 0}
+            className={cn(
+              "rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-0",
+              isLight 
+                ? "border border-slate-200 text-slate-700 hover:bg-slate-50" 
+                : "border border-slate-700 text-slate-300 hover:bg-slate-800"
+            )}
+          >
+            Back
+          </button>
+
+          <button
+            type="button"
+            onClick={handleNext}
+            className={cn(
+              "rounded-xl px-6 py-2.5 text-sm font-semibold transition-all",
+              isLight 
+                ? "bg-blue-500 text-white hover:bg-blue-600 shadow-md" 
+                : "bg-blue-600/20 text-blue-100 ring-1 ring-blue-500/25 hover:bg-blue-600/30"
+            )}
+          >
+            {isLastStep ? 'Get Started!' : 'Next'}
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fade-in-slide {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        .animate-fade-in-slide {
+          animation: fade-in-slide 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }

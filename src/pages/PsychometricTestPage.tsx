@@ -1111,10 +1111,44 @@ function RiasecCard(props: {
   glowColor: string
 }) {
   const { letter, title, description, icon, gradient, borderColor, glowColor } = props
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+
+  // Light mode color schemes for each RIASEC type
+  const lightColorSchemes: Record<string, { bg: string; border: string; letterColor: string; titleColor: string; descColor: string; iconColor: string }> = {
+    R: { bg: 'bg-gradient-to-br from-blue-50 to-blue-100', border: 'border-blue-200', letterColor: 'text-blue-800', titleColor: 'text-blue-900', descColor: 'text-slate-700', iconColor: 'text-blue-600' },
+    I: { bg: 'bg-gradient-to-br from-purple-50 to-purple-100', border: 'border-purple-200', letterColor: 'text-purple-800', titleColor: 'text-purple-900', descColor: 'text-slate-700', iconColor: 'text-purple-600' },
+    A: { bg: 'bg-gradient-to-br from-pink-50 to-purple-100', border: 'border-purple-200', letterColor: 'text-purple-800', titleColor: 'text-purple-900', descColor: 'text-slate-700', iconColor: 'text-purple-600' },
+    S: { bg: 'bg-gradient-to-br from-orange-50 to-amber-100', border: 'border-orange-200', letterColor: 'text-orange-800', titleColor: 'text-orange-900', descColor: 'text-slate-700', iconColor: 'text-orange-600' },
+    E: { bg: 'bg-gradient-to-br from-amber-50 to-orange-100', border: 'border-orange-200', letterColor: 'text-orange-800', titleColor: 'text-orange-900', descColor: 'text-slate-700', iconColor: 'text-orange-600' },
+    C: { bg: 'bg-gradient-to-br from-blue-50 to-slate-100', border: 'border-blue-200', letterColor: 'text-blue-800', titleColor: 'text-blue-900', descColor: 'text-slate-700', iconColor: 'text-blue-600' },
+  }
+
+  const lightScheme = lightColorSchemes[letter] || lightColorSchemes.R
+
+  if (isLight) {
+    return (
+      <div
+        className={cn(
+          'group relative overflow-hidden rounded-2xl border p-6 shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer',
+          lightScheme.bg,
+          lightScheme.border,
+        )}
+      >
+        <div className="relative">
+          <div className={cn('mb-4 text-5xl font-bold transition-transform duration-300 group-hover:scale-105', lightScheme.letterColor)}>{letter}</div>
+          <div className={cn('mb-3 flex items-center justify-center transition-transform duration-300 group-hover:scale-105', lightScheme.iconColor)}>{icon}</div>
+          <div className={cn('text-xl font-semibold mb-2', lightScheme.titleColor)}>{title}</div>
+          <div className={cn('text-sm leading-relaxed', lightScheme.descColor)}>{description}</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-8 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer',
+        'group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer',
         gradient,
         borderColor,
       )}
@@ -1126,10 +1160,10 @@ function RiasecCard(props: {
       </div>
       
       <div className="relative">
-        <div className="mb-5 text-6xl font-bold text-slate-100 transition-transform duration-300 group-hover:scale-110">{letter}</div>
-        <div className="mb-4 flex items-center justify-center text-slate-200 transition-transform duration-300 group-hover:scale-110">{icon}</div>
-        <div className="text-2xl font-semibold text-slate-100 mb-3">{title}</div>
-        <div className="text-base leading-relaxed text-slate-300/90 group-hover:text-slate-200 transition-colors duration-300">{description}</div>
+        <div className="mb-4 text-5xl font-bold text-slate-100 transition-transform duration-300 group-hover:scale-105">{letter}</div>
+        <div className="mb-3 flex items-center justify-center text-slate-200 transition-transform duration-300 group-hover:scale-105">{icon}</div>
+        <div className="text-xl font-semibold text-slate-100 mb-2">{title}</div>
+        <div className="text-sm leading-relaxed text-slate-200">{description}</div>
       </div>
     </div>
   )
