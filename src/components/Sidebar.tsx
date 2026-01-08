@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { studentNavigation, teacherNavigation, type NavKey } from '../constants/navigation'
 import { cn } from '../lib/cn'
 import { useAuth } from '../context/AuthContext'
@@ -18,6 +19,7 @@ import {
   IconLogout,
   IconMap,
   IconUser,
+  IconChevronDown,
 } from './icons'
 
 function NavIcon(props: { navKey: NavKey; className?: string; isActive?: boolean; isLight?: boolean }) {
@@ -71,6 +73,7 @@ export function Sidebar(props: SidebarProps) {
   const { user, signOut } = useAuth()
   const { profile, loading: profileLoading } = useProfile()
   const navigate = useNavigate()
+  const location = useLocation()
   const { theme } = useTheme()
   const isLight = theme === 'light'
   const { t } = useTranslation()
@@ -79,6 +82,8 @@ export function Sidebar(props: SidebarProps) {
   // RoleProvider wraps the app, so this should always be available
   const { isTeacher } = useRole()
   
+  const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false)
+
   // Wait for profile to load before showing navigation to avoid showing wrong role's nav
   // This prevents the flash of student navigation when a teacher logs in
   // Filter out profile and roadmap for students only
@@ -140,17 +145,16 @@ export function Sidebar(props: SidebarProps) {
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-3">
           <div className={cn(
-            'grid size-11 place-items-center rounded-2xl border shadow-lg',
+            'grid size-11 place-items-center overflow-hidden rounded-2xl border shadow-lg',
             isLight
-              ? 'border-blue-200 bg-blue-50'
+              ? 'border-blue-200 bg-white'
               : 'border-slate-800/60 bg-slate-950/35 shadow-[0_0_30px_rgba(59,130,246,0.18)]'
           )}>
-            <span className={cn(
-              'text-base font-bold tracking-wide',
-              isLight ? 'text-blue-700' : 'text-slate-100'
-            )}>
-              P
-            </span>
+            <img 
+              src="/pathFinder.png" 
+              alt="PathFinder Logo" 
+              className="h-full w-full object-cover"
+            />
           </div>
           {!isCollapsed && (
             <div className="leading-tight">
@@ -169,36 +173,6 @@ export function Sidebar(props: SidebarProps) {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={isMobile ? onMenuClick : onToggleCollapse}
-          className={cn(
-            'rounded-xl border p-2 transition-colors',
-            isLight
-              ? 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-              : 'border-transparent text-slate-300/80 hover:border-slate-800/60 hover:bg-slate-950/30 hover:text-slate-100'
-          )}
-          aria-label={
-            isMobile
-              ? t('sidebar.closeMenu')
-              : isCollapsed
-                ? t('sidebar.expandSidebar')
-                : t('sidebar.collapseSidebar')
-          }
-        >
-          {isMobile ? (
-            <span className="relative block size-4">
-              <span className="absolute left-1/2 top-1/2 block h-[2px] w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-current opacity-80" />
-              <span className="absolute left-1/2 top-1/2 block h-[2px] w-4 -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-current opacity-80" />
-            </span>
-          ) : (
-            <>
-              <span className="block h-[2px] w-4 bg-current opacity-80" />
-              <span className="mt-1 block h-[2px] w-4 bg-current opacity-60" />
-              <span className="mt-1 block h-[2px] w-4 bg-current opacity-40" />
-            </>
-          )}
-        </button>
       </div>
 
       {/* Nav: top-aligned like the reference sidebar (space fills between nav and footer). */}
@@ -226,7 +200,93 @@ export function Sidebar(props: SidebarProps) {
             ))}
           </div>
         ) : (
-          navigation.map((item) => (
+          navigation.map((item) => {
+            if (item.key === 'appointment' && !isTeacher) {
+              const isActive = location.pathname.startsWith('/appointment')
+              return (
+                <div key={item.key} className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isCollapsed) {
+                        navigate('/appointment')
+                      } else {
+                        setIsAppointmentsOpen(!isAppointmentsOpen)
+                      }
+                    }}
+                    className={cn(
+                      'group relative flex w-full items-center gap-3 rounded-xl px-3 text-base font-medium transition',
+                      isLight
+                        ? isActive
+                          ? 'border-2 border-blue-300 bg-blue-50 py-3.5 text-blue-700 shadow-sm'
+                          : 'border border-transparent py-3.5 text-slate-700 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        : isActive
+                          ? 'border border-blue-500/25 bg-blue-600/15 py-3.5 text-slate-50 shadow-[0_0_25px_rgba(59,130,246,0.18)]'
+                          : 'border border-transparent py-3.5 text-slate-200/90 hover:border-slate-800/60 hover:bg-slate-950/25 hover:text-slate-100',
+                      isCollapsed && 'justify-center px-2',
+                    )}
+                  >
+                    <NavIcon
+                      navKey={item.key}
+                      isActive={isActive}
+                      isLight={isLight}
+                      className={cn(
+                        !isLight && isActive && 'text-blue-200 drop-shadow-[0_0_12px_rgba(59,130,246,0.22)]',
+                        !isLight && !isActive && 'group-hover:text-slate-200',
+                      )}
+                    />
+                    {!isCollapsed && (
+                      <>
+                        <span className="flex-1 text-left truncate">{getLabel(item.key)}</span>
+                        <IconChevronDown
+                          size={16}
+                          className={cn(
+                            "transition-transform duration-200",
+                            isAppointmentsOpen && "rotate-180",
+                            isLight ? "text-slate-400" : "text-slate-500"
+                          )}
+                        />
+                      </>
+                    )}
+                  </button>
+                  
+                  {isAppointmentsOpen && !isCollapsed && (
+                    <div className="ml-4 space-y-1 pl-4 border-l border-slate-200 dark:border-slate-800">
+                      <NavLink
+                        to="/appointment?view=book"
+                        className={({ isActive }) => cn(
+                          "block rounded-lg px-3 py-2 text-base transition font-medium",
+                          isLight 
+                            ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            : "text-slate-400 hover:bg-slate-950/30 hover:text-slate-200",
+                          (location.search.includes('view=book') || (!location.search.includes('view=status') && location.pathname === '/appointment'))
+                            ? (isLight ? "text-blue-700 bg-blue-50/50" : "text-blue-300 bg-blue-900/10")
+                            : ""
+                        )}
+                      >
+                        Book Appointments
+                      </NavLink>
+                      <NavLink
+                        to="/appointment?view=status"
+                        className={({ isActive }) => cn(
+                          "block rounded-lg px-3 py-2 text-base transition font-medium",
+                          isLight 
+                            ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            : "text-slate-400 hover:bg-slate-950/30 hover:text-slate-200",
+                          location.search.includes('view=status')
+                            ? (isLight ? "text-blue-700 bg-blue-50/50" : "text-blue-300 bg-blue-900/10")
+                            : ""
+                        )}
+                      >
+                        Appointment Status
+                      </NavLink>
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            return (
             <NavLink
               key={item.key}
               to={item.to}
@@ -270,7 +330,7 @@ export function Sidebar(props: SidebarProps) {
                 </>
               )}
             </NavLink>
-          ))
+          )})
         )}
       </nav>
 

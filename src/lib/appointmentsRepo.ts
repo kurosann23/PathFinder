@@ -21,7 +21,10 @@ export type AppointmentRow = {
 
 export type AppointmentWithNames = AppointmentRow & {
   student_name: string | null
+  student_class: string | null
+  student_email: string | null
   teacher_name: string | null
+  teacher_email: string | null
 }
 
 /**
@@ -101,17 +104,17 @@ export async function fetchStudentAppointments(studentId: string): Promise<Appoi
 
   // Fetch teacher names separately
   const teacherIds = Array.from(new Set((data || []).map((a: AppointmentRow) => a.teacher_id)))
-  const teacherMap: Record<string, string | null> = {}
+  const teacherMap: Record<string, { name: string | null; email: string | null }> = {}
 
   if (teacherIds.length > 0) {
     const { data: teachers } = await supabase
       .from('teacher_profiles')
-      .select('id, full_name')
+      .select('id, full_name, email')
       .in('id', teacherIds)
 
     if (teachers) {
       for (const teacher of teachers) {
-        teacherMap[teacher.id] = teacher.full_name
+        teacherMap[teacher.id] = { name: teacher.full_name, email: teacher.email }
       }
     }
   }
@@ -119,8 +122,11 @@ export async function fetchStudentAppointments(studentId: string): Promise<Appoi
   // Transform the data to include teacher name
   return (data || []).map((row: AppointmentRow) => ({
     ...row,
-    teacher_name: teacherMap[row.teacher_id] || null,
+    teacher_name: teacherMap[row.teacher_id]?.name || null,
+    teacher_email: teacherMap[row.teacher_id]?.email || null,
     student_name: null, // Student knows their own name
+    student_class: null,
+    student_email: null,
   })) as AppointmentWithNames[]
 }
 
@@ -144,17 +150,17 @@ export async function fetchTeacherAppointments(teacherId: string): Promise<Appoi
 
   // Fetch student names separately
   const studentIds = Array.from(new Set((data || []).map((a: AppointmentRow) => a.student_id)))
-  const studentMap: Record<string, string | null> = {}
+  const studentMap: Record<string, { name: string | null; class: string | null; email: string | null }> = {}
 
   if (studentIds.length > 0) {
     const { data: students } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, class, email')
       .in('id', studentIds)
 
     if (students) {
       for (const student of students) {
-        studentMap[student.id] = student.full_name
+        studentMap[student.id] = { name: student.full_name, class: student.class, email: student.email }
       }
     }
   }
@@ -162,8 +168,11 @@ export async function fetchTeacherAppointments(teacherId: string): Promise<Appoi
   // Transform the data to include student name
   return (data || []).map((row: AppointmentRow) => ({
     ...row,
-    student_name: studentMap[row.student_id] || null,
+    student_name: studentMap[row.student_id]?.name || null,
+    student_class: studentMap[row.student_id]?.class || null,
+    student_email: studentMap[row.student_id]?.email || null,
     teacher_name: null, // Teacher knows their own name
+    teacher_email: null,
   })) as AppointmentWithNames[]
 }
 
