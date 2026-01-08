@@ -697,7 +697,7 @@ export function ProfilePage() {
   const isLight = theme === 'light'
   const { user } = useAuth()
   const { profile, loading: profileLoading, refresh } = useProfile()
-  const { progress, checkProfileCompletion } = useUserProgress()
+  const { progress } = useUserProgress()
   const { role, isTeacher } = useRole()
   const profileId = useMemo(() => user?.id ?? '', [user?.id])
   const showSkeleton = profileLoading && !profile
@@ -939,7 +939,6 @@ export function ProfilePage() {
       setIsDirty(false)
       setSuccess('Profile saved.')
       await refresh()
-      await checkProfileCompletion()
     } catch (e) {
       setError(getErrorMessage(e) || 'Failed to save profile.')
     } finally {
@@ -1052,29 +1051,6 @@ export function ProfilePage() {
           )}
         </div>
       )}
-
-      {/* Profile Strength Indicator */}
-      <Card className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className={cn("text-sm font-semibold", isLight ? "text-slate-900" : "text-slate-100")}>
-            Profile Completion
-          </h3>
-          <span className={cn("text-sm font-bold", isLight ? "text-blue-600" : "text-blue-400")}>
-            {form.avatar_url ? '100%' : '50%'}
-          </span>
-        </div>
-        <div className={cn("h-2 w-full rounded-full", isLight ? "bg-slate-100" : "bg-slate-800")}>
-          <div 
-            className="h-full rounded-full bg-blue-500 transition-all duration-500"
-            style={{ width: form.avatar_url ? '100%' : '50%' }}
-          />
-        </div>
-        {!form.avatar_url && (
-          <p className={cn("mt-2 text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
-            Upload a profile photo to complete your profile.
-          </p>
-        )}
-      </Card>
 
       {/* Layout: Two columns - Left (Photo, About, Achievements) and Right (Info, Skills, RIASEC) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

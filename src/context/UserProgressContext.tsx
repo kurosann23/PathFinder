@@ -21,7 +21,6 @@ import {
   fetchPsychometricResult,
   upsertPsychometricResult,
 } from '../lib/psychometricRepo'
-import { fetchProfile } from '../lib/profileRepo'
 
 type UserProgressContextValue = {
   // Stores the minimal user progress (dummy-only, frontend state).
@@ -43,7 +42,6 @@ type UserProgressContextValue = {
   resetDemo: () => void
   markCourseViewed: () => void
   markAppointmentCompleted: () => void
-  checkProfileCompletion: () => Promise<void>
 }
 
 const UserProgressContext = createContext<UserProgressContextValue | null>(null)
@@ -55,9 +53,9 @@ function cloneInitial(): UserProgressState {
     riasecPercentages: { ...initialUserProgressState.riasecPercentages },
     journey: { 
       ...initialUserProgressState.journey,
-      profile: false,
-      course: false,
-      appointment: false
+      // Check local storage for course viewed state (since we don't have a DB column yet)
+      course: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_course_viewed')) : false,
+      appointment: typeof window !== 'undefined' ? Boolean(localStorage.getItem('pathfinder_appointment_completed')) : false
     },
   }
 }
@@ -88,29 +86,10 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       setIsHydrating(true)
       setHydrationError('')
       try {
-        const [row, profile] = await Promise.all([
-          fetchPsychometricResult(userId),
-          fetchProfile(userId)
-        ])
-        
+        const row = await fetchPsychometricResult(userId)
         if (cancelled) return
 
-        // Check local storage for user-specific journey progress
-        const courseViewed = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_course_viewed_${userId}`)) : false
-        const appointmentCompleted = typeof window !== 'undefined' ? Boolean(localStorage.getItem(`pathfinder_appointment_completed_${userId}`)) : false
-        const profileCompleted = Boolean(profile?.avatar_url)
-
         if (!row) {
-          // Even if no psychometric result, we should update profile status
-          setProgress((prev) => ({
-            ...prev,
-            journey: {
-              ...prev.journey,
-              profile: profileCompleted,
-              course: courseViewed,
-              appointment: appointmentCompleted
-            }
-          }))
           setIsHydrating(false)
           return
         }
@@ -129,16 +108,10 @@ export function UserProgressProvider(props: { children: ReactNode }) {
           },
           careerPathReport: (row.career_path_report as CareerPathReport | null) ?? null,
           courseRecommendations: (row.course_recommendations as CourseRecommendation[] | null) ?? [],
-          journey: { 
-            ...prev.journey, 
-            psychometric: true,
-            profile: profileCompleted,
-            course: courseViewed,
-            appointment: appointmentCompleted
-          },
+          journey: { ...prev.journey, psychometric: true },
         }))
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to load user data.'
+        const msg = e instanceof Error ? e.message : 'Failed to load psychometric result.'
         if (!cancelled) setHydrationError(msg)
       } finally {
         if (!cancelled) setIsHydrating(false)
@@ -217,11 +190,6 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       }
 
       await deletePsychometricResult(user.id)
-      
-      // Clear local storage progress
-      localStorage.removeItem(`pathfinder_course_viewed_${user.id}`)
-      localStorage.removeItem(`pathfinder_appointment_completed_${user.id}`)
-
       setProgress((prev) => ({
         ...prev,
         psychometricCompleted: false,
@@ -252,8 +220,7 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markCourseViewed() {
-      if (!user?.id) return
-      localStorage.setItem(`pathfinder_course_viewed_${user.id}`, 'true')
+      localStorage.setItem('pathfinder_course_viewed', 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, course: true },
@@ -261,27 +228,11 @@ export function UserProgressProvider(props: { children: ReactNode }) {
     }
 
     function markAppointmentCompleted() {
-      if (!user?.id) return
-      localStorage.setItem(`pathfinder_appointment_completed_${user.id}`, 'true')
+      localStorage.setItem('pathfinder_appointment_completed', 'true')
       setProgress((prev) => ({
         ...prev,
         journey: { ...prev.journey, appointment: true },
       }))
-    }
-
-    async function checkProfileCompletion() {
-      if (!user?.id) return
-      try {
-        const profile = await fetchProfile(user.id)
-        if (profile?.avatar_url) {
-          setProgress((prev) => ({
-            ...prev,
-            journey: { ...prev.journey, profile: true },
-          }))
-        }
-      } catch (err) {
-        console.error('Failed to check profile completion:', err)
-      }
     }
 
     return {
@@ -296,7 +247,6 @@ export function UserProgressProvider(props: { children: ReactNode }) {
       resetDemo,
       markCourseViewed,
       markAppointmentCompleted,
-      checkProfileCompletion,
     }
   }, [hydrationError, isHydrating, isSavingPsychometric, progress, user])
 

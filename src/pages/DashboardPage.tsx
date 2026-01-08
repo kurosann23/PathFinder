@@ -5,7 +5,6 @@ import {
   journeyMeta,
   type JourneyKey,
 } from '../constants/dashboard'
-import { useAuth } from '../context/AuthContext'
 import { useUserProgress } from '../context/UserProgressContext'
 import { useProfile } from '../context/ProfileContext'
 import { useTheme } from '../context/ThemeContext'
@@ -15,37 +14,14 @@ import { type JourneyStep } from '../components/dashboard/JourneyTimeline'
 import { CareerSnapshot } from '../components/dashboard/CareerSnapshot'
 import { DashboardProfileCard } from '../components/dashboard/DashboardProfileCard'
 import { Card } from '../components/ui/Card'
-import { OnboardingGuide } from '../components/dashboard/OnboardingGuide'
-import { IconQuestion } from '../components/icons'
 import { cn } from '../lib/cn'
 
 export function DashboardPage() {
-  const { user } = useAuth()
-  const { progress, isHydrating, checkProfileCompletion } = useUserProgress()
+  const { progress, isHydrating } = useUserProgress()
   const { profile, loading: profileLoading } = useProfile()
   const { t } = useTranslation()
   const { theme } = useTheme()
   const isLight = theme === 'light'
-  
-  const [guideOpen, setGuideOpen] = useState(false)
-
-  // Auto-open guide for new users
-  useEffect(() => {
-    if (user?.id) {
-      const hasSeenGuide = localStorage.getItem(`pathfinder_onboarding_completed_${user.id}`)
-      if (!hasSeenGuide) {
-        const timer = setTimeout(() => setGuideOpen(true), 500)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [user?.id])
-
-  // Ensure profile completion status is accurate when visiting dashboard
-  useEffect(() => {
-    if (!isHydrating) {
-      checkProfileCompletion()
-    }
-  }, [isHydrating, checkProfileCompletion])
 
   const careerTraits = useMemo(() => {
     if (!progress.psychometricCompleted) {
@@ -172,24 +148,11 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-10 pb-10">
-      <OnboardingGuide isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
       {/* Header: PATHFINDER Dashboard */}
-      <header className="flex items-center justify-between">
+      <header>
         <h1 className={cn('text-2xl font-semibold', isLight ? 'text-slate-900' : 'text-slate-50')}>
           PATHFINDER Dashboard
         </h1>
-        <button
-          onClick={() => setGuideOpen(true)}
-          className={cn(
-            "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
-            isLight
-              ? "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:text-blue-600 hover:ring-blue-200"
-              : "bg-slate-900 text-slate-400 ring-1 ring-slate-800 hover:text-blue-400 hover:ring-blue-900"
-          )}
-        >
-          <IconQuestion size={18} />
-          <span>Guide</span>
-        </button>
       </header>
 
       {/* Top Section: 3 columns */}

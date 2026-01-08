@@ -22,7 +22,6 @@ export type CourseRow = {
   work_projects?: string
   work_labs?: string
   work_collaboration?: string
-  what_you_will_work?: string
 }
 
 export type CourseInput = Omit<CourseRow, 'id' | 'created_at' | 'updated_at'>
@@ -168,7 +167,6 @@ export async function createCourse(course: CourseInput): Promise<CourseRow> {
       work_projects: course.work_projects,
       work_labs: course.work_labs,
       work_collaboration: course.work_collaboration,
-      what_you_will_work: course.what_you_will_work,
     })
     .select('*')
     .single()
@@ -176,12 +174,14 @@ export async function createCourse(course: CourseInput): Promise<CourseRow> {
   if (error) {
     const msg = error.message || 'Failed to create course.'
     const lower = msg.toLowerCase()
-    const hint =
-      lower.includes('row-level security') || lower.includes('permission denied')
-        ? ' (RLS blocked write. Add INSERT/UPDATE policies for teachers on public.courses.)'
-        : lower.includes('relation') && lower.includes('does not exist')
-          ? ' (Table missing. Create public.courses table in Supabase SQL editor.)'
-          : ''
+    let hint = ''
+    if (lower.includes('row-level security') || lower.includes('permission denied')) {
+      hint = ' (RLS blocked write. Add INSERT/UPDATE policies for teachers on public.courses.)'
+    } else if (lower.includes('relation') && lower.includes('does not exist')) {
+      hint = ' (Table missing. Create public.courses table in Supabase SQL editor.)'
+    } else if (lower.includes('column') && (lower.includes('does not exist') || lower.includes('not found'))) {
+      hint = ' (Column missing or has different name. Check database schema - column might need to be added or renamed.)'
+    }
     throw new Error(`${msg}${hint}`)
   }
 
@@ -233,9 +233,6 @@ export async function updateCourse(id: number, updates: Partial<CourseInput>): P
   }
   if (updates.work_collaboration !== undefined) {
     updateData.work_collaboration = updates.work_collaboration
-  }
-  if (updates.what_you_will_work !== undefined) {
-    updateData.what_you_will_work = updates.what_you_will_work
   }
 
   const { data, error } = await supabase
@@ -297,7 +294,6 @@ export function courseRowToUI(course: CourseRow): {
   workProjects?: string
   workLabs?: string
   workCollaboration?: string
-  whatYouWillWork?: string
 } {
   return {
     courseName: course.course_name,
@@ -309,7 +305,6 @@ export function courseRowToUI(course: CourseRow): {
     workProjects: course.work_projects,
     workLabs: course.work_labs,
     workCollaboration: course.work_collaboration,
-    whatYouWillWork: course.what_you_will_work,
   }
 }
 
@@ -328,7 +323,6 @@ export function uiToCourseInput(
     workProjects?: string
     workLabs?: string
     workCollaboration?: string
-    whatYouWillWork?: string
   },
 ): CourseInput {
   return {
@@ -343,7 +337,6 @@ export function uiToCourseInput(
     work_projects: uiCourse.workProjects,
     work_labs: uiCourse.workLabs,
     work_collaboration: uiCourse.workCollaboration,
-    what_you_will_work: uiCourse.whatYouWillWork,
   }
 }
 

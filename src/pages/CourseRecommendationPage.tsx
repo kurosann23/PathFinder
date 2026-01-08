@@ -89,7 +89,6 @@ type UICourse = {
   workProjects?: string
   workLabs?: string
   workCollaboration?: string
-  whatYouWillWork?: string
 }
 
 const ALL_RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const
@@ -601,7 +600,7 @@ export function CourseRecommendationPage() {
                               What you'll work on
                             </h3>
                             <p className={cn("mt-1 ml-11 text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
-                              {selectedCourse.course.whatYouWillWork || "Explore the activities you'll encounter in this course."}
+                              Explore the activities you'll encounter in this course.
                             </p>
                           </div>
 

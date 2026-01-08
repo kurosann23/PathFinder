@@ -11,6 +11,8 @@ import { Avatar } from './ui/Avatar'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageToggle } from './LanguageToggle'
 import { useTranslation } from '../context/LanguageContext'
+import pathFinderLogo from '../assets/pathFinder.png'
+
 import {
   IconBook,
   IconClipboard,
@@ -151,10 +153,11 @@ export function Sidebar(props: SidebarProps) {
               : 'border-slate-800/60 bg-slate-950/35 shadow-[0_0_30px_rgba(59,130,246,0.18)]'
           )}>
             <img 
-              src="/pathFinder.png" 
-              alt="PathFinder Logo" 
-              className="h-full w-full object-cover"
-            />
+  src={pathFinderLogo} 
+  alt="PathFinder Logo" 
+  className="h-full w-full object-cover"
+/>
+
           </div>
           {!isCollapsed && (
             <div className="leading-tight">

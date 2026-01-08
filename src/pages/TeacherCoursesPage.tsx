@@ -27,7 +27,6 @@ type UICourse = {
   workProjects?: string
   workLabs?: string
   workCollaboration?: string
-  whatYouWillWork?: string
 }
 
 export function TeacherCoursesPage() {
@@ -49,7 +48,6 @@ export function TeacherCoursesPage() {
     workProjects: '',
     workLabs: '',
     workCollaboration: '',
-    whatYouWillWork: '',
   })
   const [formRiasecType, setFormRiasecType] = useState<'R' | 'I' | 'A' | 'S' | 'E' | 'C' | null>(null)
   const [newLearnItem, setNewLearnItem] = useState('')
@@ -176,7 +174,6 @@ export function TeacherCoursesPage() {
         workProjects: '',
         workLabs: '',
         workCollaboration: '',
-        whatYouWillWork: '',
       })
       setFormRiasecType(null)
       setCourseImageUrl(null)
@@ -266,7 +263,6 @@ export function TeacherCoursesPage() {
         workProjects: '',
          workLabs: '',
          workCollaboration: '',
-         whatYouWillWork: '',
        })
        setCourseImageUrl(null)
       setCourseImagePreview(null)
@@ -309,7 +305,6 @@ export function TeacherCoursesPage() {
       workProjects: '',
       workLabs: '',
       workCollaboration: '',
-      whatYouWillWork: '',
     })
     setFormRiasecType(null)
     setCourseImageUrl(null)

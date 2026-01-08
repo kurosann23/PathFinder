@@ -107,28 +107,18 @@ function SignUpForm({ fullName, setFullName, studentClass, setStudentClass, emai
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <IconBook className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} />
           </div>
-          <select
+          <input
+            type="text"
             value={studentClass}
             onChange={(e) => setStudentClass(e.target.value)}
+            placeholder="e.g. 5 Amanah"
             className={cn(
-              "w-full rounded-lg border px-3 pl-10 py-2.5 text-sm outline-none transition-all focus:ring-2 appearance-none",
+              "w-full rounded-lg border px-3 pl-10 py-2.5 text-sm outline-none transition-all focus:ring-2",
               isLight 
                 ? "border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/20" 
                 : "border-slate-800 bg-slate-950/50 text-slate-100 placeholder-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
             )}
-          >
-            <option value="" disabled>Select your class</option>
-            <option value="5 Ibnu Sina">5 Ibnu Sina</option>
-            <option value="5 Ibnu Rushd">5 Ibnu Rushd</option>
-            <option value="5 Ibnu Khaldun">5 Ibnu Khaldun</option>
-            <option value="5 Ibnu Taimiyyah">5 Ibnu Taimiyyah</option>
-            <option value="5 Ibnu Jarrir">5 Ibnu Jarrir</option>
-          </select>
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <svg className={cn("size-4", isLight ? "text-slate-400" : "text-slate-500")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+          />
         </div>
       </div>
 

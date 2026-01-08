@@ -46,7 +46,6 @@ export function TeacherAppointmentsPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState<string | null>(null)
   const [cancellationReason, setCancellationReason] = useState<string>('')
   const [expandedRejected, setExpandedRejected] = useState<Set<string>>(new Set())
-  const [selectedClass, setSelectedClass] = useState<string>('All')
 
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) {
@@ -227,14 +226,11 @@ export function TeacherAppointmentsPage() {
     }
   }
 
-  // Filter appointments
-  const filteredAppointments = appointments.filter(a => selectedClass === 'All' || a.student_class === selectedClass)
-
   // Group appointments by status (priority order: Approved, Pending, Cancelled, Rejected)
-  const approvedAppointments = filteredAppointments.filter((a) => a.status === 'approved')
-  const pendingAppointments = filteredAppointments.filter((a) => a.status === 'pending')
-  const cancelledAppointments = filteredAppointments.filter((a) => a.status === 'cancelled')
-  const rejectedAppointments = filteredAppointments.filter((a) => a.status === 'rejected')
+  const approvedAppointments = appointments.filter((a) => a.status === 'approved')
+  const pendingAppointments = appointments.filter((a) => a.status === 'pending')
+  const cancelledAppointments = appointments.filter((a) => a.status === 'cancelled')
+  const rejectedAppointments = appointments.filter((a) => a.status === 'rejected')
 
   if (!isSupabaseConfigured) {
     return (
@@ -251,33 +247,7 @@ export function TeacherAppointmentsPage() {
 
   return (
     <div className="space-y-6 pb-24">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader title="APPOINTMENTS" subtitle="Manage appointment requests from students" />
-        
-        <div className="flex items-center gap-2">
-          <label htmlFor="class-filter" className={cn("text-sm font-medium", isLight ? "text-slate-700" : "text-slate-300")}>
-            Filter by Class:
-          </label>
-          <select
-            id="class-filter"
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className={cn(
-              "rounded-lg border px-3 py-2 text-sm outline-none transition-all focus:ring-2",
-              isLight 
-                ? "border-slate-200 bg-white text-slate-900 focus:border-blue-500 focus:ring-blue-500/20" 
-                : "border-slate-800 bg-slate-950 text-slate-100 focus:border-blue-500/50 focus:ring-blue-500/20"
-            )}
-          >
-            <option value="All">All Classes</option>
-            <option value="5 Ibnu Sina">5 Ibnu Sina</option>
-            <option value="5 Ibnu Rushd">5 Ibnu Rushd</option>
-            <option value="5 Ibnu Khaldun">5 Ibnu Khaldun</option>
-            <option value="5 Ibnu Taimiyyah">5 Ibnu Taimiyyah</option>
-            <option value="5 Ibnu Jarrir">5 Ibnu Jarrir</option>
-          </select>
-        </div>
-      </div>
+      <PageHeader title="APPOINTMENTS" subtitle="Manage appointment requests from students" />
 
       {error && (
         <div className={cn(
@@ -349,11 +319,6 @@ export function TeacherAppointmentsPage() {
                         </div>
                         <div className={cn('text-base font-medium mb-1', isLight ? 'text-slate-900' : 'text-slate-200')}>
                           {appointment.student_name || 'Student'}
-                          {appointment.student_class && (
-                            <span className={cn("ml-2 text-sm font-normal", isLight ? "text-slate-500" : "text-slate-400")}>
-                              • {appointment.student_class}
-                            </span>
-                          )}
                         </div>
                         {appointment.reason && (
                           <div className={cn('text-base mt-2 line-clamp-2 leading-relaxed', isLight ? 'text-slate-900' : 'text-slate-400')}>{appointment.reason}</div>
@@ -427,11 +392,6 @@ export function TeacherAppointmentsPage() {
                       <div className="flex-1">
                         <div className={cn('text-xl font-semibold mb-1', isLight ? 'text-slate-900' : 'text-slate-100')}>
                           {appointment.student_name || 'Student'}
-                          {appointment.student_class && (
-                            <span className={cn("ml-2 text-base font-normal", isLight ? "text-slate-500" : "text-slate-400")}>
-                              • {appointment.student_class}
-                            </span>
-                          )}
                         </div>
                         <div className={cn('space-y-2 text-base', isLight ? 'text-slate-700' : 'text-slate-300')}>
                           <div className="flex items-center gap-2">
@@ -536,7 +496,7 @@ export function TeacherAppointmentsPage() {
                             "text-base font-medium truncate",
                             isLight ? "text-slate-900" : "text-slate-300"
                           )}>
-                            {appointment.student_name || 'Student'} {appointment.student_class ? `• ${appointment.student_class}` : ''}
+                            {appointment.student_name || 'Student'}
                           </span>
                           <span className={cn(
                             "text-base shrink-0",
@@ -675,7 +635,7 @@ export function TeacherAppointmentsPage() {
                             Rejected
                           </span>
                           <span className={cn('text-base font-medium truncate', isLight ? 'text-slate-900' : 'text-slate-300')}>
-                            {appointment.student_name || 'Student'} {appointment.student_class ? `• ${appointment.student_class}` : ''}
+                            {appointment.student_name || 'Student'}
                           </span>
                           <span className={cn('text-base shrink-0', isLight ? 'text-slate-700' : 'text-slate-400')}>{formatDate(appointment.date)}</span>
                         </div>
